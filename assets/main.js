@@ -137,8 +137,72 @@
       })
       .catch((err) => {
         console.error('[apos] manifest load failed', err);
-        $('#posts-grid').innerHTML = '<p style="color:var(--ink-3)">文章索引加载失败。</p>';
+        $('#posts-grid').innerHTML = '<p class="apos-load-err">文章索引加载失败。</p>';
       });
+
+    setupContactForm();
+  }
+
+  /* 首页联系表单 — 字数 meter + mailto 提交 */
+  function setupContactForm() {
+    const form = $('#contact-form');
+    if (!form) return;
+
+    const ta = form.querySelector('textarea[name="message"]');
+    const meter = $('#cf-meter');
+    const meterVal = $('#cf-meter-value');
+    const status = $('#cf-status');
+
+    if (ta && meter && meterVal) {
+      const max = parseInt(ta.getAttribute('maxlength') || '300', 10);
+      const updateMeter = () => {
+        const n = ta.value.length;
+        meter.value = n;
+        meterVal.textContent = `${n} / ${max}`;
+      };
+      ta.addEventListener('input', updateMeter);
+      updateMeter();
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      // 手动校验,把第一个 invalid 字段聚焦
+      const invalid = form.querySelector('input:invalid, select:invalid, textarea:invalid');
+      if (invalid) {
+        invalid.focus();
+        if (status) {
+          status.textContent = '× 请检查必填字段 / 邮箱格式';
+          status.className = 'form-status err';
+        }
+        return;
+      }
+      const subject = `[博客留言] ${data.topic || '来自访客'} · ${data.name || ''}`;
+      const body =
+        `来自:${data.name || '(未填)'} <${data.email}>\n` +
+        `主题:${data.topic || '其他'}\n\n` +
+        `${(data.message || '').trim()}\n\n` +
+        `—— 通过 https://apos-dt.github.io/AposBlog/ 联系表单提交`;
+      const mailto = `mailto:2411447661@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      if (status) {
+        status.textContent = '✓ 正在唤起本地邮件客户端...';
+        status.className = 'form-status ok';
+      }
+      // 直接 location 跳 mailto,浏览器会打开默认邮件客户端
+      location.href = mailto;
+    });
+
+    // reset 后重置 meter
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        if (meter) meter.value = 0;
+        if (meterVal) meterVal.textContent = '0 / 300';
+        if (status) {
+          status.textContent = '提交将唤起本地邮件客户端 · 不经任何第三方服务';
+          status.className = 'form-status';
+        }
+      }, 0);
+    });
   }
 
   function renderLatest(posts) {
@@ -217,7 +281,7 @@
     headEl.innerHTML = `
       <div class="post-meta">
         <span>${formatDate(meta.date)}</span>
-        <span class="post-tag" style="padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)">${escapeHtml(meta.tag || 'Note')}</span>
+        <span class="post-tag">${escapeHtml(meta.tag || 'Note')}</span>
         <span>${meta.readTime || '5'} min read</span>
       </div>
       <h1>${escapeHtml(meta.title)}</h1>
@@ -242,17 +306,164 @@
       </a>
     `;
 
-    // reading progress bar
+    setupPostTools(meta);
+  }
+
+  /* ============================================================
+     Post tools (TOC / 进度环 / 字号 / 主色 / 复制链接 / 回顶)
+     ============================================================ */
+  function setupPostTools(meta) {
+    buildTOC();
+    setupProgressRing();
+    setupTopProgressBar();
+    setupFontSize();
+    setupHueSlider();
+    setupCopyLink();
+    setupToTop();
+  }
+
+  function buildTOC() {
+    const nav = $('#post-toc-nav');
+    if (!nav) return;
+    const headings = $$('.post-body h2, .post-body h3');
+    if (!headings.length) {
+      const aside = document.querySelector('.post-toc');
+      if (aside) aside.style.display = 'none';
+      return;
+    }
+    headings.forEach((h, i) => {
+      if (!h.id) h.id = 'h-' + i + '-' + slugify(h.textContent);
+    });
+    nav.innerHTML = headings.map((h) => {
+      const tag = h.tagName.toLowerCase();
+      return `<a class="toc-link toc-${tag}" href="#${h.id}" data-cursor="link">${escapeHtml(h.textContent)}</a>`;
+    }).join('');
+
+    const links = $$('.toc-link', nav);
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          links.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+        }
+      });
+    }, { rootMargin: '-25% 0px -60% 0px' });
+    headings.forEach((h) => obs.observe(h));
+  }
+
+  function setupProgressRing() {
+    const fg = document.querySelector('.rp-fg');
+    const text = $('#rp-text');
+    if (!fg || !text) return;
+    const r = 15.91;
+    const C = 2 * Math.PI * r;
+    fg.style.strokeDasharray = C;
+    fg.style.strokeDashoffset = C;
+    const update = () => {
+      const h = document.documentElement;
+      const total = h.scrollHeight - h.clientHeight;
+      const pct = total > 0 ? Math.max(0, Math.min(1, (h.scrollTop || document.body.scrollTop) / total)) : 0;
+      fg.style.strokeDashoffset = C * (1 - pct);
+      text.textContent = Math.round(pct * 100) + '%';
+    };
+    addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function setupTopProgressBar() {
     const bar = document.createElement('div');
     bar.className = 'progress-bar';
     document.body.appendChild(bar);
-    const onScroll = () => {
+    const update = () => {
       const h = document.documentElement;
-      const pct = (h.scrollTop || document.body.scrollTop) / (h.scrollHeight - h.clientHeight);
-      bar.style.width = (Math.max(0, Math.min(1, pct)) * 100).toFixed(2) + '%';
+      const total = h.scrollHeight - h.clientHeight;
+      const pct = total > 0 ? Math.max(0, Math.min(1, (h.scrollTop || document.body.scrollTop) / total)) : 0;
+      bar.style.width = (pct * 100).toFixed(2) + '%';
     };
-    addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+    addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function setupFontSize() {
+    const body = document.querySelector('.post-body');
+    if (!body) return;
+    const apply = (fz, btn) => {
+      $$('.tab-btn[data-pfz]').forEach((b) => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      body.style.fontSize = fz + 'px';
+    };
+    const saved = parseInt(localStorage.getItem('apos-pfz') || '0', 10);
+    if (saved) {
+      const initBtn = document.querySelector(`.tab-btn[data-pfz="${saved}"]`);
+      if (initBtn) apply(saved, initBtn);
+    }
+    $$('.tab-btn[data-pfz]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const fz = parseInt(btn.dataset.pfz, 10);
+        apply(fz, btn);
+        localStorage.setItem('apos-pfz', String(fz));
+      });
+    });
+  }
+
+  function setupHueSlider() {
+    const hue = $('#post-hue');
+    const val = $('#post-hue-value');
+    const sw  = $('#post-hue-swatch');
+    if (!hue) return;
+    const root = document.documentElement;
+    const apply = () => {
+      const h = hue.value;
+      const accent = `oklch(0.72 0.21 ${h})`;
+      root.style.setProperty('--accent', accent);
+      if (val) val.textContent = h + '°';
+      if (sw) {
+        sw.style.background = accent;
+        sw.style.boxShadow = `0 0 10px ${accent}`;
+      }
+      localStorage.setItem('apos-hue', h);
+    };
+    const saved = localStorage.getItem('apos-hue');
+    if (saved) hue.value = saved;
+    apply();
+    hue.addEventListener('input', apply);
+  }
+
+  function setupCopyLink() {
+    const btn = $('#copy-link');
+    const txt = $('#copy-link-text');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(location.href);
+        btn.classList.add('copied');
+        if (txt) txt.textContent = '已复制 ✓';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          if (txt) txt.textContent = '复制本文链接';
+        }, 1800);
+      } catch {
+        if (txt) txt.textContent = '复制失败';
+      }
+    });
+  }
+
+  function setupToTop() {
+    const btn = $('#to-top');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (typeof lenis !== 'undefined' && lenis) {
+        lenis.scrollTo(0, { duration: 1.2 });
+      } else {
+        scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  }
+
+  function slugify(s) {
+    return (s || '').toLowerCase()
+      .replace(/[^\w一-龥\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .slice(0, 50) || 'h';
   }
 
   function renderPostError(msg) {
@@ -288,11 +499,38 @@
       // hr
       if (/^\s*---+\s*$/.test(line)) { out.push('<hr/>'); i++; continue; }
 
-      // blockquote
+      // blockquote (含 GitHub 风 admonition: > [!INFO] / [!WARNING] 等)
       if (/^>\s?/.test(line)) {
         const buf = [];
-        while (i < lines.length && /^>\s?/.test(lines[i])) { buf.push(lines[i].replace(/^>\s?/, '')); i++; }
-        out.push(`<blockquote>${inline(buf.join(' '))}</blockquote>`);
+        while (i < lines.length && /^>\s?/.test(lines[i])) {
+          buf.push(lines[i].replace(/^>\s?/, ''));
+          i++;
+        }
+        const joined = buf.join(' ').trim();
+        const adm = joined.match(/^\[!(INFO|TIP|SUCCESS|NOTE|WARNING|WARN|ERROR|DANGER)\]\s*(.*)$/i);
+        if (adm) {
+          const raw = adm[1].toUpperCase();
+          const cls = ({
+            INFO: 'info', TIP: 'tip', SUCCESS: 'success', NOTE: 'note',
+            WARNING: 'warning', WARN: 'warning', ERROR: 'error', DANGER: 'error',
+          })[raw];
+          const mark = ({
+            INFO: 'i', TIP: '★', SUCCESS: '✓', NOTE: '·',
+            WARNING: '!', WARN: '!', ERROR: '×', DANGER: '×',
+          })[raw];
+          const label = ({
+            INFO: 'Info', TIP: 'Tip', SUCCESS: 'Success', NOTE: 'Note',
+            WARNING: 'Warning', WARN: 'Warning', ERROR: 'Error', DANGER: 'Danger',
+          })[raw];
+          out.push(
+            `<aside class="admon ${cls}" role="note">` +
+              `<span class="admon-mark" aria-hidden="true">${mark}</span>` +
+              `<div class="admon-body"><p><strong>${label} ·</strong> ${inline(adm[2])}</p></div>` +
+            `</aside>`
+          );
+        } else {
+          out.push(`<blockquote>${inline(joined)}</blockquote>`);
+        }
         continue;
       }
 
@@ -337,8 +575,25 @@
     s = escapeHtml(s);
     // code spans `x`
     s = s.replace(/`([^`]+?)`/g, (_, c) => `<code>${c}</code>`);
-    // images ![alt](url)
-    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, a, u) => `<img alt="${escapeAttr(a)}" src="${escapeAttr(u)}"/>`);
+    // ![alt](url) — alt 关键字决定渲染:
+    //   ![video] / ![video:caption](mp4)  → <figure.media-card><video controls>
+    //   ![audio] / ![audio:caption](ogg)  → <figure.media-card><audio controls>
+    //   其他 alt                          → <img>
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, a, u) => {
+      const url = escapeAttr(u);
+      const altRaw = a.trim();
+      const mvideo = altRaw.match(/^video(?::(.*))?$/i);
+      const maudio = altRaw.match(/^audio(?::(.*))?$/i);
+      if (mvideo) {
+        const cap = (mvideo[1] || '').trim();
+        return `<figure class="media-card"><video controls preload="metadata" src="${url}"></video>${cap ? `<figcaption>${escapeHtml(cap)}</figcaption>` : ''}</figure>`;
+      }
+      if (maudio) {
+        const cap = (maudio[1] || '').trim();
+        return `<figure class="media-card"><audio controls preload="metadata" src="${url}"></audio>${cap ? `<figcaption>${escapeHtml(cap)}</figcaption>` : ''}</figure>`;
+      }
+      return `<img alt="${escapeAttr(altRaw)}" src="${url}" loading="lazy"/>`;
+    });
     // links [text](url)
     s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, t, u) => {
       const ext = /^https?:\/\//.test(u);

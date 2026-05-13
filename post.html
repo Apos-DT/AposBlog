@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/styles.css" />
+<link rel="stylesheet" href="./assets/playground.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='14' fill='%238b5cf6'/><circle cx='32' cy='32' r='28' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-opacity='0.4'/></svg>" />
 </head>
 <body data-page="post">
@@ -29,7 +30,6 @@
     <nav class="nav-links" aria-label="主导航">
       <a href="./index.html#latest" data-cursor="link">最新</a>
       <a href="./index.html#archive" data-cursor="link">归档</a>
-      <a href="./playground.html" data-cursor="link">实验</a>
       <a href="./index.html#about" data-cursor="link">关于</a>
       <a href="https://github.com/Apos-DT" target="_blank" rel="noopener" data-cursor="link">GitHub ↗</a>
     </nav>
@@ -40,20 +40,99 @@
   </header>
 
   <main>
-    <article class="post-wrap">
-      <a class="post-back" href="./index.html" data-cursor="link">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span>ALL POSTS</span>
-      </a>
+    <div class="post-grid">
 
-      <header class="post-head" id="post-head">
-        <h1>加载中…</h1>
-      </header>
+      <!-- 左:文章目录(由 JS 从 h2/h3 自动生成) -->
+      <aside class="post-toc" aria-label="文章目录">
+        <div class="post-toc-inner">
+          <span class="po-aside-label">CONTENTS</span>
+          <nav id="post-toc-nav" class="post-toc-nav" aria-label="章节锚点">
+            <span class="toc-empty">加载中…</span>
+          </nav>
+        </div>
+      </aside>
 
-      <div class="post-body" id="post-body"></div>
+      <!-- 中:文章正文 -->
+      <article class="post-wrap">
+        <a class="post-back" href="./index.html" data-cursor="link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>ALL POSTS</span>
+        </a>
 
-      <footer class="post-footer" id="post-footer"></footer>
-    </article>
+        <header class="post-head" id="post-head">
+          <h1>加载中…</h1>
+        </header>
+
+        <div class="post-body" id="post-body"></div>
+
+        <footer class="post-footer" id="post-footer"></footer>
+      </article>
+
+      <!-- 右:阅读工具面板 -->
+      <aside class="post-tools" aria-label="阅读工具">
+        <div class="post-tools-inner">
+
+          <!-- 阅读进度圆环 -->
+          <div class="rp-card">
+            <div class="rp-ring" aria-label="阅读进度">
+              <svg viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="rp-bg" cx="18" cy="18" r="15.91"/>
+                <circle class="rp-fg" cx="18" cy="18" r="15.91"/>
+              </svg>
+              <span class="rp-text" id="rp-text">0%</span>
+            </div>
+            <span class="rp-cap">阅读进度</span>
+          </div>
+
+          <!-- 字号 -->
+          <div class="post-tool-card">
+            <span class="tool-label">正文字号</span>
+            <div class="tool-tabs">
+              <button class="tab-btn" type="button" data-pfz="15">A−</button>
+              <button class="tab-btn active" type="button" data-pfz="17">A</button>
+              <button class="tab-btn" type="button" data-pfz="19">A+</button>
+            </div>
+          </div>
+
+          <!-- 主题色相 -->
+          <div class="post-tool-card">
+            <span class="tool-label">主题色相</span>
+            <input type="range" min="0" max="360" value="295" id="post-hue" aria-label="主题色相">
+            <div class="hue-meta">
+              <span class="hue-swatch" id="post-hue-swatch"></span>
+              <span class="tool-value" id="post-hue-value">295°</span>
+            </div>
+          </div>
+
+          <!-- 快捷操作 -->
+          <div class="post-tool-card">
+            <span class="tool-label">操作</span>
+            <button class="post-tool-btn" type="button" id="copy-link" data-cursor="link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span id="copy-link-text">复制本文链接</span>
+            </button>
+            <button class="post-tool-btn" type="button" id="to-top" data-cursor="link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>回到顶部</span>
+            </button>
+          </div>
+
+          <!-- 作者 / meta -->
+          <div class="post-tool-card author-card">
+            <span class="tool-label">作者</span>
+            <div class="author-row">
+              <span class="author-avatar" aria-hidden="true"></span>
+              <div class="author-meta">
+                <strong>赵祥生 (Apos)</strong>
+                <span>青岛 · 工程笔记</span>
+              </div>
+            </div>
+            <a href="./index.html#about" class="author-link" data-cursor="link">关于我 →</a>
+          </div>
+        </div>
+      </aside>
+
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>

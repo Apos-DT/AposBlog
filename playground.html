@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0a0a0f" />
-  <title>Playground — APOS · CSS3 / HTML5 综合实验</title>
-  <meta name="description" content="APOS 博客 CSS3 实验场：三栏布局、表单美化、Canvas/SVG、文件上传、地理定位、提示反馈。" />
+  <title>Studio — APOS · 组件库 / 设计系统 / 互动工具</title>
+  <meta name="description" content="APOS 博客的组件库与设计系统:博客里用到的按钮 / 列表 / 卡片 / 表单 / 媒体 / 拖放 / 定位 / 提示等组件在这里集中展示与试玩。" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -41,7 +41,7 @@
       <a href="./index.html#latest" data-cursor="link">文章</a>
       <a href="./index.html#stack" data-cursor="link">技能</a>
       <a href="./index.html#experience" data-cursor="link">经历</a>
-      <a href="./playground.html" data-cursor="link" class="active">实验</a>
+      <a href="./playground.html" data-cursor="link" class="active">工具间</a>
       <a href="./index.html#about" data-cursor="link">关于</a>
     </nav>
     <a class="nav-cta" href="./index.html" data-cursor="link">
@@ -56,9 +56,9 @@
     <!-- 左侧目录(sticky) -->
     <aside class="pg-aside" aria-label="实验目录">
       <div class="pg-aside-inner">
-        <span class="pg-aside-label">PLAYGROUND</span>
-        <h2 class="pg-aside-title">CSS3 / HTML5<br/>综合实验</h2>
-        <p class="pg-aside-desc">这里集中演示页面布局、组件样式、表单美化、Canvas / SVG、视频音频、文件上传、地理定位、提示反馈。</p>
+        <span class="pg-aside-label">STUDIO</span>
+        <h2 class="pg-aside-title">工具间 ·<br/>组件库</h2>
+        <p class="pg-aside-desc">博客里出现过的按钮 / 卡片 / 表单 / 媒体 / 拖放 / 定位 / 提示,在这里统一展示与试玩。每段都标注"博客里用在哪"。</p>
 
         <nav class="pg-toc" aria-label="章节导航">
           <a href="#sec-layout" data-cursor="link"><span class="toc-no">01</span><span>整体布局</span></a>
@@ -86,8 +86,9 @@
       <section id="sec-layout" class="pg-section">
         <header class="pg-h">
           <span class="pg-no">01 / Layout</span>
-          <h2>整体布局</h2>
-          <p>三栏 CSS Grid 布局,左 <code>240px</code> · 中 <code>minmax(0, 1fr)</code> · 右 <code>280px</code>;主区使用 <code>min-width: 0</code> 避免内容溢出;两侧用 <code>position: sticky</code> 固定;宽度切换用 <code>vw</code> 与 <code>calc()</code>。</p>
+          <h2>三栏布局</h2>
+          <p>三栏 CSS Grid,左 <code>240px</code> · 中 <code>minmax(0, 1fr)</code> · 右 <code>280px</code>;主区 <code>min-width: 0</code> 防溢出,两侧 <code>position: sticky</code> 跟随滚动。</p>
+          <p class="pg-used">用在博客哪里 →  <a href="./post.html?slug=odoo-erp-manufacturing-customization">文章详情页</a>(左侧 TOC / 中正文 / 右工具)、本页(工具间)</p>
         </header>
 
         <div class="layout-demo" aria-hidden="true">
@@ -117,8 +118,9 @@
       <section id="sec-components" class="pg-section">
         <header class="pg-h">
           <span class="pg-no">02 / Components</span>
-          <h2>组件样式</h2>
-          <p>常见 PC 端组件:按钮 / 列表 / 卡片 / 提示信息,所有交互态(hover / focus / active / disabled)齐全。</p>
+          <h2>基础组件</h2>
+          <p>按钮 / 列表 / 卡片 / 提示信息,所有交互态(hover / focus / active / disabled)齐全。</p>
+          <p class="pg-used">用在博客哪里 →  首页文章卡 / 归档列表(:nth-child)、文章页 <code>&gt; [!INFO]</code> admonition、CTA 按钮</p>
         </header>
 
         <h3 class="pg-h3">按钮 / Buttons</h3>
@@ -180,6 +182,7 @@
           <span class="pg-no">03 / Form</span>
           <h2>增强型表单</h2>
           <p>HTML5 表单元素全集:<code>fieldset / legend / input(text/email/tel/date) / select / textarea / progress / meter / checkbox / radio</code>,完整 <code>:hover / :focus / :valid / :invalid / :disabled</code> 状态。</p>
+          <p class="pg-used">用在博客哪里 → <a href="./index.html#about">首页 about 段的联系表单</a>(字数 <code>meter</code> + <code>mailto:</code> 提交)</p>
         </header>
 
         <form class="ui-form" id="demo-form" novalidate>
@@ -282,6 +285,7 @@
           <span class="pg-no">04 / Canvas</span>
           <h2>Canvas 画板</h2>
           <p>原生 <code>&lt;canvas&gt;</code> 鼠标绘制,带颜色选择 / 笔触粗细 / 清空。CSS 自定义网格背景与十字光标。</p>
+          <p class="pg-used">用在博客哪里 →  随手画给访客留张话(留言系统未来扩展点);也作为画板 demo 给读者试玩</p>
         </header>
 
         <div class="canvas-stage">
@@ -306,6 +310,7 @@
           <span class="pg-no">05 / SVG</span>
           <h2>SVG 图形</h2>
           <p>内联 SVG + 渐变 fill + CSS3 <code>transition</code> / <code>:hover</code> 缩放旋转。</p>
+          <p class="pg-used">用在博客哪里 →  品牌 logo (brand-mark)、文章页阅读进度环、文章内插图;`oklch` 渐变跟主题色实时联动</p>
         </header>
 
         <div class="svg-stage">
@@ -334,6 +339,7 @@
           <span class="pg-no">06 / Media</span>
           <h2>视频 / 音频</h2>
           <p>原生 <code>&lt;video&gt;</code> / <code>&lt;audio&gt;</code> + 卡片容器 + 标题说明,圆角阴影统一风格。</p>
+          <p class="pg-used">用在博客哪里 →  文章 markdown 里写 <code>![video:标题](url.mp4)</code> 或 <code>![audio:标题](url.ogg)</code> 自动渲染成媒体卡</p>
         </header>
 
         <div class="media-grid">
@@ -368,7 +374,8 @@
         <header class="pg-h">
           <span class="pg-no">07 / Upload</span>
           <h2>拖放上传</h2>
-          <p>HTML5 Drag &amp; Drop + File API,本地预览图片,不上传服务器。拖入时区域有脉冲动效(<code>@keyframes</code>)。</p>
+          <p>HTML5 Drag &amp; Drop + File API,本地预览,不上传服务器。拖入时区域有脉冲动效(<code>@keyframes</code>)。</p>
+          <p class="pg-used">用在博客哪里 →  反馈截图入口:发现文章错字 / 排版问题时,把截图拖进来,生成本地预览后跟邮件正文一起发给我</p>
         </header>
 
         <div class="upload-stage">
@@ -393,6 +400,7 @@
           <span class="pg-no">08 / Geolocation</span>
           <h2>地理定位</h2>
           <p>调用 <code>navigator.geolocation.getCurrentPosition</code>,显示当前坐标与精度。浏览器会询问授权。</p>
+          <p class="pg-used">用在博客哪里 →  「你在哪我在哪」彩蛋:计算访客与我(青岛 36.07°N · 120.38°E)的距离,作为读者互动小礼物;数据不离开浏览器</p>
         </header>
 
         <div class="geo-stage">
@@ -420,6 +428,7 @@
           <span class="pg-no">09 / Feedback</span>
           <h2>提示反馈</h2>
           <p>触发不同等级的浮层 toast,自动消失。底层用 <code>@keyframes</code> 滑入 / 淡出。</p>
+          <p class="pg-used">用在博客哪里 →  联系表单提交、文章页"复制链接 ✓"、地理定位授权结果,所有"异步操作的结果反馈"都走它</p>
         </header>
 
         <div class="toast-trigger">
@@ -466,17 +475,9 @@
         </div>
 
         <div class="tool-card hint">
-          <span class="tool-label">课程检查项</span>
-          <ul class="check-list">
-            <li>1. 三栏布局 (grid + sticky)</li>
-            <li>2. 整体美化 (token + 渐变 + 阴影)</li>
-            <li>3. 组件样式 (按钮 / 列表 / 卡片 / 提示)</li>
-            <li>4. 表单 (fieldset / progress / meter)</li>
-            <li>5. Canvas / SVG / Video / Audio</li>
-            <li>6. 拖放上传 / 地理定位</li>
-            <li>7. :hover / :focus / :active / :nth-child + @keyframes</li>
-            <li>8. CSS 外置 (assets/playground.css)</li>
-          </ul>
+          <span class="tool-label">关于这个页面</span>
+          <p class="tool-desc">这里是博客的「工具间」—— 把首页 / 文章页用到的组件单独拎出来,方便我自己迭代,也欢迎你随手玩。</p>
+          <p class="tool-desc">所有组件复用同一套 design token,改右上角的主题色相,整页跟着变。</p>
         </div>
       </div>
     </aside>

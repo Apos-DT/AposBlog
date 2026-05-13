@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/styles.css" />
+<link rel="stylesheet" href="./assets/playground.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='14' fill='%238b5cf6'/><circle cx='32' cy='32' r='28' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-opacity='0.4'/></svg>" />
 </head>
 <body data-page="home">
@@ -327,11 +328,57 @@
               <span class="contact-label">语言</span>
               <span class="contact-value">中文 / 英语 (CET-6)</span>
             </div>
-            <div class="contact-item full">
-              <span class="contact-label">其他联系方式</span>
-              <span class="contact-value">手机 / 微信请<a href="mailto:2411447661@qq.com?subject=%E8%81%94%E7%B3%BB%E6%96%B9%E5%BC%8F%E7%B4%A2%E5%8F%96" data-cursor="link" style="color:var(--accent);border-bottom:1px solid var(--line)"> 邮件索取</a></span>
-            </div>
           </div>
+
+          <!-- 联系表单(走 mailto: 协议,提交后唤起本地邮件客户端) -->
+          <form class="contact-form reveal-up" id="contact-form" novalidate>
+            <fieldset>
+              <legend>给我留言</legend>
+
+              <div class="cf-grid">
+                <label class="field">
+                  <span class="field-label">称呼</span>
+                  <input type="text" name="name" required minlength="1" maxlength="40" placeholder="你的名字" />
+                </label>
+                <label class="field">
+                  <span class="field-label">邮箱 <em>*</em></span>
+                  <input type="email" name="email" required placeholder="you@example.com" />
+                </label>
+                <label class="field">
+                  <span class="field-label">主题</span>
+                  <select name="topic">
+                    <option value="想合作">想合作</option>
+                    <option value="文章反馈">文章反馈</option>
+                    <option value="技术交流">技术交流</option>
+                    <option value="其他">其他</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field-label">字数限额</span>
+                  <div class="bar-row">
+                    <meter id="cf-meter" min="0" max="300" low="200" high="280" optimum="100" value="0"></meter>
+                    <span class="bar-value" id="cf-meter-value">0 / 300</span>
+                  </div>
+                </label>
+              </div>
+
+              <label class="field">
+                <span class="field-label">留言 <em>*</em></span>
+                <textarea name="message" rows="4" required minlength="4" maxlength="300" placeholder="一两句话,告诉我你想聊什么..."></textarea>
+              </label>
+
+              <label class="check">
+                <input type="checkbox" name="agree" required />
+                <span>同意我将通过邮件回复你 <em>*</em></span>
+              </label>
+
+              <div class="form-actions">
+                <span class="form-status" id="cf-status">提交将唤起本地邮件客户端 · 不经任何第三方服务</span>
+                <button type="reset" class="btn btn-ghost">清空</button>
+                <button type="submit" class="btn btn-primary">发送邮件</button>
+              </div>
+            </fieldset>
+          </form>
         </div>
       </div>
     </section>
