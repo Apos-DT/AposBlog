@@ -290,6 +290,121 @@ main { position: relative; z-index: 2; }
 .post-card .post-read svg { transition: transform 0.3s var(--ease-out); }
 .post-card:hover .post-read svg { transform: translateX(6px); }
 
+/* ======== Stack ======== */
+.stack { /* shares max-width via the rule below */ }
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 22px;
+}
+.stack-group {
+  padding: 26px 26px 22px;
+  border-radius: 18px;
+  border: 1px solid var(--line-soft);
+  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.3));
+  transition: border-color 0.4s, transform 0.5s var(--ease-out);
+}
+.stack-group:hover { border-color: var(--line); transform: translateY(-3px); }
+.stack-label {
+  display: block;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 16px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center;
+  padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--line);
+  background: oklch(0.14 0.012 280 / 0.5);
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+  color: var(--ink-2);
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+.chip:hover { color: var(--ink); border-color: var(--accent); background: oklch(0.20 0.05 295 / 0.4); }
+.chip.sm { padding: 4px 10px; font-size: 11px; }
+
+/* ======== Experience timeline ======== */
+.timeline {
+  list-style: none; margin: 0; padding: 0;
+  position: relative;
+}
+.timeline::before {
+  content: "";
+  position: absolute; top: 8px; bottom: 8px; left: 7px;
+  width: 1px; background: linear-gradient(180deg, var(--line), transparent);
+}
+.tl-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  padding: 0 0 40px 32px;
+}
+.tl-item::before {
+  content: "";
+  position: absolute; left: 0; top: 8px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 14px oklch(0.72 0.21 295 / 0.5);
+}
+.tl-item:last-child { padding-bottom: 0; }
+.tl-date {
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em;
+  color: var(--ink-3); padding-top: 4px;
+}
+.tl-body { }
+.tl-title {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(18px, 2vw, 22px); letter-spacing: -0.01em;
+  margin: 0 0 10px; color: var(--ink);
+}
+.tl-desc {
+  color: var(--ink-2); font-size: 15px; line-height: 1.7;
+  margin: 0 0 14px;
+}
+.tl-desc strong { color: var(--ink); font-weight: 600; }
+.tl-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 720px) {
+  .tl-item { grid-template-columns: 1fr; gap: 8px; padding-left: 28px; }
+  .timeline::before { left: 5px; }
+  .tl-item::before { width: 12px; height: 12px; }
+}
+
+/* ======== Contact grid (about) ======== */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 16px;
+}
+.contact-item {
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: oklch(0.14 0.012 280 / 0.45);
+  transition: border-color 0.4s, transform 0.4s var(--ease-out);
+}
+.contact-item:hover { border-color: var(--line); transform: translateY(-2px); }
+.contact-label {
+  display: block;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;
+}
+.contact-value {
+  display: block;
+  font-family: var(--font-display); font-size: 15px; color: var(--ink);
+  letter-spacing: 0.02em;
+}
+a.contact-value { transition: color 0.3s; }
+a.contact-value:hover { color: var(--accent); }
+
+/* sections inherit container via this rule */
+.stack, .experience {
+  max-width: var(--container); margin: 0 auto;
+  padding: clamp(80px, 14vh, 160px) var(--gutter);
+}
+
 /* ======== Archive ======== */
 .archive-list { display: flex; flex-direction: column; }
 .archive-year {

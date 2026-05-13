@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0a0a0f" />
-<title>APOS — Notes from the Edge of Code</title>
-<meta name="description" content="Apos 的个人博客 — 关于工程、AI、产品与思考的长文笔记。" />
+<title>赵祥生 (Apos) — Engineering Notes from a Manufacturing Frontline</title>
+<meta name="description" content="赵祥生 (Apos),20 岁,青岛。Odoo ERP 二开 / 工业机器视觉 / Spring Boot + Vue3 全栈工程师。" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -30,15 +30,16 @@
       <span class="brand-text">APOS</span>
     </a>
     <nav class="nav-links" aria-label="主导航">
-      <a href="#latest" data-cursor="link">最新</a>
-      <a href="#archive" data-cursor="link">归档</a>
+      <a href="#latest" data-cursor="link">文章</a>
+      <a href="#stack" data-cursor="link">技能</a>
+      <a href="#experience" data-cursor="link">经历</a>
       <a href="#about" data-cursor="link">关于</a>
       <a href="https://github.com/Apos-DT" target="_blank" rel="noopener" data-cursor="link">GitHub ↗</a>
     </nav>
-    <button class="nav-cta" data-cursor="link" aria-label="订阅">
-      <span>订阅</span>
+    <a class="nav-cta" href="mailto:2411447661@qq.com" data-cursor="link" aria-label="邮件联系">
+      <span>联系</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    </a>
   </header>
 
   <main>
@@ -46,27 +47,29 @@
     <section class="hero" id="hero">
       <div class="hero-meta reveal" data-stagger="0">
         <span class="dot"></span>
-        <span>WRITING · BUILDING · THINKING — Since 2024</span>
+        <span>ZHAO XIANGSHENG · 赵祥生 · 青岛 · 软件工程在读 / 全栈工程师</span>
       </div>
 
       <h1 class="hero-title">
-        <span class="line"><span class="word" data-text="Notes">Notes</span> <span class="word" data-text="from">from</span></span>
-        <span class="line"><span class="word italic" data-text="the">the</span> <span class="word" data-text="Edge">Edge</span></span>
-        <span class="line"><span class="word" data-text="of">of</span> <span class="word grad" data-text="Code.">Code.</span></span>
+        <span class="line"><span class="word" data-text="Building">Building</span> <span class="word italic" data-text="at">at</span></span>
+        <span class="line"><span class="word" data-text="the">the</span> <span class="word" data-text="Edge">Edge</span></span>
+        <span class="line"><span class="word" data-text="of">of</span> <span class="word grad" data-text="Manufacturing.">Manufacturing.</span></span>
       </h1>
 
       <p class="hero-lede reveal" data-stagger="1">
-        我是 <strong>Apos</strong>。这里写工程、AI、产品与生活的长文。
-        没有 SEO 套话，没有标题党 —— 只有真实的思考过程与可复用的工程笔记。
+        我是<strong>赵祥生</strong>(Apos),20 岁,在<strong>青岛火一五</strong>做
+        <strong>Odoo ERP 二开</strong>与<strong>工业机器视觉</strong>。
+        在校期间打过 ACM,做过 Spring Boot + Vue 全栈,蓝桥杯 C/C++ 山东省一等奖。
+        这里是我的工程笔记 —— 写真实的项目踩坑、技术决策、思考过程。
       </p>
 
       <div class="hero-actions reveal" data-stagger="2">
         <a class="btn btn-primary" href="#latest" data-cursor="link">
-          <span>开始阅读</span>
+          <span>看最新文章</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <a class="btn btn-ghost" href="#about" data-cursor="link">
-          <span>关于我</span>
+          <span>关于我 / 联系方式</span>
         </a>
       </div>
 
@@ -78,7 +81,7 @@
 
     <section class="latest" id="latest">
       <div class="section-head">
-        <span class="section-no reveal-up">01 / Latest</span>
+        <span class="section-no reveal-up">01 / Writing</span>
         <h2 class="section-title reveal-up">最新文章</h2>
         <p class="section-sub reveal-up">长期主义的写作。Quality &gt; Frequency.</p>
       </div>
@@ -88,9 +91,184 @@
       </div>
     </section>
 
+    <section class="stack" id="stack">
+      <div class="section-head">
+        <span class="section-no reveal-up">02 / Stack</span>
+        <h2 class="section-title reveal-up">技术栈</h2>
+        <p class="section-sub reveal-up">从前端到运维,把链路打通才叫"全栈"。</p>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-group reveal-up">
+          <span class="stack-label">AI 工具</span>
+          <div class="chips">
+            <span class="chip">Trae</span>
+            <span class="chip">Cursor</span>
+            <span class="chip">代码生成 / 重构 / 排障</span>
+          </div>
+        </div>
+        <div class="stack-group reveal-up">
+          <span class="stack-label">编程语言</span>
+          <div class="chips">
+            <span class="chip">C / C++</span>
+            <span class="chip">Python</span>
+            <span class="chip">Java</span>
+            <span class="chip">JavaScript / TypeScript</span>
+          </div>
+        </div>
+        <div class="stack-group reveal-up">
+          <span class="stack-label">Web 开发</span>
+          <div class="chips">
+            <span class="chip">Spring Boot</span>
+            <span class="chip">JPA</span>
+            <span class="chip">REST API</span>
+            <span class="chip">Vue 3</span>
+            <span class="chip">Element Plus</span>
+            <span class="chip">Django</span>
+          </div>
+        </div>
+        <div class="stack-group reveal-up">
+          <span class="stack-label">ERP &amp; 工业</span>
+          <div class="chips">
+            <span class="chip">Odoo</span>
+            <span class="chip">机器视觉</span>
+            <span class="chip">上下位机联调</span>
+            <span class="chip">现场交付</span>
+          </div>
+        </div>
+        <div class="stack-group reveal-up">
+          <span class="stack-label">数据与工程化</span>
+          <div class="chips">
+            <span class="chip">MySQL / PostgreSQL</span>
+            <span class="chip">Docker</span>
+            <span class="chip">Linux</span>
+            <span class="chip">Nginx</span>
+            <span class="chip">Git</span>
+          </div>
+        </div>
+        <div class="stack-group reveal-up">
+          <span class="stack-label">数据处理</span>
+          <div class="chips">
+            <span class="chip">Selenium</span>
+            <span class="chip">Pandas</span>
+            <span class="chip">数据可视化</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="experience" id="experience">
+      <div class="section-head">
+        <span class="section-no reveal-up">03 / Experience</span>
+        <h2 class="section-title reveal-up">工作 &amp; 项目</h2>
+        <p class="section-sub reveal-up">几段真实的工程经历。</p>
+      </div>
+
+      <ol class="timeline">
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2025.10 – 至今</span>
+          <div class="tl-body">
+            <h3 class="tl-title">Python 全栈工程师 (ERP) · 青岛火一五信息科技</h3>
+            <p class="tl-desc">
+              制造业 Odoo ERP 项目:对接客户业务部门,梳理"销售-采购-库存-生产-质检-财务"全流程需求,
+              输出迭代计划并完成关键功能二开。负责系统扩展与外部平台集成(企业微信等)、
+              开发工业机器视觉系统、参与上下位机联调与服务器运维。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">Odoo</span>
+              <span class="chip sm">Python</span>
+              <span class="chip sm">PostgreSQL</span>
+              <span class="chip sm">Docker</span>
+              <span class="chip sm">机器视觉</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2025.06 – 2025.09</span>
+          <div class="tl-body">
+            <h3 class="tl-title">前端开发工程师 · 青岛隆腾科技</h3>
+            <p class="tl-desc">
+              在既有 Spring Boot + Vue 项目上做功能迭代:业务页面扩展、权限/表单/列表通用交互增强,
+              负责数据可视化大屏开发与前后端接口联调。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">Spring Boot</span>
+              <span class="chip sm">Vue 3</span>
+              <span class="chip sm">Element Plus</span>
+              <span class="chip sm">ECharts</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2025.08 – 2025.09</span>
+          <div class="tl-body">
+            <h3 class="tl-title">学生管理系统 · Spring Boot + Vue</h3>
+            <p class="tl-desc">
+              学生信息 CRUD、权限控制、数据可视化展示。承担前后端开发与联调。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">Spring Boot</span>
+              <span class="chip sm">Vue</span>
+              <span class="chip sm">REST</span>
+              <span class="chip sm">MySQL</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2025.04 – 2025.06</span>
+          <div class="tl-body">
+            <h3 class="tl-title">招聘数据采集与分析 · Python</h3>
+            <p class="tl-desc">
+              Selenium 爬取动态页面 + Pandas 清洗分析 + Django 可视化展示,完成一套数据小项目从 0 到 1。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">Selenium</span>
+              <span class="chip sm">Pandas</span>
+              <span class="chip sm">Django</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2025.01 – 2025.03</span>
+          <div class="tl-body">
+            <h3 class="tl-title">社区管理系统 · Django</h3>
+            <p class="tl-desc">
+              社区信息 CRUD、查询筛选、权限控制,前后端接口与页面联调。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">Django</span>
+              <span class="chip sm">SQL</span>
+              <span class="chip sm">REST</span>
+            </div>
+          </div>
+        </li>
+
+        <li class="tl-item reveal-up">
+          <span class="tl-date">2023 – 2027</span>
+          <div class="tl-body">
+            <h3 class="tl-title">山东科技大学 · 软件工程(本科)</h3>
+            <p class="tl-desc">
+              ACM 竞赛集训队成员。算法与编程基础扎实。
+              <strong>蓝桥杯 C/C++ 山东省一等奖</strong>、CET-6、
+              全国大学生英语竞赛国家二等奖、普通话二级甲等、C1 驾驶证。
+            </p>
+            <div class="tl-tags">
+              <span class="chip sm">ACM</span>
+              <span class="chip sm">蓝桥杯 省一</span>
+              <span class="chip sm">CET-6</span>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
     <section class="archive" id="archive">
       <div class="section-head">
-        <span class="section-no reveal-up">02 / Archive</span>
+        <span class="section-no reveal-up">04 / Archive</span>
         <h2 class="section-title reveal-up">全部归档</h2>
         <p class="section-sub reveal-up">按年份倒序。</p>
       </div>
@@ -100,21 +278,45 @@
     <section class="about" id="about">
       <div class="about-grid">
         <div class="about-side">
-          <span class="section-no reveal-up">03 / About</span>
+          <span class="section-no reveal-up">05 / About</span>
         </div>
         <div class="about-main">
           <h2 class="about-title reveal-up">
-            我做<em>独立产品</em>，
-            写关于<em>工程内在结构</em>的笔记，
-            也偶尔聊聊<em>设计与品味</em>。
+            我相信<em>工程是手艺</em>,
+            相信<em>现场比代码更诚实</em>,
+            也相信慢慢写、慢慢做的人,会走得更远。
           </h2>
           <p class="about-body reveal-up">
-            目前在构建 AI 工具链和插件生态。相信"少而精"的工程哲学：
-            十年后还能跑的代码，比今天用尽花招的代码更值得写。
+            目前在<strong>青岛火一五</strong>做制造业 ERP 与工业机器视觉。
+            喜欢把复杂业务流程拆成可被代码描述的契约,也喜欢在产线现场跟设备打交道。
+            这里写的不是教程,是真实的思考过程——欢迎来邮件或微信交流。
           </p>
-          <div class="about-links reveal-up">
-            <a href="mailto:hi@example.com" data-cursor="link">hi@example.com →</a>
-            <a href="https://github.com/Apos-DT" target="_blank" rel="noopener" data-cursor="link">GitHub →</a>
+
+          <div class="contact-grid reveal-up">
+            <div class="contact-item">
+              <span class="contact-label">手机</span>
+              <a class="contact-value" href="tel:18963522393" data-cursor="link">189 6352 2393</a>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">邮箱</span>
+              <a class="contact-value" href="mailto:2411447661@qq.com" data-cursor="link">2411447661@qq.com</a>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">微信</span>
+              <span class="contact-value">Xs2411447661</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">GitHub</span>
+              <a class="contact-value" href="https://github.com/Apos-DT" target="_blank" rel="noopener" data-cursor="link">Apos-DT</a>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">所在地</span>
+              <span class="contact-value">青岛 · 山东</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">语言</span>
+              <span class="contact-value">中文 / 英语 (CET-6)</span>
+            </div>
           </div>
         </div>
       </div>
@@ -127,7 +329,7 @@
           <span>APOS</span>
         </div>
         <div class="footer-meta">
-          <span>© <span id="year"></span> Apos. Crafted with care.</span>
+          <span>© <span id="year"></span> 赵祥生 (Apos). Crafted with care.</span>
           <span class="dot-sep">·</span>
           <span>Built static · Hosted on GitHub Pages</span>
         </div>
