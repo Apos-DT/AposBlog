@@ -112,9 +112,10 @@
   }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
   $$('.reveal, .reveal-up').forEach((el) => io.observe(el));
 
-  /* ---------------- Card spotlight ---------------- */
+  /* ---------------- Card spotlight (post cards + stack groups) ---------------- */
   document.addEventListener('mousemove', (e) => {
-    const card = e.target.closest && e.target.closest('.post-card');
+    if (!e.target.closest) return;
+    const card = e.target.closest('.post-card, .stack-group');
     if (!card) return;
     const r = card.getBoundingClientRect();
     card.style.setProperty('--mx', `${e.clientX - r.left}px`);
