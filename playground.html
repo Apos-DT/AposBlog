@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>Playground — APOS · CSS3 / HTML5 综合实验</title>
+  <meta name="description" content="APOS 博客 CSS3 实验场：三栏布局、表单美化、Canvas/SVG、文件上传、地理定位、提示反馈。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- 复用博客全局样式(背景 / 字体 / nav / 光标 / 极光) -->
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <!-- playground 专属样式(三栏布局 / 表单 / canvas / 上传 / 定位 / 提示) -->
+  <link rel="stylesheet" href="./assets/playground.css" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='14' fill='%238b5cf6'/><circle cx='32' cy='32' r='28' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-opacity='0.4'/></svg>" />
+</head>
+<body data-page="playground">
+
+  <!-- 自定义光标 -->
+  <div id="cursor-dot" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+
+  <!-- 全局背景层 -->
+  <div class="grain" aria-hidden="true"></div>
+  <div class="aurora" aria-hidden="true">
+    <span class="aurora-blob a"></span>
+    <span class="aurora-blob b"></span>
+  </div>
+
+  <!-- 顶部导航 -->
+  <header class="nav" id="nav">
+    <a href="./index.html" class="brand" data-cursor="link">
+      <span class="brand-mark"></span>
+      <span class="brand-text">APOS</span>
+    </a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="./index.html#latest" data-cursor="link">文章</a>
+      <a href="./index.html#stack" data-cursor="link">技能</a>
+      <a href="./index.html#experience" data-cursor="link">经历</a>
+      <a href="./playground.html" data-cursor="link" class="active">实验</a>
+      <a href="./index.html#about" data-cursor="link">关于</a>
+    </nav>
+    <a class="nav-cta" href="./index.html" data-cursor="link">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>返回主页</span>
+    </a>
+  </header>
+
+  <!-- ============ 三栏布局: 左导航 / 中主区 / 右工具 ============ -->
+  <div class="pg-layout">
+
+    <!-- 左侧目录(sticky) -->
+    <aside class="pg-aside" aria-label="实验目录">
+      <div class="pg-aside-inner">
+        <span class="pg-aside-label">PLAYGROUND</span>
+        <h2 class="pg-aside-title">CSS3 / HTML5<br/>综合实验</h2>
+        <p class="pg-aside-desc">这里集中演示页面布局、组件样式、表单美化、Canvas / SVG、视频音频、文件上传、地理定位、提示反馈。</p>
+
+        <nav class="pg-toc" aria-label="章节导航">
+          <a href="#sec-layout" data-cursor="link"><span class="toc-no">01</span><span>整体布局</span></a>
+          <a href="#sec-components" data-cursor="link"><span class="toc-no">02</span><span>组件样式</span></a>
+          <a href="#sec-form" data-cursor="link"><span class="toc-no">03</span><span>增强型表单</span></a>
+          <a href="#sec-canvas" data-cursor="link"><span class="toc-no">04</span><span>Canvas 画板</span></a>
+          <a href="#sec-svg" data-cursor="link"><span class="toc-no">05</span><span>SVG 图形</span></a>
+          <a href="#sec-media" data-cursor="link"><span class="toc-no">06</span><span>视频 / 音频</span></a>
+          <a href="#sec-upload" data-cursor="link"><span class="toc-no">07</span><span>拖放上传</span></a>
+          <a href="#sec-geo" data-cursor="link"><span class="toc-no">08</span><span>地理定位</span></a>
+          <a href="#sec-feedback" data-cursor="link"><span class="toc-no">09</span><span>提示反馈</span></a>
+        </nav>
+
+        <div class="pg-aside-foot">
+          <span class="dot live"></span>
+          <span>实验环境 · 实时预览</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 中间主内容 -->
+    <main class="pg-main">
+
+      <!-- 01 整体布局 ------------------------------------------------- -->
+      <section id="sec-layout" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">01 / Layout</span>
+          <h2>整体布局</h2>
+          <p>三栏 CSS Grid 布局,左 <code>240px</code> · 中 <code>minmax(0, 1fr)</code> · 右 <code>280px</code>;主区使用 <code>min-width: 0</code> 避免内容溢出;两侧用 <code>position: sticky</code> 固定;宽度切换用 <code>vw</code> 与 <code>calc()</code>。</p>
+        </header>
+
+        <div class="layout-demo" aria-hidden="true">
+          <div class="ld-cell">
+            <span class="ld-tag">240px</span>
+            <span class="ld-name">左侧目录</span>
+            <span class="ld-prop">sticky · 章节锚点</span>
+          </div>
+          <div class="ld-cell main">
+            <span class="ld-tag">1fr · min 0</span>
+            <span class="ld-name">主内容区</span>
+            <span class="ld-prop">grid 内可滚动 · 不溢出</span>
+          </div>
+          <div class="ld-cell">
+            <span class="ld-tag">280px</span>
+            <span class="ld-name">工具面板</span>
+            <span class="ld-prop">sticky · 调色 / 字号</span>
+          </div>
+        </div>
+
+        <div class="alert info" role="status">
+          <strong>布局策略:</strong>外层 <code>display: grid</code> + 三栏列宽,&lt; 1100px 自动塌成单列。
+        </div>
+      </section>
+
+      <!-- 02 组件样式 ------------------------------------------------- -->
+      <section id="sec-components" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">02 / Components</span>
+          <h2>组件样式</h2>
+          <p>常见 PC 端组件:按钮 / 列表 / 卡片 / 提示信息,所有交互态(hover / focus / active / disabled)齐全。</p>
+        </header>
+
+        <h3 class="pg-h3">按钮 / Buttons</h3>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="button" data-cursor="link">Primary</button>
+          <button class="btn btn-ghost" type="button" data-cursor="link">Ghost</button>
+          <button class="btn btn-success" type="button" data-cursor="link">Success</button>
+          <button class="btn btn-danger" type="button" data-cursor="link">Danger</button>
+          <button class="btn btn-primary" type="button" disabled aria-disabled="true">Disabled</button>
+        </div>
+
+        <h3 class="pg-h3">列表 / List <span class="h3-hint">使用 <code>:nth-child(odd/even)</code> 斑马纹</span></h3>
+        <ol class="zebra-list">
+          <li><span class="li-date">2026.05.13</span><span>重写博客 Stack 段统一卡片高度</span></li>
+          <li><span class="li-date">2026.05.10</span><span>把静态站当成一门手艺</span></li>
+          <li><span class="li-date">2026.04.28</span><span>2026 我对 AI 工具链的三个判断</span></li>
+          <li><span class="li-date">2026.04.22</span><span>工业机器视觉现场交付的 5 个稳定性陷阱</span></li>
+          <li><span class="li-date">2025.09.18</span><span>Spring Boot + Vue3 全栈工程化沉淀</span></li>
+          <li><span class="li-date">2025.06.08</span><span>用 Selenium + Pandas + Django 做数据小项目</span></li>
+        </ol>
+
+        <h3 class="pg-h3">卡片 / Cards</h3>
+        <div class="ui-card-row">
+          <article class="ui-card">
+            <span class="ui-card-tag">ERP</span>
+            <h4>Odoo 二开</h4>
+            <p>销售-采购-库存-生产-质检-财务,全链路二开与上线交付。</p>
+          </article>
+          <article class="ui-card">
+            <span class="ui-card-tag">Vision</span>
+            <h4>机器视觉</h4>
+            <p>上下位机联调 / 通信稳定性 / 现场故障定位与日志分析。</p>
+          </article>
+          <article class="ui-card">
+            <span class="ui-card-tag">Fullstack</span>
+            <h4>Spring Boot + Vue</h4>
+            <p>权限 / 表单 / 大屏 / 接口联调 / 性能优化。</p>
+          </article>
+        </div>
+
+        <h3 class="pg-h3">提示信息 / Alerts</h3>
+        <div class="alert info" role="status">
+          <strong>info ·</strong> 这是一条信息提示,用于普通说明。
+        </div>
+        <div class="alert success" role="status">
+          <strong>success ·</strong> 操作已完成,数据已保存。
+        </div>
+        <div class="alert warning" role="alert">
+          <strong>warning ·</strong> 注意:该操作可能影响生产数据。
+        </div>
+        <div class="alert error" role="alert">
+          <strong>error ·</strong> 网络请求失败,请稍后重试。
+        </div>
+      </section>
+
+      <!-- 03 增强型表单 ----------------------------------------------- -->
+      <section id="sec-form" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">03 / Form</span>
+          <h2>增强型表单</h2>
+          <p>HTML5 表单元素全集:<code>fieldset / legend / input(text/email/tel/date) / select / textarea / progress / meter / checkbox / radio</code>,完整 <code>:hover / :focus / :valid / :invalid / :disabled</code> 状态。</p>
+        </header>
+
+        <form class="ui-form" id="demo-form" novalidate>
+
+          <fieldset>
+            <legend>基本信息</legend>
+
+            <div class="field-grid">
+              <label class="field">
+                <span class="field-label">姓名 <em>*</em></span>
+                <input type="text" name="name" required minlength="2" maxlength="20" placeholder="请输入姓名(2-20 字符)" />
+                <span class="field-tip">必填,2-20 个字符</span>
+              </label>
+
+              <label class="field">
+                <span class="field-label">邮箱 <em>*</em></span>
+                <input type="email" name="email" required placeholder="you@example.com" />
+                <span class="field-tip">需要合法邮箱格式</span>
+              </label>
+
+              <label class="field">
+                <span class="field-label">所在城市</span>
+                <select name="city">
+                  <option value="">请选择</option>
+                  <option>青岛</option>
+                  <option>北京</option>
+                  <option>上海</option>
+                  <option>深圳</option>
+                  <option>其他</option>
+                </select>
+              </label>
+
+              <label class="field">
+                <span class="field-label">入门日期</span>
+                <input type="date" name="start" value="2023-09-01" />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>技能 / 评分</legend>
+
+            <label class="field">
+              <span class="field-label">擅长方向 <em>*</em></span>
+              <div class="radio-row">
+                <label class="radio"><input type="radio" name="role" value="frontend" checked /><span>前端</span></label>
+                <label class="radio"><input type="radio" name="role" value="backend" /><span>后端</span></label>
+                <label class="radio"><input type="radio" name="role" value="fullstack" /><span>全栈</span></label>
+                <label class="radio"><input type="radio" name="role" value="erp" /><span>ERP</span></label>
+                <label class="radio"><input type="radio" name="role" value="vision" /><span>视觉</span></label>
+              </div>
+            </label>
+
+            <label class="field">
+              <span class="field-label">技能熟练度 (meter)</span>
+              <div class="bar-row">
+                <meter min="0" max="10" low="3" high="7" optimum="9" value="7"></meter>
+                <span class="bar-value">7 / 10</span>
+              </div>
+              <span class="field-tip">使用 <code>&lt;meter&gt;</code> 的 low / high / optimum 三段着色</span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">项目完成度 (progress)</span>
+              <div class="bar-row">
+                <progress id="progress-bar" max="100" value="68"></progress>
+                <span class="bar-value" id="progress-value">68%</span>
+              </div>
+              <span class="field-tip">点 <button type="button" class="link-btn" id="progress-anim">让进度跑一遍</button> 看 transition 动画</span>
+            </label>
+
+            <label class="field">
+              <span class="field-label">留言</span>
+              <textarea name="message" rows="4" placeholder="一两句话,告诉我你想聊什么..." maxlength="300"></textarea>
+            </label>
+
+            <div class="check-row">
+              <label class="check">
+                <input type="checkbox" name="news" />
+                <span>订阅技术更新</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" name="agree" required />
+                <span>同意接收回复邮件 <em>*</em></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <span class="form-status" id="form-status"></span>
+            <button type="reset" class="btn btn-ghost">重置</button>
+            <button type="submit" class="btn btn-primary">提交</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 04 Canvas 画板 ---------------------------------------------- -->
+      <section id="sec-canvas" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">04 / Canvas</span>
+          <h2>Canvas 画板</h2>
+          <p>原生 <code>&lt;canvas&gt;</code> 鼠标绘制,带颜色选择 / 笔触粗细 / 清空。CSS 自定义网格背景与十字光标。</p>
+        </header>
+
+        <div class="canvas-stage">
+          <canvas id="paint" width="1200" height="380" aria-label="绘图画板"></canvas>
+          <div class="canvas-tools">
+            <label class="ct-block">
+              <span class="ct-label">颜色</span>
+              <input type="color" id="paint-color" value="#8b5cf6" />
+            </label>
+            <label class="ct-block ct-grow">
+              <span class="ct-label">笔触 <span class="ct-mono" id="paint-size-value">3</span> px</span>
+              <input type="range" id="paint-size" min="1" max="30" value="3" />
+            </label>
+            <button type="button" class="btn btn-ghost" id="paint-clear" data-cursor="link">清空画板</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05 SVG ------------------------------------------------------ -->
+      <section id="sec-svg" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">05 / SVG</span>
+          <h2>SVG 图形</h2>
+          <p>内联 SVG + 渐变 fill + CSS3 <code>transition</code> / <code>:hover</code> 缩放旋转。</p>
+        </header>
+
+        <div class="svg-stage">
+          <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="g-primary" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="oklch(0.72 0.21 295)" />
+                <stop offset="1" stop-color="oklch(0.78 0.18 220)" />
+              </linearGradient>
+              <linearGradient id="g-warm" x1="0" x2="1">
+                <stop offset="0" stop-color="oklch(0.82 0.16 60)" />
+                <stop offset="1" stop-color="oklch(0.75 0.20 40)" />
+              </linearGradient>
+            </defs>
+            <circle class="svg-shape" cx="80" cy="100" r="50" fill="url(#g-primary)" />
+            <rect class="svg-shape" x="170" y="50" width="100" height="100" rx="18" fill="url(#g-primary)" />
+            <polygon class="svg-shape" points="350,50 405,150 295,150" fill="url(#g-warm)" />
+          </svg>
+          <span class="svg-cap">把鼠标移到图形上,看 transform / drop-shadow 过渡。</span>
+        </div>
+      </section>
+
+      <!-- 06 视频/音频 ------------------------------------------------ -->
+      <section id="sec-media" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">06 / Media</span>
+          <h2>视频 / 音频</h2>
+          <p>原生 <code>&lt;video&gt;</code> / <code>&lt;audio&gt;</code> + 卡片容器 + 标题说明,圆角阴影统一风格。</p>
+        </header>
+
+        <div class="media-grid">
+          <figure class="media-card">
+            <video controls preload="metadata"
+                   poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1280' height='720' viewBox='0 0 1280 720'><rect width='1280' height='720' fill='%23151522'/><text x='50%25' y='50%25' fill='%238b5cf6' font-family='monospace' font-size='28' text-anchor='middle' dy='.3em'>SAMPLE · MP4</text></svg>">
+              <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+              当前浏览器不支持 video 元素。
+            </video>
+            <figcaption class="media-cap">
+              <strong>Big Buck Bunny</strong>
+              <span>sample · w3schools.com/html/mov_bbb.mp4</span>
+            </figcaption>
+          </figure>
+          <figure class="media-card">
+            <div class="audio-frame">
+              <span class="audio-mark" aria-hidden="true"></span>
+              <audio controls preload="metadata" src="https://www.w3schools.com/html/horse.ogg">
+                当前浏览器不支持 audio 元素。
+              </audio>
+            </div>
+            <figcaption class="media-cap">
+              <strong>Horse</strong>
+              <span>sample · w3schools.com/html/horse.ogg</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 07 拖放上传 ------------------------------------------------- -->
+      <section id="sec-upload" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">07 / Upload</span>
+          <h2>拖放上传</h2>
+          <p>HTML5 Drag &amp; Drop + File API,本地预览图片,不上传服务器。拖入时区域有脉冲动效(<code>@keyframes</code>)。</p>
+        </header>
+
+        <div class="upload-stage">
+          <label class="dropzone" id="dropzone" for="file-input">
+            <input type="file" id="file-input" multiple accept="image/*,application/pdf,text/plain" hidden />
+            <svg class="dz-icon" width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 4v12m-5-5l5-5 5 5M5 20h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="dz-title">拖文件到此处 / 点击选择</span>
+            <span class="dz-hint">支持图片 / PDF / 文本 · 多选 · 仅本地预览</span>
+          </label>
+
+          <ul class="file-list" id="file-list" aria-live="polite"></ul>
+
+          <p class="file-empty" id="file-empty">尚未选择文件。</p>
+        </div>
+      </section>
+
+      <!-- 08 地理定位 ------------------------------------------------- -->
+      <section id="sec-geo" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">08 / Geolocation</span>
+          <h2>地理定位</h2>
+          <p>调用 <code>navigator.geolocation.getCurrentPosition</code>,显示当前坐标与精度。浏览器会询问授权。</p>
+        </header>
+
+        <div class="geo-stage">
+          <div class="geo-actions">
+            <button type="button" class="btn btn-primary" id="geo-btn" data-cursor="link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.58 7-12a7 7 0 10-14 0c0 4.42 7 12 7 12z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
+              <span>获取当前位置</span>
+            </button>
+            <button type="button" class="btn btn-ghost" id="geo-reset" data-cursor="link">清空</button>
+          </div>
+
+          <article class="geo-card" id="geo-card">
+            <div class="geo-row"><span>纬度 / Latitude</span><strong data-geo="lat">—</strong></div>
+            <div class="geo-row"><span>经度 / Longitude</span><strong data-geo="lng">—</strong></div>
+            <div class="geo-row"><span>精度 / Accuracy</span><strong data-geo="acc">—</strong></div>
+            <div class="geo-row"><span>海拔 / Altitude</span><strong data-geo="alt">—</strong></div>
+            <div class="geo-row"><span>状态 / Status</span><strong class="geo-status" data-geo="status">未获取</strong></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 09 提示反馈 ------------------------------------------------- -->
+      <section id="sec-feedback" class="pg-section">
+        <header class="pg-h">
+          <span class="pg-no">09 / Feedback</span>
+          <h2>提示反馈</h2>
+          <p>触发不同等级的浮层 toast,自动消失。底层用 <code>@keyframes</code> 滑入 / 淡出。</p>
+        </header>
+
+        <div class="toast-trigger">
+          <button class="btn btn-ghost" type="button" data-toast="info">触发 Info</button>
+          <button class="btn btn-success" type="button" data-toast="success">触发 Success</button>
+          <button class="btn btn-ghost" type="button" data-toast="warning">触发 Warning</button>
+          <button class="btn btn-danger" type="button" data-toast="error">触发 Error</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 右侧工具面板(sticky) -->
+    <aside class="pg-tools" aria-label="工具面板">
+      <div class="pg-tools-inner">
+        <span class="pg-aside-label">TOOLS</span>
+        <h3 class="pg-tools-title">工具面板</h3>
+        <p class="pg-tools-desc">实时调整主题色 / 字号,看 CSS 变量级联反馈。</p>
+
+        <div class="tool-card">
+          <span class="tool-label">主题色相</span>
+          <input type="range" min="0" max="360" value="295" id="hue-slider" aria-label="hue" />
+          <div class="hue-meta">
+            <span class="hue-swatch" id="hue-swatch"></span>
+            <span class="tool-value" id="hue-value">295°</span>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <span class="tool-label">正文字号</span>
+          <div class="tool-tabs">
+            <button class="tab-btn" type="button" data-fz="14">小</button>
+            <button class="tab-btn active" type="button" data-fz="16">中</button>
+            <button class="tab-btn" type="button" data-fz="18">大</button>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <span class="tool-label">页内统计</span>
+          <div class="tool-stat"><span>章节</span><strong>9</strong></div>
+          <div class="tool-stat"><span>组件</span><strong>30+</strong></div>
+          <div class="tool-stat"><span>表单字段</span><strong>10</strong></div>
+          <div class="tool-stat"><span>状态</span><strong class="ok">就绪</strong></div>
+        </div>
+
+        <div class="tool-card hint">
+          <span class="tool-label">课程检查项</span>
+          <ul class="check-list">
+            <li>1. 三栏布局 (grid + sticky)</li>
+            <li>2. 整体美化 (token + 渐变 + 阴影)</li>
+            <li>3. 组件样式 (按钮 / 列表 / 卡片 / 提示)</li>
+            <li>4. 表单 (fieldset / progress / meter)</li>
+            <li>5. Canvas / SVG / Video / Audio</li>
+            <li>6. 拖放上传 / 地理定位</li>
+            <li>7. :hover / :focus / :active / :nth-child + @keyframes</li>
+            <li>8. CSS 外置 (assets/playground.css)</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- 全局 toast 容器 -->
+  <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- 页脚 -->
+  <footer class="footer pg-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark"></span>
+        <span>APOS</span>
+      </div>
+      <div class="footer-meta">
+        <span>© <span id="year"></span> 赵祥生 (Apos)</span>
+        <span class="dot-sep">·</span>
+        <span>Playground · CSS3 / HTML5 综合实验</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 第三方动效库(只为光标 / 极光复用,playground 自身不强依赖) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+
+  <!-- 复用博客脚本(光标 / 极光 / 年份) -->
+  <script src="./assets/main.js" defer></script>
+  <!-- playground 专属脚本(画板 / 拖放 / 定位 / 工具) -->
+  <script src="./assets/playground.js" defer></script>
+</body>
+</html>
