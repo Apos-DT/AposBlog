@@ -170,19 +170,17 @@ main { position: relative; z-index: 2; }
 }
 .hero-title .line {
   display: block;
-  overflow: hidden;
-  /* 给底部 descender (g/y/p/q) + 顶部某些字符 (M / 重音) 让位,
-     避免 overflow: hidden 把字母下伸 / 上凸笔画切掉。 */
-  padding: 0.06em 0.1em 0.22em 0;
-  /* 用负 margin 抵消增加的 padding,保持原视觉行间距紧凑感。 */
-  margin-block: -0.14em;
+  /* 不裁切 — descender (g/y/p/q) 和 ascender (b/d/h) 完整显示。
+     入场动画穿帮风险由 word 起态的 opacity:0 + 小幅 translateY 抵掉。 */
+  padding-right: 0.1em;
 }
-.hero-title .line:first-child { margin-top: 0; }
-.hero-title .line:last-child  { margin-bottom: 0; }
 .hero-title .word {
   display: inline-block;
-  transform: translateY(110%);
+  /* 起跳幅度从 110% 减到 40% — 无 overflow 时也不会"露馅",
+     因为 opacity:0 时根本看不见,等 opacity 起来位置已收回大半。 */
+  transform: translateY(40%);
   opacity: 0;
+  will-change: transform, opacity;
 }
 .hero-title .word.italic {
   font-family: var(--font-serif); font-style: italic; font-weight: 400;
