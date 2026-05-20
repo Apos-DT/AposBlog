@@ -44,6 +44,12 @@ const routes = [
     meta: { title: '标签', icon: 'tags' },
   },
   {
+    path: '/graph',
+    name: 'graph',
+    component: () => import('@/views/GraphView.vue'),
+    meta: { title: '知识图谱', icon: 'graph' },
+  },
+  {
     path: '/stats',
     name: 'stats',
     component: () => import('@/views/StatsView.vue'),

@@ -118,6 +118,14 @@ function fmtDate(iso) {
             </span>
           </span>
           <span class="nc-meta">
+            <span
+              v-if="(notes.outLinksByNote[n.id]?.length || 0) + (notes.backlinksByNote[n.id]?.length || 0) > 0"
+              class="link-count"
+              :title="`引用 ${notes.outLinksByNote[n.id]?.length || 0} · 被引 ${notes.backlinksByNote[n.id]?.length || 0}`"
+            >
+              <IconBase name="link" :size="12" />
+              {{ notes.outLinksByNote[n.id]?.length || 0 }}/{{ notes.backlinksByNote[n.id]?.length || 0 }}
+            </span>
             <span v-if="n.articleSlug" class="article-link" :title="posts.findBySlug(n.articleSlug)?.title">
               <IconBase name="book" :size="12" /> {{ posts.findBySlug(n.articleSlug)?.tag || '关联' }}
             </span>
@@ -248,6 +256,18 @@ function fmtDate(iso) {
   align-items: center;
   gap: 4px;
   color: var(--accent-2);
+}
+.link-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: oklch(0.22 0.08 295 / 0.4);
+  border: 1px solid oklch(0.74 0.20 295 / 0.4);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
 }
 .nc-date { color: var(--ink-3); }
 </style>
