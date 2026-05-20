@@ -56,10 +56,10 @@ const repulsion = ref(180)
 const hoverNode = ref(null)
 
 const palette = {
-  note: '#a78bfa',
-  tag: '#fcd34d',
-  post: '#67e8f9',
-  missing: '#94a3b8',
+  note: '#7c3aed',
+  tag: '#d97706',
+  post: '#0891b2',
+  missing: '#64748b',
 }
 
 /**
@@ -156,7 +156,7 @@ const graphData = computed(() => {
         },
         category: 3,
         value: m.refs.length,
-        label: { color: '#94a3b8' },
+        label: { color: '#1e293b' },
       })
       seen.add(`m:${m.title}`)
       m.refs.forEach((fromId) => {
@@ -234,10 +234,10 @@ function buildOption() {
     tooltip: {
       trigger: 'item',
       backgroundColor: 'oklch(0.95 0.006 280 / 0.95)',
-      borderColor: 'oklch(0.45 0.020 280 / 0.6)',
+      borderColor: 'oklch(0.78 0.010 280 / 0.8)',
       borderWidth: 1,
       textStyle: {
-        color: '#e2e8f0',
+        color: '#1e293b',
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: 12,
       },
@@ -260,7 +260,7 @@ function buildOption() {
       {
         data: ['笔记', '标签', '文章', '未链接'],
         bottom: 10,
-        textStyle: { color: '#cbd5e1', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 },
+        textStyle: { color: '#1e293b', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 },
         icon: 'circle',
         itemGap: 16,
       },
@@ -292,7 +292,7 @@ function buildOption() {
         label: {
           show: true,
           position: 'right',
-          color: '#cbd5e1',
+          color: '#1e293b',
           fontFamily: 'Plus Jakarta Sans, sans-serif',
           fontSize: 11,
           formatter: (p) => {
@@ -422,11 +422,11 @@ const overview = computed(() => {
 
     <!-- 概览数据条 -->
     <section class="graph-overview">
-      <div class="ov-card"><span>笔记</span><strong style="color:#a78bfa">{{ overview.notes }}</strong></div>
-      <div class="ov-card"><span>标签</span><strong style="color:#fcd34d">{{ overview.tags }}</strong></div>
-      <div class="ov-card"><span>文章</span><strong style="color:#67e8f9">{{ overview.posts }}</strong></div>
+      <div class="ov-card"><span>笔记</span><strong style="color:#7c3aed">{{ overview.notes }}</strong></div>
+      <div class="ov-card"><span>标签</span><strong style="color:#d97706">{{ overview.tags }}</strong></div>
+      <div class="ov-card"><span>文章</span><strong style="color:#0891b2">{{ overview.posts }}</strong></div>
       <div class="ov-card"><span>双向链接</span><strong>{{ overview.links }}</strong></div>
-      <div class="ov-card"><span>未链接占位</span><strong style="color:#94a3b8">{{ overview.missing }}</strong></div>
+      <div class="ov-card"><span>未链接占位</span><strong style="color:#64748b">{{ overview.missing }}</strong></div>
       <div class="ov-card"><span>孤儿节点</span><strong>{{ overview.orphans }}</strong></div>
     </section>
 

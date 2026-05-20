@@ -1088,7 +1088,7 @@ a.contact-value:hover { color: var(--accent); }
   letter-spacing: -0.04em;
   line-height: 0.8;
   text-align: center;
-  background: linear-gradient(180deg, oklch(0.34 0.05 295 / 0.5), transparent 70%);
+  background: linear-gradient(180deg, oklch(0.78 0.10 295 / 0.45), transparent 75%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -965,7 +965,7 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 .ne-preview :deep(.md-tag:hover) {
-  background: oklch(0.30 0.12 60 / 0.5);
+  background: oklch(0.85 0.12 60 / 0.5);
 }
 .ne-preview :deep(.md-admon) {
   display: block;

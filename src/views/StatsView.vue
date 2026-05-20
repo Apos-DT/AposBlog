@@ -49,13 +49,13 @@ const refRating = ref(null)
 
 let charts = []
 
-const palette = ['#a78bfa', '#67e8f9', '#fcd34d', '#86efac', '#fda4af', '#c4b5fd']
+const palette = ['#7c3aed', '#0891b2', '#d97706', '#16a34a', '#e11d48', '#8b5cf6']
 
 function commonTheme() {
   return {
     textStyle: {
       fontFamily: 'JetBrains Mono, monospace',
-      color: '#cbd5e1',
+      color: '#1e293b',
     },
     backgroundColor: 'transparent',
     color: palette,
@@ -71,9 +71,9 @@ function statusOption() {
   ].filter((d) => d.value > 0)
   return {
     ...commonTheme(),
-    title: { text: '阅读状态分布', left: 'left', textStyle: { color: '#f1f5f9', fontSize: 14, fontFamily: 'Space Grotesk' } },
+    title: { text: '阅读状态分布', left: 'left', textStyle: { color: '#0f172a', fontSize: 14, fontFamily: 'Space Grotesk' } },
     tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c} ({d}%)' },
-    legend: { bottom: 0, textStyle: { color: '#94a3b8' } },
+    legend: { bottom: 0, textStyle: { color: '#475569' } },
     series: [
       {
         name: '状态',
@@ -81,8 +81,8 @@ function statusOption() {
         radius: ['38%', '64%'],
         center: ['50%', '46%'],
         avoidLabelOverlap: true,
-        itemStyle: { borderRadius: 6, borderColor: '#0a0a0f', borderWidth: 2 },
-        label: { color: '#cbd5e1', formatter: '{b}\n{c}' },
+        itemStyle: { borderRadius: 6, borderColor: '#ffffff', borderWidth: 2 },
+        label: { color: '#1e293b', formatter: '{b}\n{c}' },
         data,
       },
     ],
@@ -99,19 +99,19 @@ function tagOption() {
     .sort((a, b) => b.value - a.value)
   return {
     ...commonTheme(),
-    title: { text: '标签使用频次 (笔记)', left: 'left', textStyle: { color: '#f1f5f9', fontSize: 14, fontFamily: 'Space Grotesk' } },
+    title: { text: '标签使用频次 (笔记)', left: 'left', textStyle: { color: '#0f172a', fontSize: 14, fontFamily: 'Space Grotesk' } },
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: 20, right: 20, top: 50, bottom: 36, containLabel: true },
     xAxis: {
       type: 'category',
       data: data.map((d) => d.name),
-      axisLabel: { color: '#94a3b8', fontSize: 11 },
-      axisLine: { lineStyle: { color: '#475569' } },
+      axisLabel: { color: '#475569', fontSize: 11 },
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: 'rgba(100,116,139,0.18)' } },
+      axisLabel: { color: '#475569' },
+      splitLine: { lineStyle: { color: 'rgba(15,23,42,0.08)' } },
     },
     series: [
       {
@@ -122,8 +122,8 @@ function tagOption() {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: '#a78bfa' },
-              { offset: 1, color: '#67e8f9' },
+              { offset: 0, color: '#7c3aed' },
+              { offset: 1, color: '#0891b2' },
             ],
           },
           borderRadius: [6, 6, 0, 0],
@@ -154,20 +154,20 @@ function timelineOption() {
   })
   return {
     ...commonTheme(),
-    title: { text: '最近 30 天阅读活跃度', left: 'left', textStyle: { color: '#f1f5f9', fontSize: 14, fontFamily: 'Space Grotesk' } },
+    title: { text: '最近 30 天阅读活跃度', left: 'left', textStyle: { color: '#0f172a', fontSize: 14, fontFamily: 'Space Grotesk' } },
     tooltip: { trigger: 'axis' },
     grid: { left: 20, right: 20, top: 50, bottom: 30, containLabel: true },
     xAxis: {
       type: 'category',
       data: labels,
       boundaryGap: false,
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
-      axisLine: { lineStyle: { color: '#475569' } },
+      axisLabel: { color: '#475569', fontSize: 10 },
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: 'rgba(100,116,139,0.18)' } },
+      axisLabel: { color: '#475569' },
+      splitLine: { lineStyle: { color: 'rgba(15,23,42,0.08)' } },
     },
     series: [
       {
@@ -176,15 +176,15 @@ function timelineOption() {
         symbol: 'circle',
         symbolSize: 6,
         data: Object.values(buckets),
-        lineStyle: { color: '#a78bfa', width: 2 },
-        itemStyle: { color: '#a78bfa' },
+        lineStyle: { color: '#7c3aed', width: 2 },
+        itemStyle: { color: '#7c3aed' },
         areaStyle: {
           color: {
             type: 'linear',
             x: 0, y: 0, x2: 0, y2: 1,
             colorStops: [
-              { offset: 0, color: 'rgba(167,139,250,0.5)' },
-              { offset: 1, color: 'rgba(167,139,250,0)' },
+              { offset: 0, color: 'rgba(124,58,237,0.35)' },
+              { offset: 1, color: 'rgba(124,58,237,0)' },
             ],
           },
         },
@@ -201,26 +201,26 @@ function ratingOption() {
   })
   return {
     ...commonTheme(),
-    title: { text: '评分分布', left: 'left', textStyle: { color: '#f1f5f9', fontSize: 14, fontFamily: 'Space Grotesk' } },
+    title: { text: '评分分布', left: 'left', textStyle: { color: '#0f172a', fontSize: 14, fontFamily: 'Space Grotesk' } },
     tooltip: { trigger: 'axis' },
     grid: { left: 20, right: 20, top: 50, bottom: 36, containLabel: true },
     xAxis: {
       type: 'category',
       data: ['1 ★', '2 ★', '3 ★', '4 ★', '5 ★'],
-      axisLabel: { color: '#94a3b8' },
-      axisLine: { lineStyle: { color: '#475569' } },
+      axisLabel: { color: '#475569' },
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: 'rgba(100,116,139,0.18)' } },
+      axisLabel: { color: '#475569' },
+      splitLine: { lineStyle: { color: 'rgba(15,23,42,0.08)' } },
     },
     series: [
       {
         type: 'bar',
         data: counts,
         itemStyle: {
-          color: '#fcd34d',
+          color: '#d97706',
           borderRadius: [6, 6, 0, 0],
         },
         barWidth: '55%',
