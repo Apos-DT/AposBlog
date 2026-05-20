@@ -169,7 +169,7 @@ function fmtDate(iso) {
   padding: 18px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
   min-height: 180px;
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }

@@ -187,7 +187,7 @@ const storageSize = () => {
   padding: 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.14 0.012 280 / 0.45);
+  background: oklch(0.17 0.014 280 / 0.45);
 }
 .set-card > header {
   margin-bottom: 18px;
@@ -274,7 +274,7 @@ const storageSize = () => {
 .data-summary > div {
   padding: 10px 14px;
   border-radius: 8px;
-  background: oklch(0.16 0.014 280 / 0.5);
+  background: oklch(0.20 0.014 280 / 0.5);
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
@@ -307,7 +307,7 @@ const storageSize = () => {
   font-size: 12px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: oklch(0.18 0.014 280 / 0.6);
+  background: oklch(0.22 0.014 280 / 0.6);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
 }
@@ -322,7 +322,7 @@ code {
   font-size: 12.5px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: oklch(0.18 0.014 280 / 0.6);
+  background: oklch(0.22 0.014 280 / 0.6);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
 }

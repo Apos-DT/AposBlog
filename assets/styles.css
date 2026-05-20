@@ -1,17 +1,22 @@
 /* ======== Design Tokens ======== */
 :root {
-  /* Color — oklch-first */
-  --bg: oklch(0.14 0.012 280);
-  --bg-deep: oklch(0.10 0.012 280);
-  --bg-soft: oklch(0.18 0.014 280);
-  --line: oklch(0.30 0.015 280 / 0.5);
-  --line-soft: oklch(0.30 0.015 280 / 0.18);
-  --ink: oklch(0.96 0.005 280);
-  --ink-2: oklch(0.78 0.008 280);
-  --ink-3: oklch(0.55 0.012 280);
-  --accent: oklch(0.72 0.21 295);          /* violet */
-  --accent-2: oklch(0.78 0.18 220);        /* cyan */
-  --accent-warm: oklch(0.82 0.16 60);      /* amber for italic accents */
+  /* Color — oklch-first
+     2026-05 调整:整体提亮一档,提高可读性 + 保留深色品味
+     - bg     0.14 → 0.17 (背景提亮 3 个点)
+     - ink-2  0.78 → 0.86 (次文字更清晰)
+     - ink-3  0.55 → 0.70 (弱文字大幅提亮,WCAG AA 起步)
+     - line   30% / 0.5  → 45% / 0.65 (边框轮廓更明显) */
+  --bg: oklch(0.17 0.014 280);
+  --bg-deep: oklch(0.13 0.014 280);
+  --bg-soft: oklch(0.22 0.016 280);
+  --line: oklch(0.45 0.020 280 / 0.65);
+  --line-soft: oklch(0.42 0.020 280 / 0.30);
+  --ink: oklch(0.98 0.005 280);
+  --ink-2: oklch(0.86 0.010 280);
+  --ink-3: oklch(0.70 0.014 280);
+  --accent: oklch(0.74 0.20 295);          /* violet — 略提亮 0.72→0.74 */
+  --accent-2: oklch(0.80 0.17 220);        /* cyan — 略提亮 */
+  --accent-warm: oklch(0.84 0.15 60);      /* amber italic */
 
   /* Type */
   --font-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", "PingFang SC", sans-serif;
@@ -95,11 +100,11 @@ body.cursor-hover #cursor-ring { width: 70px; height: 70px; border-color: var(--
   padding: 18px var(--gutter);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  background: oklch(0.10 0.012 280 / 0.55);
+  background: oklch(0.13 0.014 280 / 0.55);
   border-bottom: 1px solid var(--line-soft);
   transition: padding 0.5s var(--ease-out), background 0.5s;
 }
-.nav.scrolled { padding: 12px var(--gutter); background: oklch(0.10 0.012 280 / 0.78); }
+.nav.scrolled { padding: 12px var(--gutter); background: oklch(0.13 0.014 280 / 0.78); }
 
 .brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.06em; }
 .brand-mark {
@@ -278,7 +283,7 @@ main { position: relative; z-index: 2; }
   padding: 32px;
   border-radius: 22px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.6), oklch(0.14 0.012 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.6), oklch(0.17 0.014 280 / 0.4));
   overflow: hidden; isolation: isolate;
   transition: transform 0.5s var(--ease-out), border-color 0.5s;
   min-height: 320px;
@@ -332,7 +337,7 @@ main { position: relative; z-index: 2; }
   padding: 28px 26px 24px;
   border-radius: 18px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.3));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.3));
   overflow: hidden; isolation: isolate;
   transition: border-color 0.5s, transform 0.5s var(--ease-out);
   min-height: 210px;
@@ -364,7 +369,7 @@ main { position: relative; z-index: 2; }
   display: inline-flex; align-items: center;
   padding: 6px 12px; border-radius: 999px;
   border: 1px solid var(--line);
-  background: oklch(0.14 0.012 280 / 0.5);
+  background: oklch(0.17 0.014 280 / 0.5);
   font-family: var(--font-mono); font-size: 11.5px; line-height: 1; letter-spacing: 0.01em;
   color: var(--ink-2); white-space: nowrap;
   transition: color 0.3s, border-color 0.3s, background 0.3s;
@@ -431,7 +436,7 @@ main { position: relative; z-index: 2; }
   padding: 18px 20px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.14 0.012 280 / 0.45);
+  background: oklch(0.17 0.014 280 / 0.45);
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }
 .contact-item:hover { border-color: var(--line); transform: translateY(-2px); }
@@ -566,7 +571,7 @@ a.contact-value:hover { color: var(--accent); }
 }
 
 /* ======== Post page (三栏: TOC / 正文 / 工具) ======== */
-body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
+body[data-page="post"] .nav { background: oklch(0.13 0.014 280 / 0.78); }
 
 .post-grid {
   display: grid;
@@ -598,7 +603,7 @@ body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
   padding: 22px 20px;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.14 0.012 280 / 0.55);
+  background: oklch(0.17 0.014 280 / 0.55);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
@@ -740,7 +745,7 @@ body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
   padding: 14px 14px 12px;
   border-radius: 12px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.16 0.014 280 / 0.4);
+  background: oklch(0.20 0.014 280 / 0.4);
   transition: border-color 0.4s;
 }
 .post-tool-card:hover { border-color: var(--line); }
@@ -766,7 +771,7 @@ body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
   padding: 18px 14px 14px;
   border-radius: 12px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.16 0.014 280 / 0.4);
+  background: oklch(0.20 0.014 280 / 0.4);
 }
 .rp-ring {
   position: relative;
@@ -872,7 +877,7 @@ body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.10 0.012 280 / 0.5);
+  background: oklch(0.13 0.014 280 / 0.5);
   font: inherit;
   font-size: 13px;
   color: var(--ink-2);
@@ -990,8 +995,8 @@ body[data-page="post"] .nav { background: oklch(0.10 0.012 280 / 0.78); }
   border-radius: 14px;
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg,
-              oklch(0.18 0.014 280 / 0.5),
-              oklch(0.12 0.012 280 / 0.5));
+              oklch(0.22 0.014 280 / 0.5),
+              oklch(0.15 0.014 280 / 0.5));
   box-shadow: 0 10px 40px -20px oklch(0.05 0 0 / 0.5);
 }
 .post-body .media-card video,

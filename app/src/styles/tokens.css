@@ -3,21 +3,25 @@
  * 所有颜色用 oklch (perceptually linear),字体三栈 (display/body/serif/mono)
  */
 :root {
-  /* ===== Color ===== */
-  --bg: oklch(0.14 0.012 280);
-  --bg-deep: oklch(0.10 0.012 280);
-  --bg-soft: oklch(0.18 0.014 280);
-  --line: oklch(0.30 0.015 280 / 0.5);
-  --line-soft: oklch(0.30 0.015 280 / 0.18);
-  --ink: oklch(0.96 0.005 280);
-  --ink-2: oklch(0.78 0.008 280);
-  --ink-3: oklch(0.55 0.012 280);
-  --accent: oklch(0.72 0.21 295);
-  --accent-2: oklch(0.78 0.18 220);
-  --accent-warm: oklch(0.82 0.16 60);
-  --success: oklch(0.78 0.18 160);
-  --warning: oklch(0.82 0.16 60);
-  --error: oklch(0.65 0.20 25);
+  /* ===== Color =====
+     2026-05 调整:整体提亮一档,改善可读性
+     - bg 0.14→0.17 / bg-deep 0.10→0.13 / bg-soft 0.18→0.22
+     - ink-2 0.78→0.86 / ink-3 0.55→0.70 (弱文字 WCAG AA 起步)
+     - line / line-soft 透明度与亮度同步提升 */
+  --bg: oklch(0.17 0.014 280);
+  --bg-deep: oklch(0.13 0.014 280);
+  --bg-soft: oklch(0.22 0.016 280);
+  --line: oklch(0.45 0.020 280 / 0.65);
+  --line-soft: oklch(0.42 0.020 280 / 0.30);
+  --ink: oklch(0.98 0.005 280);
+  --ink-2: oklch(0.86 0.010 280);
+  --ink-3: oklch(0.70 0.014 280);
+  --accent: oklch(0.74 0.20 295);
+  --accent-2: oklch(0.80 0.17 220);
+  --accent-warm: oklch(0.84 0.15 60);
+  --success: oklch(0.80 0.17 160);
+  --warning: oklch(0.84 0.15 60);
+  --error: oklch(0.68 0.20 25);
 
   /* ===== Type ===== */
   --font-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", "PingFang SC", sans-serif;

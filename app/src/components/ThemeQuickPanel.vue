@@ -65,7 +65,7 @@ const swatch = computed(() => `oklch(0.72 0.21 ${settings.hue})`)
   padding: 14px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: oklch(0.16 0.014 280 / 0.4);
+  background: oklch(0.20 0.014 280 / 0.4);
   margin-bottom: 12px;
   transition: border-color 0.4s;
 }

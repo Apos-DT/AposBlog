@@ -332,7 +332,7 @@ onBeforeUnmount(() => {
 .ne-body {
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: oklch(0.10 0.012 280 / 0.55);
+  background: oklch(0.13 0.014 280 / 0.55);
   overflow: hidden;
 }
 .ne-textarea {
@@ -382,7 +382,7 @@ onBeforeUnmount(() => {
   font-size: 12.5px;
   padding: 1px 5px;
   border-radius: 3px;
-  background: oklch(0.18 0.014 280 / 0.6);
+  background: oklch(0.22 0.014 280 / 0.6);
   color: var(--accent-2);
   border: 1px solid var(--line-soft);
 }

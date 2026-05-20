@@ -255,7 +255,7 @@ function fmtDate(iso) {
   padding: 18px 20px 16px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -304,7 +304,7 @@ function fmtDate(iso) {
   padding: 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.14 0.012 280 / 0.45);
+  background: oklch(0.17 0.014 280 / 0.45);
 }
 .block-head {
   display: flex;
@@ -388,7 +388,7 @@ function fmtDate(iso) {
   padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.16 0.014 280 / 0.5);
+  background: oklch(0.20 0.014 280 / 0.5);
   transition: border-color 0.3s, transform 0.3s var(--ease-out);
 }
 .note-card:hover {
@@ -450,7 +450,7 @@ function fmtDate(iso) {
   padding: 22px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 4px;

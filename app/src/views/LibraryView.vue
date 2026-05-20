@@ -339,7 +339,7 @@ function getStatusLabel(slug) {
   padding: 20px 22px 18px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.18 0.014 280 / 0.5), oklch(0.14 0.012 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -415,7 +415,7 @@ function getStatusLabel(slug) {
   padding: 3px 9px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: oklch(0.10 0.012 280 / 0.5);
+  background: oklch(0.13 0.014 280 / 0.5);
   color: var(--ink-2);
 }
 .lc-status[data-status="done"]    { color: var(--success); border-color: oklch(0.78 0.18 160 / 0.4); }
