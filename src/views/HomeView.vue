@@ -570,8 +570,8 @@ const experience = [
   border-radius: 20px;
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg,
-              oklch(0.22 0.016 280 / 0.55),
-              oklch(0.17 0.014 280 / 0.4));
+              oklch(0.87 0.010 280 / 0.55),
+              oklch(0.93 0.008 280 / 0.4));
   overflow: hidden;
   isolation: isolate;
   transition: transform 0.5s var(--ease-out), border-color 0.5s;
@@ -584,7 +584,7 @@ const experience = [
   inset: 0;
   border-radius: inherit;
   background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 0%),
-              oklch(0.74 0.20 295 / 0.22), transparent 40%);
+              oklch(0.50 0.22 295 / 0.22), transparent 40%);
   opacity: 0;
   transition: opacity 0.5s;
   z-index: -1;
@@ -649,8 +649,8 @@ const experience = [
   border-radius: 18px;
   border: 1px solid var(--line-soft);
   background: linear-gradient(180deg,
-              oklch(0.22 0.016 280 / 0.5),
-              oklch(0.17 0.014 280 / 0.3));
+              oklch(0.87 0.010 280 / 0.5),
+              oklch(0.93 0.008 280 / 0.3));
   min-height: 210px;
   transition: border-color 0.5s, transform 0.5s var(--ease-out);
 }
@@ -685,7 +685,7 @@ const experience = [
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: oklch(0.17 0.014 280 / 0.5);
+  background: oklch(0.93 0.008 280 / 0.5);
   font-family: var(--font-mono);
   font-size: 11.5px;
   line-height: 1;
@@ -696,7 +696,7 @@ const experience = [
 .chip:hover {
   color: var(--ink);
   border-color: var(--accent);
-  background: oklch(0.24 0.06 295 / 0.4);
+  background: oklch(0.88 0.05 295 / 0.4);
 }
 .chip.sm { padding: 4px 9px; font-size: 10.5px; }
 
@@ -733,7 +733,7 @@ const experience = [
   border-radius: 50%;
   background: var(--bg);
   border: 2px solid var(--accent);
-  box-shadow: 0 0 14px oklch(0.74 0.20 295 / 0.5);
+  box-shadow: 0 0 14px oklch(0.50 0.22 295 / 0.5);
 }
 .tl-item:last-child { padding-bottom: 0; }
 .tl-date {
@@ -853,7 +853,7 @@ const experience = [
   padding: 16px 20px;
   border-radius: 12px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }
 .contact-item:hover { border-color: var(--line); transform: translateY(-2px); }
@@ -879,7 +879,7 @@ a.contact-value:hover { color: var(--accent); }
   border: 1px solid var(--line-soft);
   border-radius: 14px;
   padding: 20px 22px 22px;
-  background: oklch(0.20 0.016 280 / 0.3);
+  background: oklch(0.90 0.010 280 / 0.3);
 }
 .contact-form legend {
   font-family: var(--font-display);
@@ -916,7 +916,7 @@ a.contact-value:hover { color: var(--accent); }
 }
 .ui-input, .ui-select, .ui-textarea {
   width: 100%;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 14px;
@@ -930,8 +930,8 @@ a.contact-value:hover { color: var(--accent); }
 .ui-input:focus, .ui-select:focus, .ui-textarea:focus {
   outline: none;
   border-color: var(--accent);
-  background: oklch(0.17 0.04 295 / 0.55);
-  box-shadow: 0 0 0 3px oklch(0.74 0.20 295 / 0.18);
+  background: oklch(0.94 0.04 295 / 0.55);
+  box-shadow: 0 0 0 3px oklch(0.50 0.22 295 / 0.18);
 }
 .ui-select {
   appearance: none;
@@ -956,23 +956,23 @@ a.contact-value:hover { color: var(--accent); }
   height: 10px;
   border: 0;
   border-radius: 999px;
-  background: oklch(0.22 0.016 280 / 0.7);
+  background: oklch(0.87 0.010 280 / 0.7);
   overflow: hidden;
 }
 .ui-meter::-webkit-meter-bar {
-  background: oklch(0.22 0.016 280 / 0.7);
+  background: oklch(0.87 0.010 280 / 0.7);
   border-radius: 999px;
 }
 .ui-meter::-webkit-meter-optimum-value {
-  background: linear-gradient(90deg, var(--success), oklch(0.80 0.16 130));
+  background: linear-gradient(90deg, var(--success), oklch(0.55 0.16 130));
   border-radius: 999px;
 }
 .ui-meter::-webkit-meter-suboptimum-value {
-  background: linear-gradient(90deg, var(--accent-warm), oklch(0.75 0.18 40));
+  background: linear-gradient(90deg, var(--accent-warm), oklch(0.58 0.18 40));
   border-radius: 999px;
 }
 .ui-meter::-webkit-meter-even-less-good-value {
-  background: linear-gradient(90deg, var(--error), oklch(0.55 0.22 25));
+  background: linear-gradient(90deg, var(--error), oklch(0.50 0.20 25));
   border-radius: 999px;
 }
 
@@ -992,7 +992,7 @@ a.contact-value:hover { color: var(--accent); }
   width: 18px; height: 18px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   cursor: pointer;
   position: relative;
   transition: border-color 0.3s, background 0.3s;
@@ -1069,7 +1069,7 @@ a.contact-value:hover { color: var(--accent); }
 .brand-mark {
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.40 0.18 295));
+  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.55 0.20 295));
   box-shadow: 0 0 0 1px var(--line), 0 0 20px var(--accent);
 }
 .footer-meta {

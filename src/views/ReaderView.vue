@@ -199,7 +199,7 @@ const iframeSrc = computed(() => post.value?.url || '')
   padding: 22px 24px 20px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.55), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.55), oklch(0.93 0.008 280 / 0.4));
 }
 
 .back-link {
@@ -231,7 +231,7 @@ const iframeSrc = computed(() => post.value?.url || '')
 .rh-tag {
   padding: 3px 9px;
   border-radius: 999px;
-  background: oklch(0.18 0.06 295 / 0.4);
+  background: oklch(0.92 0.05 295 / 0.4);
   color: var(--accent);
   border: 1px solid var(--line-soft);
   text-transform: uppercase;
@@ -269,7 +269,7 @@ const iframeSrc = computed(() => post.value?.url || '')
 .rating {
   padding: 4px 10px;
   border-radius: 999px;
-  background: oklch(0.13 0.014 280 / 0.5);
+  background: oklch(0.97 0.005 280 / 0.5);
   border: 1px solid var(--line-soft);
 }
 .star {
@@ -320,7 +320,7 @@ const iframeSrc = computed(() => post.value?.url || '')
   padding: 20px 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
 }
 .rh-notes-title {
   font-family: var(--font-display);
@@ -336,7 +336,7 @@ const iframeSrc = computed(() => post.value?.url || '')
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: oklch(0.20 0.10 295 / 0.4);
+  background: oklch(0.88 0.07 295 / 0.4);
   color: var(--accent);
 }
 .rh-notes-list {
@@ -351,7 +351,7 @@ const iframeSrc = computed(() => post.value?.url || '')
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.20 0.014 280 / 0.5);
+  background: oklch(0.90 0.010 280 / 0.5);
   transition: border-color 0.3s, transform 0.3s var(--ease-out);
 }
 .rh-note-item:hover {

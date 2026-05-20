@@ -163,7 +163,7 @@ function removeTag(id, name, count) {
   padding: 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
 }
 .tag-add-row {
   display: flex;
@@ -205,7 +205,7 @@ function removeTag(id, name, count) {
   padding: 18px 20px 16px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -240,7 +240,7 @@ function removeTag(id, name, count) {
   color: var(--ink-3);
   padding: 3px 9px;
   border-radius: 999px;
-  background: oklch(0.22 0.014 280 / 0.6);
+  background: oklch(0.87 0.010 280 / 0.6);
   border: 1px solid var(--line-soft);
 }
 

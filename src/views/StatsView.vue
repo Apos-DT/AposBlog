@@ -328,7 +328,7 @@ const empty = computed(() => {
   padding: 18px 20px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.20 0.014 280 / 0.5), oklch(0.15 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.90 0.010 280 / 0.5), oklch(0.95 0.006 280 / 0.4));
   transition: border-color 0.4s;
 }
 .chart-card:hover { border-color: var(--line); }

@@ -3,11 +3,13 @@
  * 设置 — 主题 / 数据导出 / 数据导入 / 重置
  */
 import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useSettingsStore } from '@/stores/settings'
 import { usePostsStore } from '@/stores/posts'
 import { useReadsStore } from '@/stores/reads'
 import { useNotesStore } from '@/stores/notes'
 import { useTagsStore } from '@/stores/tags'
+import { useChatStore } from '@/stores/chat'
 import { exportAll, importAll, clearAll } from '@/stores/_persist'
 
 import IconBase from '@/components/IconBase.vue'
@@ -17,6 +19,7 @@ const posts = usePostsStore()
 const reads = useReadsStore()
 const notes = useNotesStore()
 const tags = useTagsStore()
+const chat = useChatStore()
 
 const importFile = ref(null)
 
@@ -88,37 +91,67 @@ const storageSize = () => {
       <div class="left">
         <span class="no">06 / Settings</span>
         <h2>设置</h2>
-        <p>主题外观 · 数据管理 · 应用信息</p>
+        <p>AI · 数据 · 应用信息</p>
       </div>
     </header>
 
-    <!-- 主题 -->
-    <article class="set-card">
-      <header><h3><IconBase name="palette" :size="16" /> 主题外观</h3></header>
-      <div class="set-row">
-        <label class="ui-field" style="flex:1;">
-          <span class="ui-field-label">主题色相 ({{ settings.hue }}°)</span>
-          <input
-            type="range"
-            min="0" max="360"
-            :value="settings.hue"
-            @input="settings.setHue($event.target.value)"
-            class="ui-range"
-          />
+    <!-- AI 设置 -->
+    <article class="set-card" id="ai">
+      <header><h3><IconBase name="key" :size="16" /> AI 对话设置</h3></header>
+
+      <div class="ui-alert info" style="margin-bottom:18px">
+        <span>
+          <strong>说明 ·</strong> API key 只存在你的浏览器 <code>localStorage</code>,
+          <strong>不上传到任何服务器,不进入 git</strong>。
+          推荐使用 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:var(--accent)">DeepSeek 控制台</a>
+          的最小权限 key。
+        </span>
+      </div>
+
+      <label class="ui-field" style="margin-bottom: 14px">
+        <span class="ui-field-label">DeepSeek API Key <em>*</em></span>
+        <input
+          v-model="chat.apiKey"
+          type="password"
+          class="ui-input"
+          placeholder="sk-..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <span class="ui-field-tip">
+          <span v-if="chat.hasKey" style="color: var(--success)">✓ 已配置 ({{ chat.apiKey.length }} 字符)</span>
+          <span v-else>未配置 · AI 对话需要此 key</span>
+        </span>
+      </label>
+
+      <div class="ai-grid">
+        <label class="ui-field">
+          <span class="ui-field-label">API Base URL</span>
+          <input v-model="chat.baseUrl" type="url" class="ui-input" placeholder="https://api.deepseek.com" />
+        </label>
+        <label class="ui-field">
+          <span class="ui-field-label">模型</span>
+          <select v-model="chat.model" class="ui-select">
+            <option value="deepseek-chat">deepseek-chat (V3)</option>
+            <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
+          </select>
         </label>
       </div>
-      <div class="set-row">
-        <span class="ui-field-label">正文字号</span>
-        <div class="size-tabs">
-          <button
-            v-for="fz in [14, 16, 18]"
-            :key="fz"
-            :class="['size-tab', { active: settings.fontSize === fz }]"
-            @click="settings.setFontSize(fz)"
-          >
-            {{ fz === 14 ? '紧凑 (14)' : fz === 16 ? '标准 (16)' : '舒适 (18)' }}
-          </button>
-        </div>
+
+      <label class="ui-field">
+        <span class="ui-field-label">System Prompt(系统提示词)</span>
+        <textarea v-model="chat.systemPrompt" class="ui-textarea" rows="3"></textarea>
+      </label>
+
+      <div class="set-actions">
+        <RouterLink to="/chat" class="ui-btn ui-btn-primary">
+          <IconBase name="chat" :size="14" />
+          <span>去对话</span>
+        </RouterLink>
+        <button class="ui-btn ui-btn-ghost" @click="chat.clearAll">
+          <IconBase name="trash" :size="14" />
+          <span>清空全部会话</span>
+        </button>
       </div>
     </article>
 
@@ -187,7 +220,7 @@ const storageSize = () => {
   padding: 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
 }
 .set-card > header {
   margin-bottom: 18px;
@@ -229,7 +262,7 @@ const storageSize = () => {
 }
 .ui-range::-webkit-slider-thumb:hover {
   transform: scale(1.15);
-  box-shadow: 0 0 0 6px oklch(0.72 0.21 295 / 0.2);
+  box-shadow: 0 0 0 6px oklch(0.50 0.22 295 / 0.2);
 }
 
 .size-tabs {
@@ -264,6 +297,49 @@ const storageSize = () => {
   margin-bottom: 18px;
 }
 
+.ai-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 720px) {
+  .ai-grid { grid-template-columns: 1fr; }
+}
+.ui-field-tip {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.ui-input, .ui-select, .ui-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-deep);
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+}
+.ui-input:focus, .ui-select:focus, .ui-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px oklch(0.50 0.22 295 / 0.15);
+}
+.ui-textarea {
+  resize: vertical;
+  min-height: 70px;
+  font-family: var(--font-body);
+  line-height: 1.6;
+}
+.ui-input::placeholder, .ui-textarea::placeholder { color: var(--ink-3); }
+.ui-select {
+  appearance: none;
+  cursor: pointer;
+}
+
 .data-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -274,7 +350,7 @@ const storageSize = () => {
 .data-summary > div {
   padding: 10px 14px;
   border-radius: 8px;
-  background: oklch(0.20 0.014 280 / 0.5);
+  background: oklch(0.90 0.010 280 / 0.5);
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
@@ -307,7 +383,7 @@ const storageSize = () => {
   font-size: 12px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: oklch(0.22 0.014 280 / 0.6);
+  background: oklch(0.87 0.010 280 / 0.6);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
 }
@@ -322,7 +398,7 @@ code {
   font-size: 12.5px;
   padding: 1px 6px;
   border-radius: 4px;
-  background: oklch(0.22 0.014 280 / 0.6);
+  background: oklch(0.87 0.010 280 / 0.6);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
 }

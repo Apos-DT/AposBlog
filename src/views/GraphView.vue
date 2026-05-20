@@ -233,7 +233,7 @@ function buildOption() {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'oklch(0.15 0.014 280 / 0.95)',
+      backgroundColor: 'oklch(0.95 0.006 280 / 0.95)',
       borderColor: 'oklch(0.45 0.020 280 / 0.6)',
       borderWidth: 1,
       textStyle: {
@@ -531,7 +531,7 @@ const overview = computed(() => {
   padding: 12px 14px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: oklch(0.22 0.016 280 / 0.45);
+  background: oklch(0.87 0.010 280 / 0.45);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -575,9 +575,9 @@ const overview = computed(() => {
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
   background:
-    radial-gradient(closest-side at 30% 30%, oklch(0.22 0.08 295 / 0.18), transparent 60%),
-    radial-gradient(closest-side at 70% 70%, oklch(0.22 0.08 220 / 0.15), transparent 60%),
-    oklch(0.13 0.014 280);
+    radial-gradient(closest-side at 30% 30%, oklch(0.90 0.06 295 / 0.18), transparent 60%),
+    radial-gradient(closest-side at 70% 70%, oklch(0.90 0.05 220 / 0.15), transparent 60%),
+    oklch(0.97 0.005 280);
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
@@ -587,7 +587,7 @@ const overview = computed(() => {
   padding: 16px 16px 12px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.55);
+  background: oklch(0.93 0.008 280 / 0.55);
   backdrop-filter: blur(12px) saturate(140%);
   overflow-y: auto;
   display: flex;
@@ -627,14 +627,14 @@ const overview = computed(() => {
   cursor: pointer;
   transition: background 0.3s, color 0.3s;
 }
-.gc-toggle:hover { background: oklch(0.22 0.016 280 / 0.5); color: var(--ink); }
+.gc-toggle:hover { background: oklch(0.87 0.010 280 / 0.5); color: var(--ink); }
 .gc-toggle input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
   width: 14px; height: 14px;
   border: 1px solid var(--line);
   border-radius: 3px;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   cursor: pointer;
   position: relative;
 }
@@ -689,7 +689,7 @@ const overview = computed(() => {
 }
 .gc-range input[type="range"]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 0 5px oklch(0.74 0.20 295 / 0.2);
+  box-shadow: 0 0 0 5px oklch(0.50 0.22 295 / 0.2);
 }
 
 .gc-block .ui-btn { width: 100%; justify-content: flex-start; }
@@ -698,7 +698,7 @@ const overview = computed(() => {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.22 0.016 280 / 0.55);
+  background: oklch(0.87 0.010 280 / 0.55);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -721,7 +721,7 @@ const overview = computed(() => {
 .gc-tips {
   padding: 12px;
   border-radius: 10px;
-  background: oklch(0.20 0.016 280 / 0.4);
+  background: oklch(0.90 0.010 280 / 0.4);
   border: 1px dashed var(--line-soft);
   font-size: 11.5px;
   color: var(--ink-3);
@@ -745,7 +745,7 @@ const overview = computed(() => {
   font-size: 11px;
   padding: 0 4px;
   border-radius: 3px;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
 }

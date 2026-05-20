@@ -177,7 +177,7 @@ function fmtDate(iso) {
   padding: 18px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.4));
   min-height: 180px;
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }
@@ -199,8 +199,8 @@ function fmtDate(iso) {
   color: var(--ink-3);
   transition: color 0.3s, background 0.3s, transform 0.3s var(--ease-out);
 }
-.nc-pin:hover { color: var(--accent-warm); background: oklch(0.20 0.10 60 / 0.3); transform: rotate(-15deg); }
-.nc-del:hover { color: var(--error); background: oklch(0.20 0.10 25 / 0.3); transform: rotate(15deg); }
+.nc-pin:hover { color: var(--accent-warm); background: oklch(0.92 0.06 60 / 0.3); transform: rotate(-15deg); }
+.nc-del:hover { color: var(--error); background: oklch(0.92 0.06 25 / 0.3); transform: rotate(15deg); }
 
 .note-card:has(.nc-pin):hover .nc-pin {
   /* idle: dim */
@@ -263,8 +263,8 @@ function fmtDate(iso) {
   gap: 4px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: oklch(0.22 0.08 295 / 0.4);
-  border: 1px solid oklch(0.74 0.20 295 / 0.4);
+  background: oklch(0.90 0.06 295 / 0.4);
+  border: 1px solid oklch(0.50 0.22 295 / 0.4);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 10.5px;

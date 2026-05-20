@@ -255,7 +255,7 @@ function fmtDate(iso) {
   padding: 18px 20px 16px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -304,7 +304,7 @@ function fmtDate(iso) {
   padding: 22px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
 }
 .block-head {
   display: flex;
@@ -345,7 +345,7 @@ function fmtDate(iso) {
 }
 .recent-item:hover {
   border-color: var(--line);
-  background: oklch(0.18 0.06 295 / 0.25);
+  background: oklch(0.92 0.05 295 / 0.25);
   transform: translateX(3px);
 }
 .r-tag {
@@ -356,7 +356,7 @@ function fmtDate(iso) {
   text-align: center;
   padding: 4px 8px;
   border-radius: 999px;
-  background: oklch(0.18 0.06 295 / 0.4);
+  background: oklch(0.92 0.05 295 / 0.4);
   color: var(--accent);
   border: 1px solid var(--line-soft);
 }
@@ -388,7 +388,7 @@ function fmtDate(iso) {
   padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.20 0.014 280 / 0.5);
+  background: oklch(0.90 0.010 280 / 0.5);
   transition: border-color 0.3s, transform 0.3s var(--ease-out);
 }
 .note-card:hover {
@@ -450,7 +450,7 @@ function fmtDate(iso) {
   padding: 22px 20px;
   border-radius: var(--radius);
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.014 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.4));
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -461,7 +461,7 @@ function fmtDate(iso) {
 .quick-card:hover {
   border-color: var(--accent);
   transform: translateY(-3px);
-  background: oklch(0.20 0.08 295 / 0.35);
+  background: oklch(0.90 0.06 295 / 0.35);
 }
 .quick-card svg { color: var(--accent); margin-bottom: 4px; }
 .quick-card strong {

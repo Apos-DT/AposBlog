@@ -39,6 +39,7 @@ const appMenu = computed(() => [
   { to: '/notes', label: '笔记', icon: 'notes', badge: notes.stats.total },
   { to: '/tags', label: '标签', icon: 'tags', badge: tags.tags.length },
   { to: '/graph', label: '知识图谱', icon: 'graph', badge: notes.stats.totalLinks || null },
+  { to: '/chat', label: 'AI 对话', icon: 'chat', badge: null },
   { to: '/stats', label: '统计', icon: 'stats', badge: null },
   { to: '/settings', label: '设置', icon: 'settings', badge: null },
 ])

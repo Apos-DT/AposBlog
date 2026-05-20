@@ -6,12 +6,12 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: var(--bg-deep);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.6;
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -41,8 +41,8 @@ input, select, textarea {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--bg-deep);
+  background: oklch(0.50 0.22 295 / 0.20);
+  color: var(--ink);
 }
 
 /* 通用滚动条美化 */

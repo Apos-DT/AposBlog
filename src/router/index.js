@@ -71,6 +71,12 @@ const routes = [
     meta: { title: '知识图谱', icon: 'graph', layout: 'app' },
   },
   {
+    path: '/chat',
+    name: 'chat',
+    component: () => import('@/views/ChatView.vue'),
+    meta: { title: 'AI 对话', icon: 'chat', layout: 'app' },
+  },
+  {
     path: '/stats',
     name: 'stats',
     component: () => import('@/views/StatsView.vue'),

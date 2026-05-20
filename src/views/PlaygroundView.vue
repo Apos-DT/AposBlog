@@ -329,11 +329,11 @@ function trigToast(type) {
         <svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0" stop-color="oklch(0.74 0.20 295)" />
-              <stop offset="1" stop-color="oklch(0.80 0.17 220)" />
+              <stop offset="0" stop-color="oklch(0.50 0.22 295)" />
+              <stop offset="1" stop-color="oklch(0.55 0.18 220)" />
             </linearGradient>
             <linearGradient id="g2" x1="0" x2="1">
-              <stop offset="0" stop-color="oklch(0.84 0.15 60)" />
+              <stop offset="0" stop-color="oklch(0.62 0.16 60)" />
               <stop offset="1" stop-color="oklch(0.75 0.20 40)" />
             </linearGradient>
           </defs>
@@ -502,10 +502,10 @@ function trigToast(type) {
   font-size: 14px;
   transition: background 0.3s, padding 0.3s var(--ease-out), color 0.3s;
 }
-.zebra li:nth-child(odd) { background: oklch(0.20 0.016 280 / 0.45); }
-.zebra li:nth-child(even) { background: oklch(0.22 0.016 280 / 0.45); }
+.zebra li:nth-child(odd) { background: oklch(0.90 0.010 280 / 0.45); }
+.zebra li:nth-child(even) { background: oklch(0.87 0.010 280 / 0.45); }
 .zebra li:hover {
-  background: oklch(0.28 0.08 295 / 0.4);
+  background: oklch(0.82 0.06 295 / 0.4);
   color: var(--ink);
   padding-left: 28px;
 }
@@ -525,7 +525,7 @@ function trigToast(type) {
   padding: 22px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.016 280 / 0.5), oklch(0.17 0.014 280 / 0.3));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.3));
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }
 .card:hover { border-color: var(--accent); transform: translateY(-3px); }
@@ -536,7 +536,7 @@ function trigToast(type) {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--accent);
-  background: oklch(0.24 0.10 295 / 0.4);
+  background: oklch(0.82 0.07 295 / 0.4);
   margin-bottom: 12px;
 }
 .card h3 { font-family: var(--font-display); font-size: 16px; margin: 0 0 8px; }
@@ -547,7 +547,7 @@ function trigToast(type) {
   border: 1px solid var(--line-soft);
   border-radius: 14px;
   padding: 22px 24px 22px;
-  background: oklch(0.20 0.016 280 / 0.3);
+  background: oklch(0.90 0.010 280 / 0.3);
 }
 .demo-form legend {
   font-family: var(--font-display);
@@ -574,7 +574,7 @@ function trigToast(type) {
 }
 .ff-input {
   width: 100%;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 14px;
@@ -586,8 +586,8 @@ function trigToast(type) {
 .ff-input:focus {
   outline: none;
   border-color: var(--accent);
-  background: oklch(0.17 0.04 295 / 0.55);
-  box-shadow: 0 0 0 3px oklch(0.74 0.20 295 / 0.18);
+  background: oklch(0.94 0.04 295 / 0.55);
+  box-shadow: 0 0 0 3px oklch(0.50 0.22 295 / 0.18);
 }
 .bar-row { display: flex; align-items: center; gap: 12px; }
 .bar-val {
@@ -604,21 +604,21 @@ function trigToast(type) {
   height: 10px;
   border: 0;
   border-radius: 999px;
-  background: oklch(0.22 0.016 280 / 0.7);
+  background: oklch(0.87 0.010 280 / 0.7);
   overflow: hidden;
 }
-.ff-progress::-webkit-progress-bar { background: oklch(0.22 0.016 280 / 0.7); border-radius: 999px; }
+.ff-progress::-webkit-progress-bar { background: oklch(0.87 0.010 280 / 0.7); border-radius: 999px; }
 .ff-progress::-webkit-progress-value {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   border-radius: 999px;
   transition: width 0.6s var(--ease-out);
 }
 .ff-meter::-webkit-meter-optimum-value {
-  background: linear-gradient(90deg, var(--success), oklch(0.80 0.16 130));
+  background: linear-gradient(90deg, var(--success), oklch(0.55 0.16 130));
   border-radius: 999px;
 }
 .ff-meter::-webkit-meter-suboptimum-value {
-  background: linear-gradient(90deg, var(--accent-warm), oklch(0.75 0.18 40));
+  background: linear-gradient(90deg, var(--accent-warm), oklch(0.58 0.18 40));
   border-radius: 999px;
 }
 .ff-check {
@@ -628,7 +628,7 @@ function trigToast(type) {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.13 0.014 280 / 0.5);
+  background: oklch(0.97 0.005 280 / 0.5);
   font-size: 13.5px;
   color: var(--ink-2);
   cursor: pointer;
@@ -638,7 +638,7 @@ function trigToast(type) {
   width: 18px; height: 18px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: oklch(0.13 0.014 280 / 0.7);
+  background: oklch(0.97 0.005 280 / 0.7);
   cursor: pointer;
   position: relative;
 }
@@ -682,7 +682,7 @@ function trigToast(type) {
   padding: 14px;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.13 0.014 280 / 0.6);
+  background: oklch(0.97 0.005 280 / 0.6);
   box-shadow: 0 10px 40px -20px oklch(0.05 0 0 / 0.6);
 }
 .canvas-stage canvas {
@@ -691,9 +691,9 @@ function trigToast(type) {
   height: 320px;
   border-radius: 10px;
   background:
-    linear-gradient(oklch(0.22 0.016 280 / 0.7) 1px, transparent 1px) 0 0 / 20px 20px,
-    linear-gradient(90deg, oklch(0.22 0.016 280 / 0.7) 1px, transparent 1px) 0 0 / 20px 20px,
-    oklch(0.15 0.014 280);
+    linear-gradient(oklch(0.87 0.010 280 / 0.7) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(90deg, oklch(0.87 0.010 280 / 0.7) 1px, transparent 1px) 0 0 / 20px 20px,
+    oklch(0.95 0.006 280);
   cursor: crosshair;
 }
 .canvas-tools {
@@ -744,7 +744,7 @@ function trigToast(type) {
   padding: 30px;
   border: 1px solid var(--line-soft);
   border-radius: 16px;
-  background: oklch(0.13 0.014 280 / 0.6);
+  background: oklch(0.97 0.005 280 / 0.6);
   text-align: center;
 }
 .svg-stage svg {
@@ -761,7 +761,7 @@ function trigToast(type) {
 }
 .shape:hover {
   transform: scale(1.18) rotate(8deg);
-  filter: drop-shadow(0 0 18px oklch(0.74 0.20 295 / 0.65));
+  filter: drop-shadow(0 0 18px oklch(0.50 0.22 295 / 0.65));
 }
 
 /* media */
@@ -776,21 +776,21 @@ function trigToast(type) {
   padding: 14px;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.016 280 / 0.55), oklch(0.15 0.014 280 / 0.55));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.55), oklch(0.95 0.006 280 / 0.55));
   display: flex;
   flex-direction: column;
   gap: 12px;
   transition: border-color 0.4s, transform 0.4s var(--ease-out);
 }
 .media-card:hover { border-color: var(--accent); transform: translateY(-3px); }
-.media-card video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; background: oklch(0.10 0.01 280); }
+.media-card video { width: 100%; border-radius: 10px; aspect-ratio: 16/9; background: oklch(0.97 0.005 280); }
 .audio-frame {
   position: relative;
   padding: 28px 18px 22px;
   border-radius: 12px;
   background:
-    radial-gradient(circle at 30% 50%, oklch(0.24 0.10 295 / 0.45), transparent 60%),
-    oklch(0.15 0.014 280 / 0.6);
+    radial-gradient(circle at 30% 50%, oklch(0.82 0.07 295 / 0.45), transparent 60%),
+    oklch(0.95 0.006 280 / 0.6);
   border: 1px solid var(--line-soft);
 }
 .audio-mark {
@@ -799,13 +799,13 @@ function trigToast(type) {
   transform: translateY(-50%);
   width: 28px; height: 28px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.40 0.18 295));
+  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.55 0.20 295));
   animation: audio-pulse 2.4s ease-out infinite;
 }
 @keyframes audio-pulse {
-  0% { box-shadow: 0 0 0 0 oklch(0.74 0.20 295 / 0.5); }
-  70% { box-shadow: 0 0 0 16px oklch(0.74 0.20 295 / 0); }
-  100% { box-shadow: 0 0 0 0 oklch(0.74 0.20 295 / 0); }
+  0% { box-shadow: 0 0 0 0 oklch(0.50 0.22 295 / 0.5); }
+  70% { box-shadow: 0 0 0 16px oklch(0.50 0.22 295 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(0.50 0.22 295 / 0); }
 }
 .media-card audio { width: 100%; border-radius: 999px; }
 .media-card figcaption { display: flex; flex-direction: column; gap: 4px; padding: 0 6px 4px; }
@@ -821,20 +821,20 @@ function trigToast(type) {
   padding: 40px 24px;
   border: 1.5px dashed var(--line);
   border-radius: 16px;
-  background: oklch(0.13 0.014 280 / 0.4);
+  background: oklch(0.97 0.005 280 / 0.4);
   color: var(--ink-2);
   cursor: pointer;
   transition: border-color 0.4s, background 0.4s, transform 0.4s var(--ease-out);
 }
-.dropzone:hover { border-color: var(--accent); background: oklch(0.24 0.08 295 / 0.30); transform: translateY(-2px); }
+.dropzone:hover { border-color: var(--accent); background: oklch(0.85 0.06 295 / 0.30); transform: translateY(-2px); }
 .dropzone.active {
   border-color: var(--accent-2);
-  background: oklch(0.26 0.10 220 / 0.30);
+  background: oklch(0.85 0.06 220 / 0.30);
   animation: dz-pulse 1.2s ease-in-out infinite;
 }
 @keyframes dz-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.80 0.17 220 / 0.45); }
-  50% { box-shadow: 0 0 0 10px oklch(0.80 0.17 220 / 0.05); }
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.18 220 / 0.45); }
+  50% { box-shadow: 0 0 0 10px oklch(0.55 0.18 220 / 0.05); }
 }
 .dropzone svg { color: var(--accent); }
 .dropzone strong { font-family: var(--font-display); font-size: 16px; color: var(--ink); }
@@ -856,14 +856,14 @@ function trigToast(type) {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.22 0.016 280 / 0.55);
+  background: oklch(0.87 0.010 280 / 0.55);
   animation: file-in 0.3s var(--ease-out);
 }
 @keyframes file-in { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .file-thumb {
   width: 42px; height: 42px;
   border-radius: 8px;
-  background: oklch(0.24 0.06 295 / 0.4);
+  background: oklch(0.88 0.05 295 / 0.4);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -890,7 +890,7 @@ function trigToast(type) {
 }
 .file-del:hover {
   color: var(--error);
-  background: oklch(0.26 0.10 25 / 0.4);
+  background: oklch(0.86 0.07 25 / 0.4);
   transform: rotate(90deg);
 }
 .empty-hint {
@@ -910,7 +910,7 @@ function trigToast(type) {
   padding: 18px 22px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, oklch(0.22 0.016 280 / 0.5), oklch(0.17 0.014 280 / 0.4));
+  background: linear-gradient(180deg, oklch(0.87 0.010 280 / 0.5), oklch(0.93 0.008 280 / 0.4));
 }
 .geo-row {
   display: grid;
@@ -952,10 +952,10 @@ function trigToast(type) {
 }
 .alert:hover { transform: translateX(4px); border-left-width: 5px; }
 .alert strong { color: var(--ink); }
-.alert.info { background: oklch(0.24 0.08 220 / 0.32); border-left-color: var(--accent-2); color: var(--ink-2); }
-.alert.success { background: oklch(0.24 0.08 160 / 0.32); border-left-color: var(--success); color: var(--ink-2); }
-.alert.warning { background: oklch(0.24 0.10 60 / 0.32); border-left-color: var(--warning); color: var(--ink-2); }
-.alert.error { background: oklch(0.24 0.10 25 / 0.30); border-left-color: var(--error); color: var(--ink-2); }
+.alert.info { background: oklch(0.90 0.05 220 / 0.32); border-left-color: var(--accent-2); color: var(--ink-2); }
+.alert.success { background: oklch(0.90 0.05 160 / 0.32); border-left-color: var(--success); color: var(--ink-2); }
+.alert.warning { background: oklch(0.88 0.07 60 / 0.32); border-left-color: var(--warning); color: var(--ink-2); }
+.alert.error { background: oklch(0.88 0.07 25 / 0.30); border-left-color: var(--error); color: var(--ink-2); }
 .toast-trig {
   display: flex;
   flex-wrap: wrap;
@@ -984,5 +984,5 @@ function trigToast(type) {
 .ui-btn-accent { background: var(--accent); color: #fff; }
 .ui-btn-accent:hover { background: oklch(0.65 0.22 295); transform: translateY(-2px); }
 .ui-btn-danger { background: var(--error); color: #fff; }
-.ui-btn-danger:hover { background: oklch(0.58 0.22 25); transform: translateY(-2px); }
+.ui-btn-danger:hover { background: oklch(0.48 0.22 25); transform: translateY(-2px); }
 </style>

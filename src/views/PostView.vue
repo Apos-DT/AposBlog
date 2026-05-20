@@ -35,8 +35,6 @@ const tocItems = ref([])
 const activeId = ref('')
 const progress = ref(0)
 const articleEl = ref(null)
-const fontSize = ref(parseInt(localStorage.getItem('apos-post-fz') || '17', 10))
-const localHue = ref(parseInt(localStorage.getItem('apos-hue') || settings.hue, 10))
 
 const copyState = ref('idle')
 
@@ -145,14 +143,6 @@ onBeforeUnmount(() => {
   if (timer) clearInterval(timer)
 })
 
-// ===== 字号 / 主色 =====
-watch(fontSize, (fz) => {
-  localStorage.setItem('apos-post-fz', String(fz))
-})
-watch(localHue, (h) => {
-  settings.setHue(h)
-})
-
 // ===== 操作 =====
 function copyLink() {
   navigator.clipboard.writeText(location.origin + location.pathname + '#/post/' + slug.value)
@@ -238,7 +228,7 @@ function fmtDate(d) {
       </aside>
 
       <!-- 中 正文 -->
-      <article class="post-wrap" ref="articleEl" :style="{ fontSize: fontSize + 'px' }">
+      <article class="post-wrap" ref="articleEl">
         <RouterLink class="post-back" to="/">
           <IconBase name="arrow-left" :size="14" />
           <span>ALL POSTS</span>
@@ -339,19 +329,6 @@ function fmtDate(d) {
             </div>
           </div>
 
-          <div class="ptt-card">
-            <span class="ptt-label">字号</span>
-            <div class="ptt-tabs">
-              <button
-                v-for="fz in [15, 17, 19]"
-                :key="fz"
-                type="button"
-                :class="['ptt-tab', { active: fontSize === fz }]"
-                @click="fontSize = fz"
-              >{{ fz === 15 ? 'A−' : fz === 17 ? 'A' : 'A+' }}</button>
-            </div>
-          </div>
-
           <!-- 快捷操作 -->
           <div class="ptt-card">
             <span class="ptt-label">操作</span>
@@ -426,7 +403,7 @@ function fmtDate(d) {
   padding: 20px 18px;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.55);
+  background: oklch(0.93 0.008 280 / 0.55);
   backdrop-filter: blur(12px) saturate(140%);
 }
 
@@ -461,13 +438,13 @@ function fmtDate(d) {
 .toc-h3 { padding-left: 26px; font-size: 12px; }
 .toc-link:hover {
   color: var(--ink);
-  background: oklch(0.24 0.05 295 / 0.3);
+  background: oklch(0.88 0.04 295 / 0.3);
   padding-left: 18px;
 }
 .toc-link.active {
   color: var(--accent);
   border-left-color: var(--accent);
-  background: oklch(0.24 0.10 295 / 0.32);
+  background: oklch(0.82 0.07 295 / 0.32);
 }
 
 /* ===== 文章主体 ===== */
@@ -613,27 +590,27 @@ function fmtDate(d) {
   border-radius: 10px;
   border-left: 3px solid;
 }
-.post-body :deep(.md-admon-info) { background: oklch(0.24 0.08 220 / 0.32); border-left-color: var(--accent-2); }
-.post-body :deep(.md-admon-tip), .post-body :deep(.md-admon-success) { background: oklch(0.24 0.08 160 / 0.32); border-left-color: var(--success); }
-.post-body :deep(.md-admon-warning) { background: oklch(0.24 0.10 60 / 0.32); border-left-color: var(--warning); }
-.post-body :deep(.md-admon-error) { background: oklch(0.24 0.10 25 / 0.30); border-left-color: var(--error); }
-.post-body :deep(.md-admon-note) { background: oklch(0.24 0.014 280 / 0.5); border-left-color: var(--ink-3); }
+.post-body :deep(.md-admon-info) { background: oklch(0.90 0.05 220 / 0.32); border-left-color: var(--accent-2); }
+.post-body :deep(.md-admon-tip), .post-body :deep(.md-admon-success) { background: oklch(0.90 0.05 160 / 0.32); border-left-color: var(--success); }
+.post-body :deep(.md-admon-warning) { background: oklch(0.88 0.07 60 / 0.32); border-left-color: var(--warning); }
+.post-body :deep(.md-admon-error) { background: oklch(0.88 0.07 25 / 0.30); border-left-color: var(--error); }
+.post-body :deep(.md-admon-note) { background: oklch(0.86 0.010 280 / 0.5); border-left-color: var(--ink-3); }
 .post-body :deep(.md-wiki) {
   display: inline-flex;
   align-items: center;
   padding: 0 6px;
   border-radius: 4px;
-  background: oklch(0.24 0.08 295 / 0.4);
-  border: 1px solid oklch(0.74 0.20 295 / 0.4);
+  background: oklch(0.85 0.06 295 / 0.4);
+  border: 1px solid oklch(0.50 0.22 295 / 0.4);
   color: var(--accent);
   font-weight: 500;
 }
-.post-body :deep(.md-wiki:hover) { background: oklch(0.30 0.10 295 / 0.5); color: var(--ink); }
+.post-body :deep(.md-wiki:hover) { background: oklch(0.78 0.08 295 / 0.5); color: var(--ink); }
 .post-body :deep(.md-tag) {
   display: inline-block;
   padding: 0 6px;
   border-radius: 4px;
-  background: oklch(0.24 0.10 60 / 0.4);
+  background: oklch(0.88 0.07 60 / 0.4);
   color: var(--warning);
   font-family: var(--font-mono);
   font-size: 0.9em;
@@ -665,7 +642,7 @@ function fmtDate(d) {
   padding: 22px 24px;
   border-radius: 14px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.17 0.014 280 / 0.45);
+  background: oklch(0.93 0.008 280 / 0.45);
 }
 .ln-title {
   display: flex;
@@ -688,7 +665,7 @@ function fmtDate(d) {
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.20 0.016 280 / 0.5);
+  background: oklch(0.90 0.010 280 / 0.5);
   color: inherit;
   transition: border-color 0.3s, transform 0.3s var(--ease-out);
 }
@@ -714,7 +691,7 @@ function fmtDate(d) {
   padding: 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.20 0.016 280 / 0.45);
+  background: oklch(0.90 0.010 280 / 0.45);
   transition: border-color 0.4s;
 }
 .ptt-card:hover { border-color: var(--line); }
@@ -727,7 +704,7 @@ function fmtDate(d) {
   padding: 16px 14px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.20 0.016 280 / 0.45);
+  background: oklch(0.90 0.010 280 / 0.45);
 }
 .rp-ring { position: relative; width: 84px; height: 84px; }
 .rp-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -799,7 +776,7 @@ function fmtDate(d) {
   padding: 9px 12px;
   border-radius: 7px;
   border: 1px solid var(--line-soft);
-  background: oklch(0.13 0.014 280 / 0.55);
+  background: oklch(0.97 0.005 280 / 0.55);
   font-size: 13px;
   color: var(--ink-2);
   cursor: pointer;
@@ -810,7 +787,7 @@ function fmtDate(d) {
 .ptt-btn:hover {
   color: var(--ink);
   border-color: var(--accent);
-  background: oklch(0.24 0.08 295 / 0.4);
+  background: oklch(0.85 0.06 295 / 0.4);
   transform: translateX(3px);
 }
 .ptt-btn.ptt-btn-accent {
@@ -836,7 +813,7 @@ function fmtDate(d) {
 .author-avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.40 0.18 295));
+  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.55 0.20 295));
   box-shadow: 0 0 14px var(--accent);
 }
 .author-meta { display: flex; flex-direction: column; min-width: 0; }
