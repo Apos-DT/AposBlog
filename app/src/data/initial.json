@@ -1,0 +1,74 @@
+{
+  "posts": [
+    {
+      "slug": "odoo-erp-manufacturing-customization",
+      "title": "在 Odoo 里做制造业 ERP 二开:销采产存质财全链路笔记",
+      "excerpt": "从客户手工 Excel 跑产线,到 Odoo 把销售-采购-库存-生产-质检-财务跑通。这篇拆开几个月里的关键二开决策与踩坑。",
+      "tag": "ERP",
+      "date": "2026-05-13",
+      "readTime": 12,
+      "external": false,
+      "url": "../../post.html?slug=odoo-erp-manufacturing-customization"
+    },
+    {
+      "slug": "industrial-vision-system-pitfalls",
+      "title": "工业机器视觉现场交付的 5 个稳定性陷阱",
+      "excerpt": "上位机/下位机联调、产线异常定位、通信稳定性优化——实验室能跑、现场就崩的真实原因。",
+      "tag": "Vision",
+      "date": "2026-04-22",
+      "readTime": 10,
+      "external": false,
+      "url": "../../post.html?slug=industrial-vision-system-pitfalls"
+    },
+    {
+      "slug": "springboot-vue-fullstack-craft",
+      "title": "Spring Boot + Vue3 全栈工程化:从权限到大屏的实战沉淀",
+      "excerpt": "在既有项目上做功能迭代、权限增强、数据可视化大屏。Spring Boot + Vue3 的连接处藏着多少坊。",
+      "tag": "Fullstack",
+      "date": "2025-09-18",
+      "readTime": 8,
+      "external": false,
+      "url": "../../post.html?slug=springboot-vue-fullstack-craft"
+    },
+    {
+      "slug": "python-scraping-pandas-django",
+      "title": "用 Selenium + Pandas + Django 做一套招聘数据采集分析",
+      "excerpt": "从爬取动态页面,到 Pandas 清洗,再到 Django 可视化展示——一个完整的数据小项目从 0 到 1。",
+      "tag": "Data",
+      "date": "2025-06-08",
+      "readTime": 7,
+      "external": false,
+      "url": "../../post.html?slug=python-scraping-pandas-django"
+    }
+  ],
+  "tags": [
+    { "id": "t-erp",       "name": "ERP",        "color": "oklch(0.72 0.21 295)" },
+    { "id": "t-vision",    "name": "Vision",     "color": "oklch(0.78 0.18 220)" },
+    { "id": "t-fullstack", "name": "Fullstack",  "color": "oklch(0.82 0.16 60)" },
+    { "id": "t-data",      "name": "Data",       "color": "oklch(0.78 0.18 160)" },
+    { "id": "t-study",     "name": "学习",        "color": "oklch(0.75 0.20 320)" },
+    { "id": "t-think",     "name": "思考",        "color": "oklch(0.78 0.15 30)" }
+  ],
+  "notes": [
+    {
+      "id": "n-welcome",
+      "title": "欢迎使用 APOS 知识库",
+      "content": "这是一个本地优先的阅读追踪与笔记应用。\n\n## 你可以做什么\n\n- 在 **文章库** 标记已读 / 收藏 / 评分 / 阅读进度\n- 在 **笔记** 写下读后感和实践代码片段,关联到文章\n- 在 **标签** 自定义分类与配色\n- 在 **统计** 看 ECharts 图表了解阅读习惯\n- 在 **设置** 一键导出 / 导入 / 清空数据\n\n## 数据存哪里\n\n所有数据都存在浏览器 `localStorage`,**不发送任何服务器**。换浏览器或清缓存会丢,记得定期导出。",
+      "articleSlug": null,
+      "tagIds": ["t-study"],
+      "pinned": true,
+      "createdAt": "2026-05-20T00:00:00.000Z",
+      "updatedAt": "2026-05-20T00:00:00.000Z"
+    },
+    {
+      "id": "n-odoo-bom",
+      "title": "Odoo BOM 二开:多级拆分思路",
+      "content": "读到《在 Odoo 里做制造业 ERP 二开》时,关键启发:\n\n> 原生 MO 一对一拆分对组装类产品太粗。\n\n实践笔记:\n\n1. `sale.order.action_confirm` 钩子里,遍历 line 的成品 BOM,递归生成多级 MO\n2. 用 `mrp.production.move_dest_ids` 串依赖,前序 MO 完工 → 后序自动 ready\n3. ⚠️ 注意:Odoo 19 起 `groups_id` 改名 `group_ids`,旧 inherit 会报错",
+      "articleSlug": "odoo-erp-manufacturing-customization",
+      "tagIds": ["t-erp"],
+      "pinned": false,
+      "createdAt": "2026-05-15T10:30:00.000Z",
+      "updatedAt": "2026-05-15T10:30:00.000Z"
+    }
+  ]
+}

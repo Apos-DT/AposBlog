@@ -1,0 +1,10 @@
+# 依赖
+**/node_modules
+
+# Vite 临时
+**/.vite
+**/dist
+
+# 系统
+.DS_Store
+*.log

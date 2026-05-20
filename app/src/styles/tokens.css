@@ -1,0 +1,45 @@
+/**
+ * 设计 token — 与博客主站对齐
+ * 所有颜色用 oklch (perceptually linear),字体三栈 (display/body/serif/mono)
+ */
+:root {
+  /* ===== Color ===== */
+  --bg: oklch(0.14 0.012 280);
+  --bg-deep: oklch(0.10 0.012 280);
+  --bg-soft: oklch(0.18 0.014 280);
+  --line: oklch(0.30 0.015 280 / 0.5);
+  --line-soft: oklch(0.30 0.015 280 / 0.18);
+  --ink: oklch(0.96 0.005 280);
+  --ink-2: oklch(0.78 0.008 280);
+  --ink-3: oklch(0.55 0.012 280);
+  --accent: oklch(0.72 0.21 295);
+  --accent-2: oklch(0.78 0.18 220);
+  --accent-warm: oklch(0.82 0.16 60);
+  --success: oklch(0.78 0.18 160);
+  --warning: oklch(0.82 0.16 60);
+  --error: oklch(0.65 0.20 25);
+
+  /* ===== Type ===== */
+  --font-display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", "PingFang SC", sans-serif;
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", sans-serif;
+  --font-serif: "Fraunces", "Songti SC", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ===== Motion ===== */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.83, 0, 0.17, 1);
+
+  /* ===== Layout ===== */
+  --container: min(1480px, 96vw);
+  --gutter: clamp(20px, 3vw, 40px);
+  --nav-h: 64px;
+  --aside-w: 220px;
+  --tools-w: 280px;
+
+  /* ===== Radius / Shadow ===== */
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow-card: 0 10px 40px -20px oklch(0.05 0 0 / 0.6);
+  --shadow-glow: 0 0 20px var(--accent);
+}
