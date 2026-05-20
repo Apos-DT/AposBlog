@@ -1,10 +1,17 @@
 # 依赖
-**/node_modules
+node_modules
 
 # Vite 临时
-**/.vite
-**/dist
+.vite
+
+# Vite 构建产物(开发用)
+dist
+
+# Vite 部署产物(docs 是 Pages 服务的,需要提交)
+# docs
 
 # 系统
 .DS_Store
 *.log
+.env.local
+.env.*.local

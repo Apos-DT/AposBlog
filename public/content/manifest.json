@@ -1,0 +1,41 @@
+{
+  "site": {
+    "title": "APOS",
+    "tagline": "Engineering Notes from a Manufacturing Frontline",
+    "author": "赵祥生 (Apos)"
+  },
+  "posts": [
+    {
+      "slug": "odoo-erp-manufacturing-customization",
+      "title": "在 Odoo 里做制造业 ERP 二开：销采产存质财全链路笔记",
+      "excerpt": "从客户手工 Excel 跑产线，到 Odoo 把销售-采购-库存-生产-质检-财务跑通。这篇拆开几个月里的关键二开决策与踩坑。",
+      "tag": "ERP",
+      "date": "2026-05-13",
+      "readTime": "12"
+    },
+    {
+      "slug": "industrial-vision-system-pitfalls",
+      "title": "工业机器视觉现场交付的 5 个稳定性陷阱",
+      "excerpt": "上位机/下位机联调、产线异常定位、通信稳定性优化——实验室能跑、现场就崩的真实原因。",
+      "tag": "Vision",
+      "date": "2026-04-22",
+      "readTime": "10"
+    },
+    {
+      "slug": "springboot-vue-fullstack-craft",
+      "title": "Spring Boot + Vue3 全栈工程化：从权限到大屏的实战沉淀",
+      "excerpt": "在既有项目上做功能迭代、权限增强、数据可视化大屏。Spring Boot + Vue3 的连接处藏着多少坊。",
+      "tag": "Fullstack",
+      "date": "2025-09-18",
+      "readTime": "8"
+    },
+    {
+      "slug": "python-scraping-pandas-django",
+      "title": "用 Selenium + Pandas + Django 做一套招聘数据采集分析",
+      "excerpt": "从爬取动态页面，到 Pandas 清洗，再到 Django 可视化展示——一个完整的数据小项目从 0 到 1。",
+      "tag": "Data",
+      "date": "2025-06-08",
+      "readTime": "7"
+    }
+  ]
+}

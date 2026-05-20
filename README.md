@@ -1,204 +1,154 @@
-# APOS — 赵祥生的个人博客 + Karpathy 风知识库
+# APOS · 赵祥生的个人博客 + Karpathy 风知识库
 
-> Engineering Notes from a Manufacturing Frontline · Local-First Knowledge Graph
+> Engineering Notes from a Manufacturing Frontline
+> Personal Blog · Knowledge Base · Knowledge Graph — built with **Vue 3**.
 
-一个**完整可本地运行**的全栈前端项目,包含两个互相耦合的模块:
+[![Vue](https://img.shields.io/badge/Vue-3.5-42b883?logo=vue.js)](https://vuejs.org)
+[![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite)](https://vitejs.dev)
+[![Pinia](https://img.shields.io/badge/Pinia-2-ffd43b)](https://pinia.vuejs.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](./LICENSE)
 
-| 模块 | 路径 | 形态 | 用途 |
-|---|---|---|---|
-| **博客主站** | `/` `/post.html` `/playground.html` | 纯静态 HTML/CSS/JS (零构建) | 长文阅读 / 工程笔记发布 |
-| **知识库应用** | `/app/` 源码 → `/app-dist/` 产物 | Vue 3 SPA (Vite + Router + Pinia) | 阅读追踪 + Karpathy 风笔记 CRUD + 双向链接 + 知识图谱 |
+线上:**<https://apos-dt.github.io/AposBlog/>**
 
-线上: <https://apos-dt.github.io/AposBlog/>
-应用: <https://apos-dt.github.io/AposBlog/app-dist/>
+一个**完整的 Vue 3 单页应用**,把"个人博客 + Karpathy 风知识库 + 知识图谱"整合为同一个站点 —— 顶部 nav 在博客与应用之间无缝切换。
 
 ---
 
-## 🚀 快速开始(本地完整运行)
-
-### 1. 克隆 + 安装
+## 🚀 本地运行(3 步)
 
 ```bash
 git clone https://github.com/Apos-DT/AposBlog.git
 cd AposBlog
-npm run install          # 安装 Vue 应用依赖(博客主站零依赖)
+npm install
+npm run dev          # → http://localhost:5173/
 ```
 
-要求:**Node ≥ 18** · npm 8+ · Python 3(只为博客主站起静态服务,无 Python 也行,见下)
+要求:**Node ≥ 18** · npm 8+。**纯前端,无后端依赖,数据全存浏览器 localStorage。**
 
-### 2. 同时跑博客 + 应用(开发模式)
-
-打开**两个终端**:
+### 其他命令
 
 ```bash
-# 终端 1 — 博客主站
-npm run dev:blog
-# → http://localhost:8000/         主页
-# → http://localhost:8000/post.html?slug=xxx  文章详情
-# → http://localhost:8000/playground.html     CSS3 工具间
-```
-
-```bash
-# 终端 2 — Vue 知识库应用(热重载)
-npm run dev:app
-# → http://localhost:5173/         开发模式 Vue 应用
-```
-
-### 3. 或者跑生产构建(单端口)
-
-```bash
-npm run build            # 构建 Vue 应用 → /app-dist/
-npm run serve            # 启动整个项目静态服务器
-# → http://localhost:8000/                  博客主页
-# → http://localhost:8000/app-dist/         Vue 应用(构建版)
-```
-
-### 4. 无 Python 用户
-
-`npm run dev:blog` 用的是 `python3 -m http.server`。如果你没 Python:
-
-```bash
-# 用 Node 起的替代:
-npx serve . -p 8000
-
-# 或者用 Vite 一键起(已装在 app/node_modules):
-cd app && npx vite preview --outDir ../ --port 8000
+npm run build        # 构建到 ./docs/ (供 GitHub Pages 服务)
+npm run preview      # 预览生产构建 → http://localhost:4173/AposBlog/
+npm run clean        # 清空 dist / docs / node_modules
 ```
 
 ---
 
-## 🧠 知识库特性(亮点)
+## 🗺 站点地图
+
+12 条路由,通过顶部 nav 与左侧菜单切换:
+
+### 博客部分(全宽布局)
+
+| 路由 | 视图 | 说明 |
+|---|---|---|
+| `#/` | HomeView | 首页 — Hero + 最新文章 + 技能矩阵 + 工作经历 + 归档 + 联系表单 |
+| `#/post/:slug` | PostView | **三栏阅读**:左 TOC + 中正文 + 右工具(进度环/字号/主色/收藏/评分/计时/记笔记) |
+| `#/playground` | PlaygroundView | CSS3 / HTML5 组件工具间(按钮/表单/Canvas/SVG/视频/上传/定位/Toast) |
+
+### 知识库部分(三栏布局:菜单 + 主区 + 工具栏)
+
+| 路由 | 视图 | 功能 |
+|---|---|---|
+| `#/dashboard` | DashboardView | 阅读统计 + 最近活动 + 快捷入口 |
+| `#/library` | LibraryView | 文章库 CRUD + 搜索 + 筛选 + 排序 + 收藏 |
+| `#/notes` | NotesView | 笔记列表 + 搜索 + 标签筛选 + 双向链接计数 |
+| `#/notes/:id` | NoteEditView | **Karpathy 模板** + frontmatter + `[[wiki-link]]` 补全 + 反向链接 |
+| `#/tags` | TagsView | 标签 CRUD + 调色板 |
+| `#/graph` | **GraphView** | **ECharts 知识图谱** — 笔记/标签/文章节点 + 双向链接边,可拖拽缩放 |
+| `#/stats` | StatsView | ECharts 4 种图表(状态/标签/活跃度/评分) |
+| `#/settings` | SettingsView | 主题色 + 字号 + 数据导出导入清空 |
+
+---
+
+## 🧠 知识库亮点
 
 ### Karpathy 风格笔记
 
-`frontmatter + H1 + 编号节 + 速查表 + 关联`,详见博客 §4 三层知识库约定。
+`frontmatter + H1 + 一句话总结 + 编号节 + 速查表 + 关联段`,长期可读。
 
-- **6 个内置模板**:复盘 / 速查 / 概念 / 读书 / 问题 / 周记
-- 新建笔记时自动弹出模板选择器
-- frontmatter 可视化编辑(YAML 字段独立面板)
+- **6 个内置模板**:复盘 / 速查 / 概念 / 读书 / 问题 / 周记 —— 新建时弹模板选择器
+- **frontmatter 可视化编辑**:YAML 字段独立面板,自动识别数组 / 数字 / 布尔
+- **GitHub 风 admonition**:`> [!INFO] / [!TIP] / [!WARNING] / [!NOTE] / [!ERROR]`
+- **媒体内嵌**:`![video:caption](url.mp4)` / `![audio](url.ogg)` 自动卡片化
 
 ### 双向链接(Obsidian / Roam 风)
 
 ```markdown
-读完之后参考 [[Odoo BOM 二开:多级拆分]]
-                  ↑↑                  ↑↑
-              输入 [[ 自动弹出补全
+读完《[[Odoo BOM 二开]]》启发我重新理解 #ERP 流程...
+              ↑↑                       ↑↑
+       输入 [[ 自动补全            内联标签
 ```
 
-- `[[note-title]]` 自动建立链接 + 反向链接
-- `[[note-title|别名]]` 自定义显示文本
-- 链接到**不存在**的笔记 → 渲染成虚线 + 在图谱里显示成「未链接占位」,**点击可一键创建**
-- 笔记编辑器底部自动显示 outLinks / backlinks / missing 三组关联
+- `[[note-title]]` / `[[note-title|别名]]`
+- 笔记底部自动显示:**引用了 / 被引用 / 占位**(未创建)三组关联
+- 链接到不存在笔记 → 渲染成红色虚线 + 在图谱里显示成"未链接占位",点击可一键创建
 
 ### 知识图谱(ECharts 力导向图)
 
-`/#/graph` 路由:
+`/#/graph` 路由 —— 类似 Obsidian Graph View 的可视化:
 
 - **4 类节点**:笔记(紫)/ 标签(黄)/ 文章(青)/ 未链接占位(灰虚)
-- **3 类边**:wiki 链接(实)/ tag 关联(虚)/ article 关联(点)
-- **交互**:拖拽 / 缩放 / 点击跳转 / 占位节点一键创建
+- **3 类边**:wiki 实线 / tag 虚线 / article 点线
+- **交互**:拖拽布局 / 滚轮缩放 / 点击跳转 / 占位节点一键创建
 - **控制面板**:节点类型过滤 / 排斥力调节 / 显示孤儿节点 / 重启布局
-
-### 内联标签 + 行内 markdown 增强
-
-- `#tag-name` 内联标签
-- `> [!INFO] / [!TIP] / [!WARNING] / [!NOTE] / [!ERROR]` GitHub 风 admonition
-- `![video:caption](url.mp4)` / `![audio:caption](url.ogg)` 自动卡片化媒体
 
 ---
 
-## 📁 目录结构
+## 📁 目录结构(典型 Vue 项目)
 
 ```
 AposBlog/
-├── package.json                 # 根 — 一键 dev / build / serve 脚本
-├── README.md                    # 你正在看的这份
-│
-├── index.html                   # 博客主页(静态)
-├── post.html                    # 文章详情(?slug=xxx,markdown 客户端渲染)
-├── playground.html              # CSS3 / HTML5 工具间(组件库)
-├── assets/styles.css            # 博客主站全局样式
-├── assets/playground.css        # 工具间样式
-├── assets/main.js               # 博客主站脚本(GSAP + Lenis + Markdown)
-├── content/manifest.json        # 博客文章索引
-├── content/posts/*.md           # 博客文章 markdown 源
-│
-├── app/                         # Vue 应用源码
-│   ├── package.json             # Vue/Router/Pinia/Vite/ECharts
-│   ├── vite.config.js
-│   ├── index.html               # Vite 入口
-│   └── src/
-│       ├── main.js              # Vue 应用入口
-│       ├── App.vue              # 根组件(背景+光标+布局+路由)
-│       ├── router/index.js      # 8 路由 (Hash mode)
-│       ├── stores/              # 5 Pinia store
-│       │   ├── _persist.js      # localStorage 自动持久化
-│       │   ├── posts.js         # 文章库
-│       │   ├── reads.js         # 阅读记录(状态/进度/评分/时长)
-│       │   ├── notes.js         # 笔记 + 双向链接索引 + backlinks
-│       │   ├── tags.js          # 标签
-│       │   └── settings.js      # 主题 + toast
-│       ├── components/          # 7 公共组件
-│       │   ├── AppBackground.vue
-│       │   ├── AppCursor.vue
-│       │   ├── AppLayout.vue
-│       │   ├── AppToastStack.vue
-│       │   ├── IconBase.vue
-│       │   ├── ThemeQuickPanel.vue
-│       │   └── (各 view 私有用 scoped style)
-│       ├── views/               # 9 路由组件
-│       │   ├── DashboardView.vue
-│       │   ├── LibraryView.vue
-│       │   ├── ReaderView.vue
-│       │   ├── NotesView.vue
-│       │   ├── NoteEditView.vue
-│       │   ├── TagsView.vue
-│       │   ├── GraphView.vue    ← 知识图谱
-│       │   ├── StatsView.vue
-│       │   ├── SettingsView.vue
-│       │   └── NotFoundView.vue
-│       ├── utils/
-│       │   ├── markdown.js      # frontmatter + [[wiki]] + #tag + 渲染
-│       │   └── templates.js     # 6 个 Karpathy 模板
-│       ├── styles/              # 4 全局样式
-│       │   ├── tokens.css
-│       │   ├── base.css
-│       │   ├── layout.css
-│       │   └── components.css
-│       └── data/initial.json    # seed(预装 7 篇互相链接的笔记)
-│
-└── app-dist/                    # Vite 构建产物(git 跟踪,Pages 直接服务)
+├── package.json              # 唯一的 npm 项目
+├── vite.config.js            # Vite 配置 (base, outDir, alias)
+├── index.html                # Vite 入口
+├── public/                   # 静态资源(原样复制到产物)
+│   └── content/
+│       ├── manifest.json     # 文章索引
+│       └── posts/*.md        # 4 篇博客文章 markdown 源
+├── src/
+│   ├── main.js               # 应用入口
+│   ├── App.vue               # 根组件(背景 + 光标 + Lenis + 布局)
+│   ├── router/index.js       # 12 条路由,blog/app 双布局
+│   ├── stores/               # 5 个 Pinia store
+│   │   ├── _persist.js       # localStorage 自动持久化
+│   │   ├── posts.js          # 文章库
+│   │   ├── reads.js          # 阅读记录(状态/进度/评分/时长)
+│   │   ├── notes.js          # 笔记 + 双向链接索引 + 反向链接
+│   │   ├── tags.js           # 标签
+│   │   └── settings.js       # 主题 + toast
+│   ├── components/           # 公共组件
+│   │   ├── AppBackground.vue # 极光 + 噪点背景层
+│   │   ├── AppCursor.vue     # 自定义光标(dot + lerp ring)
+│   │   ├── AppLayout.vue     # 双布局:blog 全宽 / app 三栏
+│   │   ├── AppToastStack.vue # 全局 toast 容器
+│   │   ├── IconBase.vue      # 统一 SVG 图标集
+│   │   └── ThemeQuickPanel.vue # 右栏默认工具
+│   ├── views/                # 路由视图(12 个)
+│   │   ├── HomeView.vue          (博客首页)
+│   │   ├── PostView.vue          (文章阅读 + 追踪合一)
+│   │   ├── PlaygroundView.vue    (CSS3 工具间)
+│   │   ├── DashboardView.vue
+│   │   ├── LibraryView.vue
+│   │   ├── NotesView.vue
+│   │   ├── NoteEditView.vue
+│   │   ├── TagsView.vue
+│   │   ├── GraphView.vue         (知识图谱)
+│   │   ├── StatsView.vue
+│   │   ├── SettingsView.vue
+│   │   └── NotFoundView.vue
+│   ├── utils/
+│   │   ├── markdown.js       # frontmatter + [[wiki]] + #tag + 渲染
+│   │   └── templates.js      # 6 个 Karpathy 模板
+│   ├── styles/
+│   │   ├── tokens.css        # 设计 token (oklch / 字体 / 间距)
+│   │   ├── base.css          # 重置 + 默认元素
+│   │   ├── layout.css        # nav + 三栏 grid + 背景 + 光标
+│   │   └── components.css    # 通用 ui-* 组件
+│   └── data/initial.json     # 应用初始 seed (7 篇互相链接的笔记)
+└── docs/                     # Vite 构建产物 (GitHub Pages 服务)
 ```
-
----
-
-## 🎯 8 个路由 / 9 个功能模块
-
-| 路径 | 视图 | 功能 |
-|---|---|---|
-| `#/` | Dashboard | 阅读统计 + 最近活动 + 快捷入口 |
-| `#/library` | Library | 文章库 CRUD + 搜索 + 筛选 + 排序 + 收藏 |
-| `#/library/:slug` | Reader | iframe 嵌博客文章 + 状态/评分/计时/关联笔记 |
-| `#/notes` | Notes | 笔记列表 + 搜索 + 标签筛选 + 链接数显示 |
-| `#/notes/:id` | NoteEdit | **Karpathy 模板 + frontmatter + [[wiki]] 补全 + 反向链接** |
-| `#/tags` | Tags | 标签 CRUD + 调色板 |
-| `#/graph` | **Graph** | **ECharts 力导向知识图谱** |
-| `#/stats` | Stats | ECharts 4 种统计图表 |
-| `#/settings` | Settings | 主题 + 数据导入导出 + 清空 |
-
----
-
-## 💾 数据持久化
-
-所有数据存储在浏览器 `localStorage`,前缀 `apos:`:
-
-- `apos:posts` — 文章库(初始 4 篇 + 用户自定义)
-- `apos:reads` — 阅读记录
-- `apos:notes` — 笔记
-- `apos:tags`  — 标签
-- `apos:settings` — 主题 / 字号
-
-**支持 JSON 一键导入/导出**(`#/settings` 页)。换机器只需导出 → 导入。
 
 ---
 
@@ -206,37 +156,50 @@ AposBlog/
 
 | 层 | 技术 | 用途 |
 |---|---|---|
-| 博客静态 | 原生 HTML/CSS/JS | 零构建,GitHub Pages 直接服务 |
-| 博客动效 | GSAP + Lenis (CDN) | 滚动 + 字符 stagger |
-| Vue 应用 | **Vue 3** Composition API | 组件化 |
-| 路由 | **Vue Router 4** Hash mode | Pages 静态托管深链不 404 |
-| 状态 | **Pinia 2** + 自写 _persist | localStorage 自动同步 |
-| 构建 | **Vite 6** | 开发 HMR + 生产构建 chunk 拆分 |
-| 可视化 | **ECharts 5** | 知识图谱(力导向)+ 4 种统计图 |
-| 设计 | **oklch + 设计 token** | 不依赖 UI 框架,深色主题 |
-| 字体 | Space Grotesk / Plus Jakarta Sans / Fraunces / JetBrains Mono | 反 AI Slop |
+| 框架 | **Vue 3** Composition API + `<script setup>` | 组件化 |
+| 路由 | **Vue Router 4** + Hash mode | 12 路由 / Pages 深链不 404 |
+| 状态 | **Pinia 2** + 自写 `_persist.js` | 5 store 自动 localStorage 同步 |
+| 构建 | **Vite 6** | dev HMR / 生产构建 / chunk 拆分 |
+| 可视化 | **ECharts 5** | 知识图谱 + 4 种统计图表 |
+| 动效 | **GSAP 3** | Hero 字符 stagger 入场 |
+| 滚动 | **Lenis** | 全站平滑滚动 |
+| 样式 | 原生 CSS3 + oklch 设计 token | 不依赖任何 UI 框架 |
+| 字体 | Space Grotesk · Plus Jakarta Sans · Fraunces · JetBrains Mono | 反 AI Slop |
 
 ---
 
-## 🚢 部署(GitHub Pages)
+## 💾 数据持久化
 
-仓库已配 Pages,推送 main 分支即自动部署。
+所有数据存储于浏览器 `localStorage`,key 前缀 `apos:`:
+
+- `apos:posts` — 文章库(预装 4 篇博客文章 + 用户自定义)
+- `apos:reads` — 阅读记录(状态 / 进度 / 评分 / 时长)
+- `apos:notes` — 笔记(7 篇 Karpathy 风预装互链示例)
+- `apos:tags`  — 标签(7 个预设 + 用户自定义)
+- `apos:settings` — 主题色 / 字号
+
+**支持 JSON 一键导出 / 导入**(`#/settings` 页),换设备只需导出 → 导入。
+
+---
+
+## 🚢 部署到 GitHub Pages
+
+仓库 → Settings → Pages 配置:
+- **Source**: Deploy from a branch
+- **Branch**: `main` / `/docs`
+
+构建并提交即自动部署:
 
 ```bash
-npm run build           # build Vue 应用 + 复制到 /app-dist/
-git add -A
-git commit -m "..."
+npm run build           # → docs/ 更新
+git add docs
+git commit -m "build"
 git push origin main
-# 1 分钟后访问 https://apos-dt.github.io/AposBlog/
+# 约 1 分钟后访问 https://apos-dt.github.io/AposBlog/
 ```
 
-也可以部署到任何静态服务器(Nginx / Netlify / Vercel):**整个仓库直接静态服务**,无需后端。
-
----
-
-## 📜 License
-
-MIT — 见 [LICENSE](./LICENSE)。
+也可以部署到任何静态服务器(Nginx / Netlify / Vercel / Cloudflare Pages):
+**整个 docs/ 目录直接当静态站点服务即可。**
 
 ---
 
@@ -244,5 +207,10 @@ MIT — 见 [LICENSE](./LICENSE)。
 
 **赵祥生 (Apos)** · 山东科技大学软件工程在读 · 青岛火一五信息科技
 
-- 邮箱: 2411447661@qq.com
+- 邮箱: <2411447661@qq.com>
 - GitHub: [@Apos-DT](https://github.com/Apos-DT)
+- 博客: <https://apos-dt.github.io/AposBlog/>
+
+## 📜 License
+
+[MIT](./LICENSE)
