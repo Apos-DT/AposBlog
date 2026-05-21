@@ -166,9 +166,14 @@ function loadScript(src, bust = false) {
   </section>
 </template>
 
-<style scoped>
+<style>
 /* ==============================================================
- * 留言板样式 — scoped
+ * 留言板样式 — 故意 NOT scoped
+ * --------------------------------------------------------------
+ * 原因:大部分 .gb-item / .gb-avatar / .gb-reply 等元素由 jQuery
+ *       动态 append 进 DOM,不会有 Vue 给静态元素自动加的 data-v
+ *       属性,所以 scoped 样式根本不会应用,留言流就裸着没卡片。
+ * 隔离策略:所有类名 .gb-* 前缀,不会污染其他视图。
  * ============================================================== */
 
 .view-gb {
@@ -847,7 +852,7 @@ function loadScript(src, bust = false) {
 .gb-to-top:hover { background: var(--accent); transform: translateY(-3px); }
 
 /* 图片大图 */
-:deep(.gb-lightbox) {
+.gb-lightbox {
   position: fixed; inset: 0;
   background: oklch(0.18 0.020 280 / 0.85);
   display: flex;
@@ -857,7 +862,7 @@ function loadScript(src, bust = false) {
   cursor: zoom-out;
   padding: 40px;
 }
-:deep(.gb-lightbox img) {
+.gb-lightbox img {
   max-width: 90vw;
   max-height: 90vh;
   border-radius: 12px;
@@ -875,7 +880,7 @@ function loadScript(src, bust = false) {
   z-index: 110;
   pointer-events: none;
 }
-:deep(.gb-toast) {
+.gb-toast {
   pointer-events: auto;
   padding: 10px 14px;
   border-radius: 10px;
@@ -887,8 +892,8 @@ function loadScript(src, bust = false) {
   min-width: 220px;
   box-shadow: var(--shadow-card);
 }
-:deep(.gb-toast-info) { border-left-color: var(--accent-2); }
-:deep(.gb-toast-success) { border-left-color: var(--success); }
-:deep(.gb-toast-warning) { border-left-color: var(--warning); }
-:deep(.gb-toast-error) { border-left-color: var(--error); }
+.gb-toast-info { border-left-color: var(--accent-2); }
+.gb-toast-success { border-left-color: var(--success); }
+.gb-toast-warning { border-left-color: var(--warning); }
+.gb-toast-error { border-left-color: var(--error); }
 </style>
