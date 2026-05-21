@@ -77,6 +77,12 @@ const routes = [
     meta: { title: 'AI 对话', icon: 'chat', layout: 'app' },
   },
   {
+    path: '/jquery-lab',
+    name: 'jqueryLab',
+    component: () => import('@/views/JQueryLabView.vue'),
+    meta: { title: 'jQuery 实验室', icon: 'lab', layout: 'app' },
+  },
+  {
     path: '/stats',
     name: 'stats',
     component: () => import('@/views/StatsView.vue'),
