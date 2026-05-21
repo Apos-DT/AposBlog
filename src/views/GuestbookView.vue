@@ -149,17 +149,16 @@ function loadScript(src, bust = false) {
       </div>
     </article>
 
-    <!-- ============ 留言列表 ============ -->
-    <article class="gb-card gb-list-card gb-fade-in">
+    <!-- ============ 留言列表(每条独立卡片,不再外包大卡片) ============ -->
+    <header class="gb-list-head gb-fade-in">
       <h3>留言流</h3>
-      <section id="gb-list" class="gb-list"></section>
-      <div id="gb-empty" class="gb-empty" style="display: none">
-        <p>没有符合条件的留言。</p>
-        <p style="font-size: 12px; color: var(--ink-3); margin-top: 6px">
-          尝试换个关键字,或者清空搜索。
-        </p>
-      </div>
-    </article>
+      <span class="gb-list-hint">点头像看邮箱 · 心形点赞 · 回复按钮折叠</span>
+    </header>
+    <section id="gb-list" class="gb-list gb-fade-in"></section>
+    <div id="gb-empty" class="gb-empty gb-fade-in" style="display: none">
+      <p>没有符合条件的留言。</p>
+      <p class="gb-empty-sub">尝试换个关键字,或者清空搜索。</p>
+    </div>
 
     <!-- 返回顶部 + Toast 容器 -->
     <button id="gb-to-top" class="gb-to-top" type="button" aria-label="返回顶部">↑</button>
@@ -521,36 +520,75 @@ function loadScript(src, bust = false) {
 }
 
 /* ===== 留言列表 ===== */
-.gb-list-card { padding-top: 14px; }
+/* 列表标题段(替代原来的卡片头) — 不带边框/背景,只是文本组合 */
+.gb-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 8px 4px 0;
+  padding-bottom: 6px;
+  flex-wrap: wrap;
+}
+.gb-list-head h3 {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ink);
+}
+.gb-list-hint {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+/* 列表本身是空气容器,只负责 gap,不再有 border/padding/background */
 .gb-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
+
+/* 每条帖子独立成卡 — feed 流风格(Twitter / 小红书 / 即刻同款) */
 .gb-item {
   position: relative;
-  padding: 20px 22px;
-  border-radius: var(--radius);
+  padding: 22px 26px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--line);
   background: var(--bg);
-  box-shadow: 0 2px 8px -4px oklch(0.30 0.05 280 / 0.10);
+  box-shadow: 0 1px 3px -1px oklch(0.30 0.05 280 / 0.08),
+              0 4px 14px -8px oklch(0.30 0.05 280 / 0.12);
   transition: border-color 0.3s, transform 0.3s var(--ease-out), box-shadow 0.3s;
-}
-/* 相邻留言之间加一条柔和分隔横线(在卡片之间居中) */
-.gb-item + .gb-item::before {
-  content: "";
-  position: absolute;
-  left: 20%;
-  right: 20%;
-  top: -10px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--line) 40%, var(--line) 60%, transparent);
-  pointer-events: none;
 }
 .gb-item:hover, .gb-item.is-hover {
   border-color: var(--ink-3);
-  box-shadow: 0 6px 18px -8px oklch(0.30 0.05 280 / 0.20);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 6px -2px oklch(0.30 0.05 280 / 0.12),
+              0 12px 28px -12px oklch(0.30 0.05 280 / 0.22);
+  transform: translateY(-3px);
+}
+/* 左侧微妙的主题色腰条 — 卡片身份印记 */
+.gb-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22px;
+  bottom: 22px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.gb-item:hover::before, .gb-item.is-hover::before {
+  opacity: 0.85;
+}
+
+.gb-empty-sub {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 6px;
 }
 .gb-item-head {
   display: grid;
