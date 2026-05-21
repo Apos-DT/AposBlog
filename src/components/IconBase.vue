@@ -44,6 +44,7 @@ const ICONS = {
   'chat':      '<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   'key':       '<path d="M15 7a4 4 0 11-8 0 4 4 0 018 0zM21 21l-5-5m-2-3.5L18 16m-4-6h.01" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
   'lab':       '<path d="M9 2v6L4 18a2 2 0 001.8 2.9h12.4A2 2 0 0020 18L15 8V2M9 2h6M9 14h6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  'guestbook': '<path d="M3 8a4 4 0 014-4h10a4 4 0 014 4v6a4 4 0 01-4 4h-4l-5 4v-4H7a4 4 0 01-4-4V8z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><circle cx="8.5" cy="11" r="1" fill="currentColor"/><circle cx="12" cy="11" r="1" fill="currentColor"/><circle cx="15.5" cy="11" r="1" fill="currentColor"/>',
 }
 
 function path(name) {

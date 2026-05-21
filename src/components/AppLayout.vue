@@ -40,7 +40,7 @@ const appMenu = computed(() => [
   { to: '/tags', label: '标签', icon: 'tags', badge: tags.tags.length },
   { to: '/graph', label: '知识图谱', icon: 'graph', badge: notes.stats.totalLinks || null },
   { to: '/chat', label: 'AI 对话', icon: 'chat', badge: null },
-  { to: '/jquery-lab', label: 'jQuery 实验', icon: 'lab', badge: null },
+  { to: '/guestbook', label: '留言板', icon: 'guestbook', badge: null },
   { to: '/stats', label: '统计', icon: 'stats', badge: null },
   { to: '/settings', label: '设置', icon: 'settings', badge: null },
 ])
