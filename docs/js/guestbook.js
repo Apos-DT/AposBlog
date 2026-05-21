@@ -221,6 +221,7 @@
         '<header class="gb-item-head">' +
           '<div class="gb-avatar" style="background: oklch(0.92 0.07 ' + hue + ')">' +
             '<span class="gb-avatar-emoji"></span>' +
+            '<span class="gb-avatar-tip" style="display:none"></span>' +
           '</div>' +
           '<div class="gb-item-meta">' +
             '<strong class="gb-item-name"></strong>' +
@@ -250,6 +251,7 @@
 
     var $item = $(html)
     $item.find('.gb-avatar-emoji').text(m.emoji || '😊')
+    if (m.email) $item.find('.gb-avatar-tip').text(m.email)
     $item.find('.gb-item-name').text(m.name || '匿名访客')
     $item.find('.gb-item-time').text(formatTime(m.at))
     $item.find('.gb-item-content').text(m.content || '')
@@ -644,16 +646,29 @@
       toast('info', '已删除')
     })
 
-    // hover 头像显示邮箱 (mouseover / mouseout)
-    $list.on('mouseover.gb', '.gb-avatar', function () {
-      var id = $(this).closest('.gb-item').data('id')
-      var m = messages.filter(function (x) { return x.id === id })[0]
-      if (!m || !m.email) return
-      var $tip = $('<span class="gb-avatar-tip"></span>').text(m.email).hide()
-      $(this).append($tip)
-      $tip.fadeIn(180)
-    }).on('mouseout.gb', '.gb-avatar', function () {
-      $(this).find('.gb-avatar-tip').fadeOut(120, function () { $(this).remove() })
+    // hover 头像显示邮箱 — 用 mouseenter/mouseleave (不冒泡,不会因子元素移动鬼畜)
+    // tip 在 buildItem 时已预置在 DOM,这里只 toggle 显隐,不动态 append/remove
+    $list.on('mouseenter.gb', '.gb-avatar', function () {
+      var $tip = $(this).find('.gb-avatar-tip')
+      if (!$tip.length || !$tip.text()) return
+      $tip.stop(true, true).fadeIn(180)
+    }).on('mouseleave.gb', '.gb-avatar', function () {
+      $(this).find('.gb-avatar-tip').stop(true, true).fadeOut(120)
+    })
+
+    // 留言项整体 hover — 演示 mouseover / mouseout 事件(冒泡安全,作用在 .gb-item)
+    $list.on('mouseover.gb', '.gb-item', function (e) {
+      // 只处理直接进入 .gb-item 的事件,避免冒泡多次执行
+      if (e.target !== this && !$(e.target).is('.gb-item')) {
+        // 子元素进入也允许,但不重复加 class
+        if ($(this).hasClass('is-hover')) return
+      }
+      $(this).addClass('is-hover')
+    }).on('mouseout.gb', '.gb-item', function (e) {
+      // 用 relatedTarget 判断是否真的离开 .gb-item
+      if (!e.relatedTarget || !$.contains(this, e.relatedTarget)) {
+        $(this).removeClass('is-hover')
+      }
     })
 
     // 预览图删除

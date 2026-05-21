@@ -525,18 +525,32 @@ function loadScript(src, bust = false) {
 .gb-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 .gb-item {
-  padding: 18px 20px;
+  position: relative;
+  padding: 20px 22px;
   border-radius: var(--radius);
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line);
   background: var(--bg);
-  transition: border-color 0.3s, transform 0.3s var(--ease-out);
+  box-shadow: 0 2px 8px -4px oklch(0.30 0.05 280 / 0.10);
+  transition: border-color 0.3s, transform 0.3s var(--ease-out), box-shadow 0.3s;
 }
-.gb-item:hover {
-  border-color: var(--line);
-  transform: translateY(-1px);
+/* 相邻留言之间加一条柔和分隔横线(在卡片之间居中) */
+.gb-item + .gb-item::before {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: -10px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line) 40%, var(--line) 60%, transparent);
+  pointer-events: none;
+}
+.gb-item:hover, .gb-item.is-hover {
+  border-color: var(--ink-3);
+  box-shadow: 0 6px 18px -8px oklch(0.30 0.05 280 / 0.20);
+  transform: translateY(-2px);
 }
 .gb-item-head {
   display: grid;
@@ -556,20 +570,36 @@ function loadScript(src, bust = false) {
   line-height: 1;
   cursor: default;
 }
+.gb-avatar-emoji {
+  /* emoji 不响应鼠标事件,避免触发 mouseover 冒泡到 .gb-avatar 内部抖动 */
+  pointer-events: none;
+}
 .gb-avatar-tip {
   position: absolute;
-  left: 100%;
+  left: calc(100% + 10px);
   top: 50%;
-  transform: translate(8px, -50%);
-  padding: 4px 10px;
+  transform: translateY(-50%);
+  padding: 5px 10px;
   border-radius: 6px;
   background: var(--ink);
   color: var(--bg);
   font-family: var(--font-mono);
   font-size: 11px;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 10;
+  z-index: 20;
+  box-shadow: var(--shadow-lift);
+}
+/* 小三角指向头像 */
+.gb-avatar-tip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--ink);
 }
 .gb-item-meta {
   display: flex;
