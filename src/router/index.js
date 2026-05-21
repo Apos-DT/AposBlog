@@ -80,7 +80,7 @@ const routes = [
     path: '/guestbook',
     name: 'guestbook',
     component: () => import('@/views/GuestbookView.vue'),
-    meta: { title: '留言板', icon: 'chat', layout: 'app' },
+    meta: { title: '留言板', icon: 'chat', layout: 'blog' },
   },
   {
     path: '/stats',

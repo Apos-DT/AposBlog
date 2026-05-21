@@ -15,3 +15,11 @@ dist
 *.log
 .env.local
 .env.*.local
+
+# 实验报告 / 私人笔记(本地保留,不进仓库)
+实验报告*.txt
+实验报告/
+报告*.txt
+notes/
+*.private.md
+*.private.txt

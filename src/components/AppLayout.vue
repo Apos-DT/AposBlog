@@ -33,6 +33,8 @@ function submitSearch() {
   settings.pushToast('info', `已跳到文章库搜索:"${q}"`)
 }
 
+// 三栏知识库左侧菜单 —— 只保留"作者向内管理"的功能
+// 对访客开放的 留言板(/guestbook) 已挪到 blog 顶部 nav,这里不再列出
 const appMenu = computed(() => [
   { to: '/dashboard', label: '仪表板', icon: 'dashboard', badge: null },
   { to: '/library', label: '文章库', icon: 'library', badge: null },
@@ -40,7 +42,6 @@ const appMenu = computed(() => [
   { to: '/tags', label: '标签', icon: 'tags', badge: tags.tags.length },
   { to: '/graph', label: '知识图谱', icon: 'graph', badge: notes.stats.totalLinks || null },
   { to: '/chat', label: 'AI 对话', icon: 'chat', badge: null },
-  { to: '/guestbook', label: '留言板', icon: 'guestbook', badge: null },
   { to: '/stats', label: '统计', icon: 'stats', badge: null },
   { to: '/settings', label: '设置', icon: 'settings', badge: null },
 ])
@@ -54,9 +55,10 @@ const appMenu = computed(() => [
       <span class="brand-text">APOS</span>
     </RouterLink>
 
-    <!-- 博客布局: 简洁主导航 -->
+    <!-- 博客布局: 主导航(访客向)— 留言板放在这里,所有访客都能找到 -->
     <nav v-if="layoutType === 'blog'" class="nav-links">
       <RouterLink to="/">首页</RouterLink>
+      <RouterLink to="/guestbook">留言板</RouterLink>
       <RouterLink to="/dashboard">知识库</RouterLink>
       <RouterLink to="/playground">工具间</RouterLink>
       <a href="https://github.com/Apos-DT" target="_blank" rel="noopener">GitHub ↗</a>
