@@ -403,24 +403,27 @@ const experience = [
   padding: 0 clamp(20px, 4vw, 56px);
 }
 
-/* ===== HERO ===== */
+/* ===== HERO — 紧凑布局,确保第一屏完整可见 ===== */
 .hero {
   min-height: calc(100svh - var(--nav-h));
-  padding: clamp(60px, 12vh, 100px) 0 60px;
+  /* 上 padding 紧贴 nav,下 padding 留下一屏滚动提示空间 */
+  padding: clamp(32px, 5vh, 56px) 0 clamp(24px, 4vh, 40px);
   display: flex;
   flex-direction: column;
   justify-content: center;
+  /* 内容控制 max-height 避免大屏被拉得过开 */
+  gap: 0;
 }
 .hero-meta {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-bottom: 28px;
+  margin-bottom: clamp(14px, 2vh, 22px);
 }
 .hero-meta .dot {
   width: 8px; height: 8px;
@@ -436,11 +439,12 @@ const experience = [
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(48px, 10vw, 160px);
+  /* 从 10vw / 160px 缩到 7vw / 96px,三行占用从 ~450px 缩到 ~280px */
+  font-size: clamp(40px, 7vw, 96px);
   font-weight: 600;
-  line-height: 0.95;
-  letter-spacing: -0.035em;
-  margin: 0 0 36px;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  margin: 0 0 clamp(18px, 2.5vh, 26px);
   color: var(--ink);
 }
 .hero-title .line {
@@ -467,27 +471,27 @@ const experience = [
 }
 
 .hero-lede {
-  max-width: 640px;
-  font-size: clamp(15px, 1.5vw, 18px);
+  max-width: 680px;
+  font-size: clamp(14px, 1.4vw, 16.5px);
   color: var(--ink-2);
-  margin: 0 0 40px;
+  margin: 0 0 clamp(20px, 3vh, 32px);
   line-height: 1.65;
 }
 .hero-lede strong { color: var(--ink); font-weight: 600; }
 
 .hero-actions {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 80px;
+  margin-bottom: clamp(28px, 4vh, 48px);
 }
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 26px;
+  padding: 11px 22px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   transition: transform 0.3s var(--ease-out), background 0.3s, color 0.3s, border-color 0.3s;
   border: 1px solid transparent;
