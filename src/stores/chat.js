@@ -13,13 +13,69 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { persist } from './_persist'
+import portfolio from '@/data/portfolio.json'
 
 function genId() {
   return 'c-' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4)
 }
 
+/**
+ * 默认 system prompt — 注入 portfolio 数据
+ * 招聘者 / 访客问"赵祥生做过什么 / 会什么 / 在哪工作过"等,AI 直接基于真实数据回答
+ */
 function defaultSystem() {
-  return '你是 APOS 博客内置的 AI 助手,基于 DeepSeek。请用中文简洁、专业、不啰嗦地回答用户的问题。'
+  const p = portfolio
+  const lines = [
+    '你是赵祥生(Apos)个人博客的 AI 助手。下面是关于他的完整真实资料 —— 当用户(尤其是招聘者)询问他的工作经历、项目经验、技能、教育背景时,请基于这些资料用中文简洁、专业地回答。其他与他工作无关的一般性技术或闲聊问题,正常作答即可。',
+    '',
+    '【个人简介】',
+    `- 姓名:${p.profile.name}(${p.profile.alias})`,
+    `- 年龄 / 性别:${p.profile.age} 岁 · ${p.profile.gender}`,
+    `- 所在地:${p.profile.location}`,
+    `- 教育:${p.profile.education.school} · ${p.profile.education.major}(${p.profile.education.period})`,
+    `- ${p.profile.education.extra}`,
+    `- 语言能力:${p.profile.languages.join('、')}`,
+    `- 联系:邮箱 ${p.profile.contact.email} · GitHub ${p.profile.contact.github}`,
+    '',
+    '【自我概述】',
+    p.profile.summary,
+    '',
+    '【工作经历】',
+    ...p.experience.flatMap((e) => [
+      `- ${e.company} · ${e.role}(${e.period})${e.current ? ' [在职]' : ''}`,
+      `  技术栈:${e.stack.join(' / ')}`,
+      ...e.achievements.map((a) => `  · ${a}`),
+    ]),
+    '',
+    '【项目经历】',
+    ...p.projects.flatMap((proj) => [
+      `- ${proj.name} · ${proj.role}(${proj.period})${proj.ongoing ? ' [进行中]' : ''}`,
+      `  技术栈:${proj.stack.join(' / ')}`,
+      `  概要:${proj.summary}`,
+      ...proj.highlights.map((h) => `  · ${h}`),
+    ]),
+    '',
+    '【技能栈】',
+    `- 编程语言:${p.skills.programmingLanguages.join(' / ')}`,
+    `- Web 开发:${p.skills.webDev.join(' / ')}`,
+    `- ERP & 工业:${p.skills.erpAndIndustrial.join(' / ')}`,
+    `- 数据 & 分析:${p.skills.dataAndAnalysis.join(' / ')}`,
+    `- 工程化 & 运维:${p.skills.engineering.join(' / ')}`,
+    `- AI 协作工具:${p.skills.aiTools.join(' / ')}`,
+    '',
+    '【奖项与证书】',
+    ...p.awards.map((a) => `- ${a}`),
+    '',
+    '【兴趣方向】',
+    ...p.interests.map((i) => `- ${i}`),
+    '',
+    '回答规则:',
+    '1. 招聘类问题(做过什么、会什么、在哪工作、最近的项目),直接基于以上资料回答,不要编造未提及的项目或技术',
+    '2. 资料里没有的信息,如实告知"博客资料里没有提及",而不是编造',
+    '3. 回答简洁、有条理,优先用要点列举而不是长段落',
+    '4. 如果用户想约面试或合作,引导发邮件到上面提供的邮箱',
+  ]
+  return lines.join('\n')
 }
 
 export const useChatStore = defineStore('chat', () => {
@@ -140,7 +196,16 @@ export const useChatStore = defineStore('chat', () => {
     abortController.value = controller
 
     try {
-      const messages = [{ role: 'system', content: systemPrompt.value }]
+      // 始终注入 portfolio 简历数据(独立 system message),
+      // 这样即使用户改过 systemPrompt(localStorage 持久化),招聘类问题也能基于真实数据回答。
+      const messages = [
+        { role: 'system', content: defaultSystem() },
+      ]
+      // 用户自定义 prompt 不等于默认时,作为追加 system message 提供个性化指令
+      const userPrompt = (systemPrompt.value || '').trim()
+      if (userPrompt && userPrompt !== defaultSystem().trim()) {
+        messages.push({ role: 'system', content: userPrompt })
+      }
       // 只送除当前占位之外的消息
       conv.messages.slice(0, -1).forEach((m) => {
         messages.push({ role: m.role, content: m.content })

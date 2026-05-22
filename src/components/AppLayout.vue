@@ -1,20 +1,17 @@
 <script setup>
 /**
- * 统一布局组件 — 全宽 + 常驻顶部 nav
- *  - 删除了之前 blog/app 双布局分支与三栏 grid + 左菜单 + 右工具栏
- *  - 顶部 nav 是站点唯一主导航,所有页面共享同一套
- *  - 主体内容全宽承载,各 view 自己控制 max-width 与水平 padding
+ * 统一布局组件
+ *  - 顶部 nav fixed 常驻,5 个主项 + 2 个有 hover 子菜单
+ *  - 主体全宽,各 view 自己控制 max-width
  */
 import { ref, computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
-import { useSettingsStore } from '@/stores/settings'
 
 import AppToastStack from './AppToastStack.vue'
 import IconBase from './IconBase.vue'
 
 const route = useRoute()
 const router = useRouter()
-const settings = useSettingsStore()
 
 const search = ref('')
 const searchOpen = ref(false)
@@ -22,15 +19,12 @@ const searchInputEl = ref(null)
 
 function openSearch() {
   searchOpen.value = true
-  // 焦点延后到 DOM 显示后
   setTimeout(() => searchInputEl.value?.focus(), 50)
 }
-
 function closeSearch() {
   searchOpen.value = false
   search.value = ''
 }
-
 function submitSearch() {
   const q = search.value.trim()
   if (!q) return
@@ -38,25 +32,53 @@ function submitSearch() {
   closeSearch()
 }
 
-// 6 项主导航 — 所有页面共享
+/**
+ * 主导航定义
+ *   - root 直接是 RouterLink + 可选 children 子菜单
+ *   - 鼠标 hover 主项时子菜单展开
+ */
 const mainNav = [
-  { to: '/',           label: '首页' },
-  { to: '/library',    label: '文章' },
-  { to: '/notes',      label: '笔记' },
-  { to: '/graph',      label: '图谱' },
-  { to: '/guestbook',  label: '留言板' },
-  { to: '/chat',       label: 'AI' },
+  { to: '/', label: '首页' },
+  {
+    to: '/library',
+    label: '写作',
+    hasChildren: true,
+    children: [
+      { to: '/library', label: '文章库',   desc: '已发表的全部博文与外部收藏' },
+      { to: '/notes',   label: '笔记',     desc: 'Karpathy 风长文笔记' },
+      { to: '/graph',   label: '知识图谱', desc: '笔记 + 标签 + 文章的关系网' },
+      { to: '/stats',   label: '阅读统计', desc: '阅读 / 笔记 / 标签 4 张图' },
+    ],
+  },
+  { to: '/portfolio', label: '作品集' },
+  { to: '/chat',      label: 'AI 对话' },
+  { to: '/guestbook', label: '留言板' },
+  {
+    to: '/settings',
+    label: '工具',
+    hasChildren: true,
+    children: [
+      { to: '/dashboard', label: '仪表板', desc: '阅读与笔记总览' },
+      { to: '/tags',      label: '标签',   desc: '笔记标签管理' },
+      { to: '/settings',  label: '设置',   desc: '主题 / AI / 数据备份' },
+    ],
+  },
 ]
 
-// 判断当前 nav 项激活态(支持子路径)
-function isActive(to) {
-  if (to === '/') return route.path === '/'
-  return route.path === to || route.path.startsWith(to + '/')
+// 当前 nav 项是否激活(支持子路径,且子菜单内任一项激活也算父项激活)
+function isActive(item) {
+  if (item.to === '/') return route.path === '/'
+  if (route.path === item.to || route.path.startsWith(item.to + '/')) return true
+  if (item.children) {
+    return item.children.some(
+      (c) => route.path === c.to || route.path.startsWith(c.to + '/')
+    )
+  }
+  return false
 }
 </script>
 
 <template>
-  <!-- 顶部 nav — 整站常驻,fixed 顶部 -->
   <header class="app-nav">
     <RouterLink to="/" class="brand" aria-label="APOS 首页">
       <span class="brand-mark"></span>
@@ -64,12 +86,45 @@ function isActive(to) {
     </RouterLink>
 
     <nav class="nav-links" aria-label="主导航">
-      <RouterLink
+      <div
         v-for="m in mainNav"
-        :key="m.to"
-        :to="m.to"
-        :class="{ 'is-active': isActive(m.to) }"
-      >{{ m.label }}</RouterLink>
+        :key="m.label"
+        class="nav-item"
+        :class="{ 'has-children': m.hasChildren }"
+      >
+        <RouterLink
+          :to="m.to"
+          class="nav-link"
+          :class="{ 'is-active': isActive(m) }"
+        >
+          <span>{{ m.label }}</span>
+          <svg
+            v-if="m.hasChildren"
+            class="nav-caret"
+            width="10"
+            height="10"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </RouterLink>
+
+        <!-- 子菜单 -->
+        <div v-if="m.hasChildren" class="nav-submenu" role="menu">
+          <RouterLink
+            v-for="c in m.children"
+            :key="c.to"
+            :to="c.to"
+            class="nav-submenu-item"
+            role="menuitem"
+          >
+            <span class="nav-submenu-label">{{ c.label }}</span>
+            <span class="nav-submenu-desc">{{ c.desc }}</span>
+          </RouterLink>
+        </div>
+      </div>
     </nav>
 
     <div class="nav-actions">
@@ -77,14 +132,11 @@ function isActive(to) {
         type="button"
         class="nav-icon-btn"
         aria-label="搜索文章"
-        title="搜索文章 (在文章库)"
+        title="搜索文章"
         @click="openSearch"
       >
         <IconBase name="search" :size="16" />
       </button>
-      <RouterLink to="/settings" class="nav-icon-btn" aria-label="设置" title="设置">
-        <IconBase name="settings" :size="16" />
-      </RouterLink>
       <a
         href="https://github.com/Apos-DT"
         target="_blank"
@@ -99,7 +151,7 @@ function isActive(to) {
       </a>
     </div>
 
-    <!-- 搜索弹窗(整宽抽屉) -->
+    <!-- 搜索抽屉 -->
     <div v-if="searchOpen" class="nav-search-overlay" @click.self="closeSearch">
       <form class="nav-search-form" @submit.prevent="submitSearch">
         <IconBase name="search" :size="16" />
@@ -118,23 +170,19 @@ function isActive(to) {
     </div>
   </header>
 
-  <!-- 主体内容(全宽) — 各 view 自己控制 max-width -->
   <main class="app-main-wide">
     <slot />
   </main>
 
-  <!-- 全局 toast -->
   <AppToastStack />
 </template>
 
 <style scoped>
-/* nav-actions 容器 */
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 4px;
 }
-
 .nav-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -153,15 +201,24 @@ function isActive(to) {
   background: oklch(0.94 0.008 80 / 0.7);
 }
 
-/* 主导航 link */
+/* ===== 主导航 ===== */
 .nav-links {
   display: flex;
   flex: 1;
   justify-content: center;
   gap: 4px;
 }
-.nav-links a {
+.nav-item {
   position: relative;
+  /* hover 缓冲区,确保鼠标可以从 nav-link 平滑过渡到 submenu */
+  padding-bottom: 4px;
+  margin-bottom: -4px;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13.5px;
@@ -169,17 +226,92 @@ function isActive(to) {
   letter-spacing: 0.01em;
   transition: color 0.3s, background 0.3s;
 }
-.nav-links a:hover {
+.nav-link:hover {
   color: var(--ink);
   background: oklch(0.94 0.008 80 / 0.7);
 }
-.nav-links a.is-active {
+.nav-link.is-active {
   color: var(--accent);
   background: oklch(0.92 0.06 295 / 0.5);
   font-weight: 600;
 }
+.nav-caret {
+  transition: transform 0.2s var(--ease-out);
+  opacity: 0.6;
+}
+.nav-item.has-children:hover .nav-caret,
+.nav-item.has-children:focus-within .nav-caret {
+  transform: rotate(180deg);
+  opacity: 1;
+}
 
-/* 搜索抽屉 */
+/* ===== 子菜单 ===== */
+.nav-submenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  min-width: 260px;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lift);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease-out),
+              transform 0.2s var(--ease-out),
+              visibility 0.2s;
+  z-index: 110;
+}
+.nav-item:hover .nav-submenu,
+.nav-item:focus-within .nav-submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+/* 子菜单与 nav-link 之间的透明 buffer,确保鼠标过渡时不丢失 hover */
+.nav-submenu::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: 0; right: 0;
+  height: 10px;
+}
+
+.nav-submenu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--ink-2);
+  transition: color 0.3s, background 0.3s, transform 0.3s var(--ease-out);
+}
+.nav-submenu-item:hover {
+  color: var(--ink);
+  background: oklch(0.94 0.04 295 / 0.5);
+  transform: translateX(3px);
+}
+.nav-submenu-item.router-link-active {
+  background: oklch(0.92 0.06 295 / 0.5);
+}
+.nav-submenu-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.nav-submenu-desc {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+/* ===== 搜索抽屉 ===== */
 .nav-search-overlay {
   position: fixed;
   top: var(--nav-h);
@@ -236,7 +368,6 @@ function isActive(to) {
   background: oklch(0.94 0.008 80);
 }
 
-/* 主体全宽 */
 .app-main-wide {
   min-height: calc(100vh - var(--nav-h));
   padding-top: var(--nav-h);
@@ -244,7 +375,6 @@ function isActive(to) {
   z-index: 2;
 }
 
-/* 移动端处理 */
 @media (max-width: 720px) {
   .nav-links {
     gap: 0;
@@ -252,10 +382,13 @@ function isActive(to) {
     scrollbar-width: none;
   }
   .nav-links::-webkit-scrollbar { display: none; }
-  .nav-links a {
+  .nav-link {
     padding: 8px 10px;
     font-size: 13px;
     flex-shrink: 0;
   }
+  /* 移动端禁用 hover 子菜单(改为直接跳父项) */
+  .nav-submenu { display: none; }
+  .nav-caret { display: none; }
 }
 </style>

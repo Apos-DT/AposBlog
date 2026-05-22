@@ -41,6 +41,12 @@ const routes = [
     redirect: (to) => `/post/${to.params.slug}`,
   },
   {
+    path: '/portfolio',
+    name: 'portfolio',
+    component: () => import('@/views/PortfolioView.vue'),
+    meta: { title: '作品集' },
+  },
+  {
     path: '/notes',
     name: 'notes',
     component: () => import('@/views/NotesView.vue'),
