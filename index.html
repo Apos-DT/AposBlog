@@ -18,10 +18,11 @@
       rel="stylesheet"
     />
 
-    <!-- 网页 favicon — 用 hoshinoai.jpg 作为浏览器标签图标 -->
+    <!-- 网页 favicon — SVG 优先 (圆形裁剪),jpg 留作老浏览器 fallback -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/jpeg" href="/hoshinoai.jpg" />
     <link rel="apple-touch-icon" href="/hoshinoai.jpg" />
-    <link rel="shortcut icon" href="/hoshinoai.jpg" />
+    <link rel="shortcut icon" href="/favicon.svg" />
   </head>
   <body>
     <div id="app"></div>
