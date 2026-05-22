@@ -175,12 +175,12 @@ const experience = [
       </p>
 
       <div class="hero-actions">
-        <RouterLink class="btn btn-primary" to="#latest">
-          <span>开始阅读</span>
+        <RouterLink class="btn btn-primary" to="/library">
+          <span>浏览全部文章</span>
           <IconBase name="arrow-right" :size="14" />
         </RouterLink>
-        <RouterLink class="btn btn-ghost" to="/dashboard">
-          <span>进入知识库</span>
+        <RouterLink class="btn btn-ghost" to="/guestbook">
+          <span>留下脚印</span>
         </RouterLink>
       </div>
 

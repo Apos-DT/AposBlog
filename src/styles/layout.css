@@ -90,7 +90,32 @@
   .app-nav .nav-search { display: none; }
 }
 
-/* ===== 主布局 grid ===== */
+/* ===== 全宽统一布局下,各内部视图根容器的约束 =====
+   blog 类视图(HomeView .home-page / PostView .post-page / GuestbookView .view-gb)
+   自己已有 max-width,不在此规则范围。
+   其他知识库类视图统一用此规则约束最大宽度与水平 padding。 */
+.view-dashboard,
+.view-library,
+.view-notes,
+.view-note-edit,
+.view-tags,
+.view-graph,
+.view-stats,
+.view-settings,
+.view-chat {
+  max-width: min(1200px, 96vw);
+  margin: 0 auto;
+  padding: 32px clamp(20px, 3vw, 40px) 80px;
+  position: relative;
+  z-index: 2;
+}
+
+/* GraphView 的图谱画布更宽更舒展 */
+.view-graph {
+  max-width: min(1380px, 96vw);
+}
+
+/* ===== 主布局 grid(已废弃,保留兼容,改为单列) ===== */
 .app-layout {
   display: grid;
   grid-template-columns: var(--aside-w) minmax(0, 1fr) var(--tools-w);

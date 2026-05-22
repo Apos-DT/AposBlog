@@ -21,12 +21,6 @@ const routes = [
     component: () => import('@/views/PostView.vue'),
     meta: { title: '文章', layout: 'blog' },
   },
-  {
-    path: '/playground',
-    name: 'playground',
-    component: () => import('@/views/PlaygroundView.vue'),
-    meta: { title: '工具间', layout: 'blog' },
-  },
 
   // ===== 知识库部分(三栏) =====
   {

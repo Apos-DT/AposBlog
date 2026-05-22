@@ -196,6 +196,28 @@ const storageSize = () => {
       </div>
     </article>
 
+    <!-- 管理工具(下沉自原左侧菜单) -->
+    <article class="set-card">
+      <header><h3><IconBase name="dashboard" :size="16" /> 管理工具</h3></header>
+      <div class="tool-grid">
+        <RouterLink to="/dashboard" class="tool-tile">
+          <IconBase name="dashboard" :size="18" />
+          <strong>仪表板</strong>
+          <span>阅读总览 / 最近活动</span>
+        </RouterLink>
+        <RouterLink to="/stats" class="tool-tile">
+          <IconBase name="stats" :size="18" />
+          <strong>统计</strong>
+          <span>阅读 / 笔记 / 标签 4 张图</span>
+        </RouterLink>
+        <RouterLink to="/tags" class="tool-tile">
+          <IconBase name="tags" :size="18" />
+          <strong>标签</strong>
+          <span>笔记标签管理与调色</span>
+        </RouterLink>
+      </div>
+    </article>
+
     <!-- 关于 -->
     <article class="set-card">
       <header><h3><IconBase name="book" :size="16" /> 关于应用</h3></header>
@@ -399,5 +421,41 @@ code {
   background: oklch(0.87 0.010 280 / 0.6);
   border: 1px solid var(--line-soft);
   color: var(--accent-2);
+}
+
+/* 管理工具瓦片 */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 12px;
+}
+.tool-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-soft);
+  background: var(--bg);
+  color: inherit;
+  transition: border-color 0.3s, transform 0.3s var(--ease-out), background 0.3s;
+}
+.tool-tile:hover {
+  border-color: var(--accent);
+  background: oklch(0.94 0.04 295 / 0.4);
+  transform: translateY(-2px);
+}
+.tool-tile svg { color: var(--accent); margin-bottom: 4px; }
+.tool-tile strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.tool-tile span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
 }
 </style>
