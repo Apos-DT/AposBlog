@@ -48,6 +48,101 @@ function loadScript(src, bust = false) {
       <p>欢迎留下你的脚印 —— 一段感想、一个问题、一句鼓励都好。</p>
     </header>
 
+    <!-- ============ 登录态条 ============ -->
+    <section class="gb-auth-bar gb-fade-in">
+      <!-- 未登录 -->
+      <div class="gb-auth-anon">
+        <span class="gb-auth-hint">登录后留言会自动带上你的名字和头像</span>
+        <div class="gb-auth-anon-actions">
+          <button type="button" class="gb-btn gb-btn-ghost" id="gb-auth-open-github">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1-.02-1.96-3.2.69-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11 11 0 015.77 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.58.23 2.75.12 3.04.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56C20.21 21.38 23.5 17.07 23.5 12 23.5 5.65 18.35.5 12 .5z"/></svg>
+            <span>GitHub 登录</span>
+          </button>
+          <button type="button" class="gb-btn gb-btn-accent" id="gb-auth-open-local">
+            <span>登录 / 注册</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 已登录 -->
+      <div class="gb-auth-user" style="display: none">
+        <img class="gb-auth-avatar" alt="" />
+        <div class="gb-auth-meta">
+          <strong class="gb-auth-name"></strong>
+          <span class="gb-auth-source"></span>
+        </div>
+        <button type="button" class="gb-btn gb-btn-ghost gb-btn-sm" id="gb-auth-logout">退出</button>
+      </div>
+    </section>
+
+    <!-- ============ 登录 modal (由 JS 控制显隐) ============ -->
+    <div id="gb-auth-modal" class="gb-modal-mask" style="display: none">
+      <div class="gb-modal" @click.stop>
+        <header class="gb-modal-head">
+          <div class="gb-modal-tabs">
+            <button type="button" class="gb-modal-tab active" data-tab="github">GitHub</button>
+            <button type="button" class="gb-modal-tab" data-tab="login">登录</button>
+            <button type="button" class="gb-modal-tab" data-tab="register">注册</button>
+          </div>
+          <button type="button" class="gb-modal-close" id="gb-auth-modal-close" aria-label="关闭">×</button>
+        </header>
+
+        <!-- GitHub pane -->
+        <section class="gb-modal-pane active" data-pane="github">
+          <p class="gb-modal-desc">输入 GitHub 用户名,我们会从 GitHub 获取你的头像与显示名。</p>
+          <form id="gb-form-github" class="gb-modal-form">
+            <label class="gb-modal-field">
+              <span>GitHub 用户名</span>
+              <input type="text" name="username" placeholder="例:torvalds" autocomplete="off" required />
+            </label>
+            <button type="submit" class="gb-btn gb-btn-accent gb-btn-block">
+              <span>登录</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- 登录 pane -->
+        <section class="gb-modal-pane" data-pane="login">
+          <p class="gb-modal-desc">已经注册过?用名字和密码登录。</p>
+          <form id="gb-form-login" class="gb-modal-form">
+            <label class="gb-modal-field">
+              <span>用户名</span>
+              <input type="text" name="username" autocomplete="username" required />
+            </label>
+            <label class="gb-modal-field">
+              <span>密码</span>
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <button type="submit" class="gb-btn gb-btn-accent gb-btn-block">登录</button>
+          </form>
+        </section>
+
+        <!-- 注册 pane -->
+        <section class="gb-modal-pane" data-pane="register">
+          <p class="gb-modal-desc">注册一个本站账号,以后用名字登录。</p>
+          <form id="gb-form-register" class="gb-modal-form">
+            <label class="gb-modal-field">
+              <span>用户名 <em>*</em></span>
+              <input type="text" name="username" minlength="3" maxlength="20" required />
+            </label>
+            <label class="gb-modal-field">
+              <span>显示名</span>
+              <input type="text" name="displayName" maxlength="20" placeholder="同用户名" />
+            </label>
+            <label class="gb-modal-field">
+              <span>密码 <em>*</em></span>
+              <input type="password" name="password" minlength="6" autocomplete="new-password" required />
+            </label>
+            <label class="gb-modal-field">
+              <span>确认密码 <em>*</em></span>
+              <input type="password" name="password2" minlength="6" autocomplete="new-password" required />
+            </label>
+            <button type="submit" class="gb-btn gb-btn-accent gb-btn-block">创建账号</button>
+          </form>
+        </section>
+      </div>
+    </div>
+
     <!-- ============ 统计 + 表情情绪 Canvas ============ -->
     <article class="gb-stats-card gb-fade-in">
       <div class="gb-stats-numbers">
@@ -227,6 +322,185 @@ function loadScript(src, bust = false) {
   border-radius: var(--radius-lg);
   border: 1px solid var(--line-soft);
   background: var(--bg);
+}
+
+/* ===== 登录态条 ===== */
+.gb-auth-bar {
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line-soft);
+  background: linear-gradient(135deg, oklch(0.94 0.04 295 / 0.4), oklch(0.96 0.04 220 / 0.3));
+}
+.gb-auth-anon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.gb-auth-hint {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.gb-auth-anon-actions {
+  display: flex;
+  gap: 8px;
+}
+.gb-auth-user {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+.gb-auth-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 8px -2px oklch(0.50 0.22 295 / 0.25);
+}
+.gb-auth-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.gb-auth-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.gb-auth-source {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.gb-btn-sm { padding: 6px 12px; font-size: 12px; }
+.gb-btn-block { width: 100%; justify-content: center; }
+
+/* ===== 登录 modal ===== */
+.gb-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: oklch(0.18 0.020 280 / 0.45);
+  backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: gb-modal-fade-in 0.2s var(--ease-out);
+}
+@keyframes gb-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.gb-modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  box-shadow: var(--shadow-lift);
+  animation: gb-modal-pop-in 0.3s var(--ease-out);
+}
+@keyframes gb-modal-pop-in {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.gb-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 0 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.gb-modal-tabs {
+  display: flex;
+  gap: 4px;
+}
+.gb-modal-tab {
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s;
+}
+.gb-modal-tab:hover { color: var(--ink); }
+.gb-modal-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+.gb-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 0.3s, background 0.3s;
+}
+.gb-modal-close:hover {
+  color: var(--ink);
+  background: oklch(0.94 0.008 80);
+}
+
+.gb-modal-pane {
+  display: none;
+  padding: 22px 24px 24px;
+}
+.gb-modal-pane.active { display: block; }
+.gb-modal-desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin: 0 0 18px;
+  line-height: 1.6;
+}
+.gb-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gb-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gb-modal-field span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.gb-modal-field em { color: var(--error); font-style: normal; }
+.gb-modal-field input {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.gb-modal-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(0.50 0.22 295 / 0.15);
 }
 .gb-card h3 {
   font-family: var(--font-display);
@@ -620,6 +894,33 @@ function loadScript(src, bust = false) {
   /* emoji 不响应鼠标事件,避免触发 mouseover 冒泡到 .gb-avatar 内部抖动 */
   pointer-events: none;
 }
+.gb-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  pointer-events: none;
+}
+.gb-auth-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg);
+  pointer-events: none;
+}
+.gb-auth-badge-github { background: #24292e; }
+.gb-auth-badge-local { background: var(--accent-2); }
 .gb-avatar-tip {
   position: absolute;
   left: calc(100% + 10px);

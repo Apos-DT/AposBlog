@@ -24,6 +24,7 @@ const reads = useReadsStore()
 const notes = useNotesStore()
 const settings = useSettingsStore()
 
+const BASE_URL = import.meta.env.BASE_URL
 const slug = computed(() => route.params.slug)
 const post = computed(() => posts.findBySlug(slug.value))
 const record = computed(() => reads.ensure(slug.value))
@@ -358,7 +359,7 @@ function fmtDate(d) {
           <div class="ptt-card author-card">
             <span class="ptt-label">作者</span>
             <div class="author-row">
-              <span class="author-avatar" aria-hidden="true"></span>
+              <img class="author-avatar" :src="`${BASE_URL}hoshinoai.jpg`" alt="赵祥生" />
               <div class="author-meta">
                 <strong>赵祥生 (Apos)</strong>
                 <span>青岛 · 工程笔记</span>
@@ -813,8 +814,9 @@ function fmtDate(d) {
 .author-avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--accent), oklch(0.55 0.20 295));
-  box-shadow: 0 0 14px var(--accent);
+  object-fit: cover;
+  border: 1px solid var(--line);
+  box-shadow: 0 2px 10px -2px oklch(0.50 0.22 295 / 0.30);
 }
 .author-meta { display: flex; flex-direction: column; min-width: 0; }
 .author-meta strong {

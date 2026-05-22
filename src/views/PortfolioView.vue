@@ -9,6 +9,7 @@ import portfolio from '@/data/portfolio.json'
 import IconBase from '@/components/IconBase.vue'
 
 const p = portfolio
+const BASE = import.meta.env.BASE_URL
 
 // 用 anchor 在页内跳转
 function scrollTo(id) {
@@ -22,11 +23,21 @@ function scrollTo(id) {
 
     <!-- HERO -->
     <header class="po-hero">
-      <span class="po-eyebrow">PORTFOLIO · 作品集 / 简历</span>
-      <h1>
-        我是<em>{{ p.profile.name }}</em>。<br/>
-        在<em>制造业前线</em>写代码、做 ERP、做工业视觉。
-      </h1>
+      <div class="po-hero-top">
+        <img
+          v-if="p.profile.avatar"
+          class="po-hero-avatar"
+          :src="`${BASE}${p.profile.avatar}`"
+          :alt="p.profile.name"
+        />
+        <div class="po-hero-text">
+          <span class="po-eyebrow">PORTFOLIO · 作品集 / 简历</span>
+          <h1>
+            我是<em>{{ p.profile.name }}</em>。<br/>
+            在<em>制造业前线</em>写代码、做 ERP、做工业视觉。
+          </h1>
+        </div>
+      </div>
       <p class="po-lede">{{ p.profile.summary }}</p>
 
       <div class="po-quick">
@@ -232,6 +243,35 @@ function scrollTo(id) {
   gap: 18px;
   padding: 24px 0 18px;
   border-bottom: 1px solid var(--line-soft);
+}
+.po-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.po-hero-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--bg);
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 12px 30px -10px oklch(0.50 0.22 295 / 0.30),
+    var(--shadow-lift);
+  flex-shrink: 0;
+  transition: transform 0.5s var(--ease-out), box-shadow 0.5s;
+}
+.po-hero-avatar:hover {
+  transform: scale(1.04) rotate(-2deg);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 16px 36px -12px oklch(0.50 0.22 295 / 0.45);
+}
+.po-hero-text { flex: 1; min-width: 0; }
+@media (max-width: 600px) {
+  .po-hero-top { flex-direction: column; align-items: flex-start; gap: 18px; }
+  .po-hero-avatar { width: 96px; height: 96px; }
 }
 .po-eyebrow {
   font-family: var(--font-mono);

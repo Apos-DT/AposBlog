@@ -22,7 +22,16 @@
   'use strict'
 
   var STORAGE_KEY = 'apos-guestbook-v1'
+  var AUTH_KEY = 'apos-auth-current'
+  var ACCOUNTS_KEY = 'apos-auth-accounts'
+  var AUTH_SALT = 'apos-salt-v1'
   var $ = null
+
+  // 当前登录态
+  var authState = {
+    current: null,   // { type, username, displayName, avatarUrl, source, loggedAt }
+    accounts: [],    // [{ username, passwordHash, displayName, createdAt }]
+  }
 
   // 预装 seed:让首次到访的人看到页面"有生命",而不是空白
   var SEED = [
@@ -122,8 +131,10 @@
     }
 
     loadData()
+    loadAuth()
     renderList()
     renderStats()
+    refreshAuthBar()
 
     // 入场:发布区与统计区先 fadeIn
     $('.gb-fade-in').hide().each(function (i) {
@@ -136,6 +147,7 @@
     initListEvents()
     initSearchSort()
     initBackToTop()
+    initAuth()
   }
 
   window.__destroyGuestbook = function () {
@@ -215,13 +227,25 @@
   function buildItem(m) {
     var hue = hashHue(m.name + m.id)
     var canDel = m.id.indexOf('u_') === 0  // 只有 u_ 前缀(用户自己留的)能删
+    var hasAvatar = m.avatarUrl && m.avatarUrl.length > 4
+
+    var avatarInner = hasAvatar
+      ? '<img class="gb-avatar-img" src="' + escapeAttr(m.avatarUrl) + '" alt="" />'
+      : '<span class="gb-avatar-emoji"></span>'
+    var avatarStyle = hasAvatar ? '' : ' style="background: oklch(0.92 0.07 ' + hue + ')"'
+    var authBadge = m.authType === 'github'
+      ? '<span class="gb-auth-badge gb-auth-badge-github" title="GitHub 登录">GH</span>'
+      : m.authType === 'local'
+      ? '<span class="gb-auth-badge gb-auth-badge-local" title="本站账号">@</span>'
+      : ''
 
     var html =
       '<article class="gb-item" data-id="' + escapeAttr(m.id) + '">' +
         '<header class="gb-item-head">' +
-          '<div class="gb-avatar" style="background: oklch(0.92 0.07 ' + hue + ')">' +
-            '<span class="gb-avatar-emoji"></span>' +
+          '<div class="gb-avatar"' + avatarStyle + '>' +
+            avatarInner +
             '<span class="gb-avatar-tip" style="display:none"></span>' +
+            authBadge +
           '</div>' +
           '<div class="gb-item-meta">' +
             '<strong class="gb-item-name"></strong>' +
@@ -250,7 +274,7 @@
       '</article>'
 
     var $item = $(html)
-    $item.find('.gb-avatar-emoji').text(m.emoji || '😊')
+    if (!hasAvatar) $item.find('.gb-avatar-emoji').text(m.emoji || '😊')
     if (m.email) $item.find('.gb-avatar-tip').text(m.email)
     $item.find('.gb-item-name').text(m.name || '匿名访客')
     $item.find('.gb-item-time').text(formatTime(m.at))
@@ -415,21 +439,30 @@
 
     $('#gb-form').on('submit.gb', function (e) {
       e.preventDefault()
-      var ok = true
-      ok = validate($('#gb-form-name'), 'name') && ok
-      ok = validate($('#gb-form-email'), 'email') && ok
-      ok = validate($('#gb-form-content'), 'content') && ok
-      if (!ok) {
-        toast('warning', '请检查标红字段')
-        return
-      }
-      addMessage({
-        name: $('#gb-form-name').val().trim(),
-        email: $('#gb-form-email').val().trim(),
+      var contentOk = validate($('#gb-form-content'), 'content')
+
+      // 已登录:用登录态数据,跳过姓名/邮箱校验
+      var data = {
         emoji: $('#gb-emoji-picker .gb-emoji.active').text() || '😊',
         content: $('#gb-form-content').val().trim(),
         images: pendingImages.slice(),
-      })
+      }
+      if (authState.current) {
+        data.name = authState.current.displayName
+        data.email = authState.current.username + (authState.current.type === 'github' ? '@github' : '@local')
+        data.avatarUrl = authState.current.avatarUrl || ''
+        data.authType = authState.current.type
+        if (!contentOk) { toast('warning', '请检查留言内容'); return }
+      } else {
+        var nameOk = validate($('#gb-form-name'), 'name')
+        var emailOk = validate($('#gb-form-email'), 'email')
+        if (!nameOk || !emailOk || !contentOk) { toast('warning', '请检查标红字段'); return }
+        data.name = $('#gb-form-name').val().trim()
+        data.email = $('#gb-form-email').val().trim()
+        data.avatarUrl = ''
+        data.authType = 'guest'
+      }
+      addMessage(data)
       // 重置表单
       this.reset()
       pendingImages = []
@@ -476,6 +509,8 @@
       name: data.name,
       email: data.email,
       emoji: data.emoji,
+      avatarUrl: data.avatarUrl || '',
+      authType: data.authType || 'guest',
       content: data.content,
       images: data.images || [],
       likes: 0,
@@ -744,5 +779,233 @@
     return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     })
+  }
+
+  // ============================================================
+  // 登录系统(GitHub OAuth-free + 本地账号双方式)
+  // ============================================================
+  function loadAuth() {
+    try {
+      var raw = localStorage.getItem(AUTH_KEY)
+      authState.current = raw ? JSON.parse(raw) : null
+    } catch (e) { authState.current = null }
+    try {
+      var rawA = localStorage.getItem(ACCOUNTS_KEY)
+      authState.accounts = rawA ? JSON.parse(rawA) : []
+    } catch (e) { authState.accounts = [] }
+  }
+
+  function saveCurrent(u) {
+    authState.current = u
+    if (u) localStorage.setItem(AUTH_KEY, JSON.stringify(u))
+    else localStorage.removeItem(AUTH_KEY)
+  }
+
+  function saveAccounts() {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(authState.accounts))
+  }
+
+  function refreshAuthBar() {
+    var u = authState.current
+    if (u) {
+      $('.gb-auth-anon').hide()
+      var $user = $('.gb-auth-user').show().css('display', 'grid')
+      $user.find('.gb-auth-avatar').attr('src', u.avatarUrl || ($('html').data('basePath') || '/') + 'hoshinoai.jpg')
+      $user.find('.gb-auth-name').text(u.displayName || u.username)
+      $user.find('.gb-auth-source').text(
+        u.type === 'github' ? '@' + u.username + ' · 通过 GitHub 登录' :
+        u.type === 'local'  ? '@' + u.username + ' · 本站账号' :
+        '@' + u.username
+      )
+      // 已登录:隐藏姓名/邮箱字段(自动用登录态)
+      $('#gb-form-name').closest('.gb-field').hide()
+      $('#gb-form-email').closest('.gb-field').hide()
+    } else {
+      $('.gb-auth-anon').show().css('display', 'flex')
+      $('.gb-auth-user').hide()
+      // 未登录:显示姓名/邮箱字段
+      $('#gb-form-name').closest('.gb-field').show()
+      $('#gb-form-email').closest('.gb-field').show()
+    }
+  }
+
+  function initAuth() {
+    var $modal = $('#gb-auth-modal')
+
+    // 打开 modal
+    $('#gb-auth-open-github').on('click.gb', function () { openAuthModal('github') })
+    $('#gb-auth-open-local').on('click.gb', function () { openAuthModal('login') })
+    $('#gb-auth-modal-close').on('click.gb', closeAuthModal)
+    $modal.on('click.gb', function (e) {
+      if (e.target === this) closeAuthModal()
+    })
+
+    // tab 切换
+    $modal.on('click.gb', '.gb-modal-tab', function () {
+      var name = $(this).data('tab')
+      $modal.find('.gb-modal-tab').removeClass('active')
+      $(this).addClass('active')
+      $modal.find('.gb-modal-pane').removeClass('active')
+      $modal.find('.gb-modal-pane[data-pane="' + name + '"]').addClass('active')
+    })
+
+    // GitHub 登录提交
+    $('#gb-form-github').on('submit.gb', function (e) {
+      e.preventDefault()
+      var fd = new FormData(this)
+      var username = (fd.get('username') || '').trim()
+      if (!username) return
+      doGithubLogin(username)
+    })
+
+    // 本地登录提交
+    $('#gb-form-login').on('submit.gb', function (e) {
+      e.preventDefault()
+      var fd = new FormData(this)
+      doLocalLogin(
+        (fd.get('username') || '').trim(),
+        fd.get('password') || ''
+      )
+    })
+
+    // 本地注册提交
+    $('#gb-form-register').on('submit.gb', function (e) {
+      e.preventDefault()
+      var fd = new FormData(this)
+      doLocalRegister({
+        username: (fd.get('username') || '').trim(),
+        displayName: (fd.get('displayName') || '').trim(),
+        password: fd.get('password') || '',
+        password2: fd.get('password2') || '',
+      })
+    })
+
+    // 退出
+    $('#gb-auth-logout').on('click.gb', doLogout)
+  }
+
+  function openAuthModal(tab) {
+    var $modal = $('#gb-auth-modal')
+    $modal.show().css('display', 'flex')
+    $modal.find('.gb-modal-tab').removeClass('active')
+    $modal.find('.gb-modal-tab[data-tab="' + tab + '"]').addClass('active')
+    $modal.find('.gb-modal-pane').removeClass('active')
+    $modal.find('.gb-modal-pane[data-pane="' + tab + '"]').addClass('active')
+    setTimeout(function () {
+      $modal.find('.gb-modal-pane.active input:first').focus()
+    }, 80)
+  }
+
+  function closeAuthModal() {
+    $('#gb-auth-modal').fadeOut(160)
+  }
+
+  function doGithubLogin(username) {
+    var $btn = $('#gb-form-github button[type="submit"]').prop('disabled', true).text('查询中...')
+    fetch('https://api.github.com/users/' + encodeURIComponent(username))
+      .then(function (res) {
+        if (!res.ok) {
+          if (res.status === 404) throw new Error('找不到 GitHub 用户:' + username)
+          if (res.status === 403) throw new Error('GitHub API 调用次数超限,请稍后再试')
+          throw new Error('GitHub 接口请求失败 (' + res.status + ')')
+        }
+        return res.json()
+      })
+      .then(function (u) {
+        var current = {
+          type: 'github',
+          username: u.login,
+          displayName: u.name || u.login,
+          avatarUrl: u.avatar_url,
+          bio: u.bio || '',
+          loggedAt: new Date().toISOString(),
+        }
+        saveCurrent(current)
+        refreshAuthBar()
+        toast('success', '欢迎,' + current.displayName)
+        closeAuthModal()
+        $('#gb-form-github')[0].reset()
+      })
+      .catch(function (err) {
+        toast('error', err.message || '登录失败')
+      })
+      .finally(function () {
+        $btn.prop('disabled', false).text('登录')
+      })
+  }
+
+  function doLocalRegister(data) {
+    if (!data.username || data.username.length < 3) {
+      return toast('warning', '用户名至少 3 个字符')
+    }
+    if (data.password.length < 6) {
+      return toast('warning', '密码至少 6 位')
+    }
+    if (data.password !== data.password2) {
+      return toast('warning', '两次密码不一致')
+    }
+    if (authState.accounts.some(function (a) { return a.username === data.username })) {
+      return toast('warning', '用户名已存在,请直接登录')
+    }
+    hashPassword(data.password).then(function (hash) {
+      var account = {
+        username: data.username,
+        passwordHash: hash,
+        displayName: data.displayName || data.username,
+        createdAt: new Date().toISOString(),
+      }
+      authState.accounts.push(account)
+      saveAccounts()
+      // 注册后自动登录
+      saveCurrent({
+        type: 'local',
+        username: account.username,
+        displayName: account.displayName,
+        avatarUrl: '',
+        loggedAt: new Date().toISOString(),
+      })
+      refreshAuthBar()
+      toast('success', '注册成功,已登录')
+      closeAuthModal()
+      $('#gb-form-register')[0].reset()
+    })
+  }
+
+  function doLocalLogin(username, password) {
+    var account = authState.accounts.find(function (a) { return a.username === username })
+    if (!account) {
+      return toast('error', '用户名不存在,请先注册')
+    }
+    hashPassword(password).then(function (hash) {
+      if (hash !== account.passwordHash) {
+        return toast('error', '密码不对')
+      }
+      saveCurrent({
+        type: 'local',
+        username: account.username,
+        displayName: account.displayName,
+        avatarUrl: '',
+        loggedAt: new Date().toISOString(),
+      })
+      refreshAuthBar()
+      toast('success', '欢迎回来,' + account.displayName)
+      closeAuthModal()
+      $('#gb-form-login')[0].reset()
+    })
+  }
+
+  function doLogout() {
+    if (!confirm('确定退出登录?')) return
+    saveCurrent(null)
+    refreshAuthBar()
+    toast('info', '已退出')
+  }
+
+  async function hashPassword(pw) {
+    var buf = new TextEncoder().encode((pw || '') + AUTH_SALT)
+    var digest = await crypto.subtle.digest('SHA-256', buf)
+    return Array.from(new Uint8Array(digest))
+      .map(function (b) { return b.toString(16).padStart(2, '0') })
+      .join('')
   }
 })()
