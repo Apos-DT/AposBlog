@@ -549,7 +549,7 @@ onBeforeUnmount(() => {
 
     <p class="ne-tip">
       <IconBase name="check" :size="12" />
-      自动保存到 localStorage · 字数 {{ form.body.length }} · outLinks {{ outLinks.length }} · backlinks {{ backlinks.length }}
+      字数 {{ form.body.length }} · 引用 {{ outLinks.length }} · 被引 {{ backlinks.length }}
     </p>
   </section>
 </template>

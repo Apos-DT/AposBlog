@@ -183,12 +183,12 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
       <div class="left">
         <span class="no">AI · DeepSeek</span>
         <h2>AI 对话</h2>
-        <p v-if="chat.hasKey">基于 <strong>{{ chat.model }}</strong> · 会话全部保存在浏览器本地,API key 也只存在本机。</p>
+        <p v-if="chat.hasKey">和你的工程问题、灵感、笔记起草过过一遍 —— 基于 <strong>{{ chat.model }}</strong>。</p>
         <p v-else style="color: var(--error)">
           <IconBase name="close" :size="13" />
-          还没有 API key。请去
-          <RouterLink to="/settings#ai" style="color: var(--accent); text-decoration: underline">设置 → AI</RouterLink>
-          填入。
+          需要先在
+          <RouterLink to="/settings#ai" style="color: var(--accent); text-decoration: underline">设置</RouterLink>
+          配置 API。
         </p>
       </div>
       <div class="head-actions">
@@ -247,7 +247,7 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
             </div>
             <h3>开始一段对话</h3>
             <p>
-              {{ chat.hasKey ? '在下面输入你想问的问题' : '配置 API key 后即可开始' }}
+              {{ chat.hasKey ? '从下面输入框开始一段对话' : '前往设置完成 API 配置' }}
             </p>
             <div v-if="chat.hasKey" class="me-suggest">
               <button @click="input = '请用一句话总结 Karpathy 笔记法的核心'">Karpathy 笔记法一句话总结</button>
@@ -296,7 +296,7 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
                 <span class="dot-blink"></span>
                 正在生成…
               </span>
-              <span v-else-if="chat.hasKey">{{ chat.model }} · 本地存储 · Enter 发送</span>
+              <span v-else-if="chat.hasKey">{{ chat.model }} · Enter 发送 · Shift+Enter 换行</span>
               <span v-else>未配置 API Key</span>
             </span>
             <div class="composer-actions">

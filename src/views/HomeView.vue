@@ -26,7 +26,7 @@ const contactForm = ref({
   message: '',
   agree: false,
 })
-const contactStatus = ref('提交将唤起本地邮件客户端 · 不经任何第三方服务')
+const contactStatus = ref('')
 const contactStatusKind = ref('')
 
 const messageBytes = computed(() => new TextEncoder().encode(contactForm.value.message).length)
@@ -59,13 +59,13 @@ function submitContact() {
     `${contactForm.value.message.trim()}\n\n` +
     `—— 通过博客联系表单提交`
   location.href = `mailto:2411447661@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  contactStatus.value = '✓ 正在唤起本地邮件客户端...'
+  contactStatus.value = '✓ 已打开邮件客户端'
   contactStatusKind.value = 'ok'
 }
 
 function resetContact() {
   contactForm.value = { name: '', email: '', topic: '想合作', message: '', agree: false }
-  contactStatus.value = '提交将唤起本地邮件客户端 · 不经任何第三方服务'
+  contactStatus.value = ''
   contactStatusKind.value = ''
 }
 

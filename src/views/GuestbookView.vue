@@ -45,8 +45,7 @@ function loadScript(src, bust = false) {
     <header class="gb-section-head">
       <span class="gb-no">访客互动</span>
       <h2>留言板</h2>
-      <p>给博客留下脚印。你可以留言、回复、点赞、附图。数据存在浏览器本地 <code>localStorage</code>,
-        不会上传到任何服务器。</p>
+      <p>欢迎留下你的脚印 —— 一段感想、一个问题、一句鼓励都好。</p>
     </header>
 
     <!-- ============ 统计 + 表情情绪 Canvas ============ -->
@@ -113,7 +112,7 @@ function loadScript(src, bust = false) {
               <circle cx="9" cy="9" r="2" stroke="currentColor" stroke-width="1.6"/>
               <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>添加图片(最多 3 张,单张 ≤200KB)</span>
+            <span>添加图片</span>
             <input id="gb-form-image" type="file" accept="image/*" multiple hidden />
           </label>
           <div id="gb-form-preview" class="gb-form-preview"></div>
@@ -152,7 +151,6 @@ function loadScript(src, bust = false) {
     <!-- ============ 留言列表(每条独立卡片,不再外包大卡片) ============ -->
     <header class="gb-list-head gb-fade-in">
       <h3>留言流</h3>
-      <span class="gb-list-hint">点头像看邮箱 · 心形点赞 · 回复按钮折叠</span>
     </header>
     <section id="gb-list" class="gb-list gb-fade-in"></section>
     <div id="gb-empty" class="gb-empty gb-fade-in" style="display: none">

@@ -22,9 +22,9 @@ const tipByRoute = computed(() => {
     notes: '新建时挑一个 Karpathy 模板。',
     tags: '调色板的颜色会同步到笔记标签。',
     graph: '拖动节点重排,占位灰节点可一键创建。',
-    stats: '所有图表都基于你本地的阅读与笔记数据。',
-    settings: '所有数据本地存储,可一键导出 JSON 备份。',
-    chat: '会话保存在本地,API key 也只在本机存储。',
+    stats: '图表会随阅读与笔记数据实时更新。',
+    settings: '记得定期导出 JSON 备份。',
+    chat: '与你的工程问题、灵感、笔记起草过过一遍。',
   })[n] || '在博客与知识库之间无缝切换。'
 })
 </script>

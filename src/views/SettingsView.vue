@@ -101,10 +101,9 @@ const storageSize = () => {
 
       <div class="ui-alert info" style="margin-bottom:18px">
         <span>
-          <strong>说明 ·</strong> API key 只存在你的浏览器 <code>localStorage</code>,
-          <strong>不上传到任何服务器,不进入 git</strong>。
-          推荐使用 <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:var(--accent)">DeepSeek 控制台</a>
-          的最小权限 key。
+          API key 仅保存在你的浏览器中。建议从
+          <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:var(--accent)">DeepSeek 控制台</a>
+          生成最小权限的 key 使用。
         </span>
       </div>
 
@@ -161,9 +160,8 @@ const storageSize = () => {
 
       <div class="ui-alert info">
         <span>
-          <strong>说明 ·</strong> 所有数据存储在浏览器 <code>localStorage</code>,
-          换浏览器 / 清除缓存会丢失。建议定期导出 JSON 备份。当前占用空间约
-          <strong>{{ storageSize() }}</strong>。
+          建议定期导出 JSON 备份 —— 换浏览器或清除缓存时数据可能丢失。
+          当前占用约 <strong>{{ storageSize() }}</strong>。
         </span>
       </div>
 
@@ -205,7 +203,7 @@ const storageSize = () => {
         <dt>项目名</dt><dd>APOS · 阅读追踪与知识库</dd>
         <dt>作者</dt><dd>赵祥生 (Apos)</dd>
         <dt>技术栈</dt><dd>Vue 3 · Vue Router 4 · Pinia · Vite 6 · ECharts</dd>
-        <dt>数据存储</dt><dd>浏览器 localStorage (前缀 <code>apos:</code>)</dd>
+        <dt>数据存储</dt><dd>浏览器本地</dd>
         <dt>源码</dt><dd><a href="https://github.com/Apos-DT/AposBlog" target="_blank" rel="noopener">github.com/Apos-DT/AposBlog</a></dd>
         <dt>博客主站</dt><dd><a href="../../" target="_blank">apos-dt.github.io/AposBlog/</a></dd>
       </dl>

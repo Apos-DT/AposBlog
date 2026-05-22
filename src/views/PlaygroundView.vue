@@ -88,7 +88,7 @@ const formData = ref({
   progress: 68,
   agree: false,
 })
-const formStatus = ref('提交按钮在最下方 → 演示模式不发送')
+const formStatus = ref('')
 
 function progressDemo() {
   formData.value.progress = 0
@@ -102,7 +102,7 @@ function progressDemo() {
 }
 
 function submitDemo() {
-  formStatus.value = '✓ 表单已提交(演示)'
+  formStatus.value = '✓ 已提交'
   settings.pushToast('success', '表单提交成功')
 }
 

@@ -170,7 +170,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
     } catch (e) {
-      toast('error', 'localStorage 已满,请删除部分留言或清空附件')
+      toast('error', '存储空间已满,请删除部分留言或附图')
     }
   }
 
@@ -533,7 +533,7 @@
       return
     }
     if (file.size > 200 * 1024) {
-      toast('warning', '单张图片不能超过 200KB(localStorage 容量有限)')
+      toast('warning', '图片体积过大,请压缩后再传')
       return
     }
     if (pendingImages.length >= 3) {
@@ -635,7 +635,7 @@
     $list.on('click.gb', '.gb-item-del', function () {
       var $item = $(this).closest('.gb-item')
       var id = $item.data('id')
-      if (!confirm('确定删除这条留言?\n(只有你自己留的可以删,其他人的不会消失)')) return
+      if (!confirm('确定删除这条留言?')) return
       messages = messages.filter(function (m) { return m.id !== id })
       saveData()
       $item.slideUp(220, function () {
