@@ -88,8 +88,8 @@ onMounted(() => {
   )
   document.querySelectorAll('.reveal-up, .reveal').forEach((el) => io.observe(el))
 
-  // hero 标题 — Canvas 粒子化(高密度高可视度)
-  initHeroParticles()
+  // hero 标题 — 流光填充 + 鼠标 spotlight
+  initHeroSpotlight()
 
   // 底部 APOS 大字 — Canvas 粒子 + 鼠标力场
   initFooterMega()
@@ -106,7 +106,6 @@ onMounted(() => {
 //   返回 cleanup 函数
 // ============================================================
 let megaCleanup = null
-let heroParticlesCleanup = null
 
 function createParticleField(container, opts = {}) {
   const {
@@ -482,41 +481,45 @@ function initFooterMega() {
   })
 }
 
-function initHeroParticles() {
-  // hero 多行 + 聚集入场 + 发光字:粒子从容器外围向中央汇聚成字,
-  // 聚拢瞬间(intro ≈ 0.7) 整体亮度峰值 → 看起来像点亮的灯字
-  heroParticlesCleanup = createParticleField(heroTitleEl.value, {
-    text: 'Building at\nthe Edge of\nManufacturing.',
-    fontWeight: 800,
-    forceRadius: 60,
-    forceStrength: 18,
-    stepDesktop: 4,
-    stepMobile: 6,
-    fitWidthRatio: 0.96,
-    fitHeightRatio: 0.92,
-    lineHeight: 1.04,
-    baseAlpha: 0.82,
-    baseLight: 42,
-    lightBoost: 26,
-    baseSat: 84,
-    satBoost: 12,
-    baseHueCenter: 278,
-    hueJitter: 24,
-    radiusRange: [1.3, 2.4],
-    radiusBoost: 1.0,
-    enableGlow: true,          // 开启柔光晕,发光感
-    originMode: 'converge',    // 从容器外围向中央汇聚
-    introGlowPeak: 0.85,       // 入场全粒子高亮峰值(钟形)
-    introMs: 2200,             // 入场时长拉到 2.2s 让聚集过程清晰
-    spring: 0.013,             // 弹簧更柔,粒子飞越路径更长
-    damping: 0.90,             // 减少震荡,飞行更稳
-    floatAmp: [0.05, 0.04],
-  })
+// hero 标题:真实 CSS 文字 + 鼠标 spotlight(JS 只 setProperty,无 RAF 物理)
+//   入场 / 流光 / hover 抬起全 CSS keyframe + animation-delay var(--i) 实现
+let heroSpotlightCleanup = null
+
+function initHeroSpotlight() {
+  const el = heroTitleEl.value
+  if (!el) return
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  let mx = 0
+  let my = 0
+  let pending = false
+
+  function flush() {
+    el.style.setProperty('--mx', mx + 'px')
+    el.style.setProperty('--my', my + 'px')
+    pending = false
+  }
+
+  function onMove(e) {
+    const rect = el.getBoundingClientRect()
+    mx = e.clientX - rect.left
+    my = e.clientY - rect.top
+    if (!pending) {
+      pending = true
+      requestAnimationFrame(flush)
+    }
+  }
+
+  el.addEventListener('mousemove', onMove)
+
+  heroSpotlightCleanup = () => {
+    el.removeEventListener('mousemove', onMove)
+  }
 }
 
 onBeforeUnmount(() => {
   if (megaCleanup) megaCleanup()
-  if (heroParticlesCleanup) heroParticlesCleanup()
+  if (heroSpotlightCleanup) heroSpotlightCleanup()
 })
 
 // ===== 最新文章 / 归档 =====
@@ -583,8 +586,20 @@ const experience = [
         <span>WRITING · BUILDING · THINKING — Since 2024</span>
       </div>
 
-      <div ref="heroTitleEl" class="hero-title-wrap" aria-hidden="true"></div>
-      <h1 class="hero-title visually-hidden">Building at the Edge of Manufacturing.</h1>
+      <h1 ref="heroTitleEl" class="hero-title">
+        <span class="line">
+          <span class="word" style="--i: 0">Building</span>
+          <span class="word" style="--i: 1">at</span>
+        </span>
+        <span class="line">
+          <span class="word italic" style="--i: 2">the</span>
+          <span class="word" style="--i: 3">Edge</span>
+        </span>
+        <span class="line">
+          <span class="word" style="--i: 4">of</span>
+          <span class="word grad" style="--i: 5">Manufacturing.</span>
+        </span>
+      </h1>
 
       <p class="hero-lede">
         我是 <strong>赵祥生 (Apos)</strong>。山东科技大学软件工程在读,目前在青岛火一五信息科技做 Odoo ERP 二开与工业机器视觉。
@@ -872,54 +887,156 @@ const experience = [
   50% { opacity: 0.35; }
 }
 
-/* hero 标题:wrap 容器占布局 + canvas 粒子(JS 注入),
-   原 h1 改 visually-hidden 仅供屏幕阅读器与 SEO */
-.hero-title-wrap {
+/* ===== Hero 标题 — 真实 CSS 文字 + 流光填充 + 鼠标 spotlight =====
+   设计:
+     - 文字本身用 background-clip:text + 流动渐变 → 永远清晰可读
+     - 鼠标位置注入 --mx/--my,::before radial 高光跟随
+     - 入场:逐 word blur→clear 滑入(CSS animation-delay var(--i))
+     - hover word:抬起 + 高亮锁定(光在该词停住)
+   ============================================================ */
+.hero-title {
   position: relative;
-  width: 100%;
-  height: clamp(150px, 24vw, 320px);
+  font-family: var(--font-display);
+  font-size: clamp(40px, 7vw, 96px);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
   margin: 0 0 clamp(18px, 2.5vh, 26px);
-  contain: layout paint;
+  color: var(--ink);
   isolation: isolate;
 }
-/* hero 区域 spotlight 跟随鼠标(粒子下方的环境光) */
-.hero-title-wrap::before {
+
+/* 跟随鼠标的 radial spotlight,mix-blend lighten 在浅底变明亮 */
+.hero-title::before {
   content: "";
   position: absolute;
-  left: var(--mx, 50%);
+  left: var(--mx, 30%);
   top: var(--my, 50%);
-  width: clamp(220px, 30vw, 440px);
-  height: clamp(220px, 30vw, 440px);
+  width: clamp(260px, 28vw, 420px);
+  aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(
-    closest-side,
-    oklch(0.55 0.22 295 / 0.20) 0%,
-    oklch(0.65 0.18 250 / 0.10) 35%,
+    circle,
+    oklch(0.62 0.27 295 / 0.45) 0%,
+    oklch(0.68 0.22 230 / 0.25) 35%,
     transparent 70%
   );
   transform: translate(-50%, -50%);
+  filter: blur(50px);
   pointer-events: none;
   opacity: 0;
-  filter: blur(44px);
   transition: opacity 0.5s var(--ease-out);
-  z-index: 0;
+  z-index: -1;
 }
-.hero-title-wrap:hover::before { opacity: 1; }
+.hero-title:hover::before { opacity: 1; }
 
-.hero-title.visually-hidden,
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.hero-title .line {
+  display: block;
+  padding-right: 0.05em;
 }
 
-/* 粒子 canvas 通用样式(footer + hero 共用) */
+.hero-title .word {
+  display: inline-block;
+  position: relative;
+  margin-right: 0.18em;
+  /* 流光填充:深墨色背景上有一道高光带,缓慢扫过 */
+  background-image: linear-gradient(
+    100deg,
+    var(--ink) 0%,
+    var(--ink) 42%,
+    oklch(0.55 0.27 295) 50%,
+    oklch(0.60 0.22 250) 58%,
+    var(--ink) 66%,
+    var(--ink) 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* 入场初态 */
+  opacity: 0;
+  transform: translateY(58%) scale(0.96);
+  filter: blur(10px);
+  will-change: transform, opacity, filter;
+
+  animation:
+    hero-word-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i, 0) * 90ms + 200ms) forwards,
+    hero-shimmer 7s ease-in-out calc(var(--i, 0) * 200ms + 1500ms) infinite;
+
+  transition: transform 0.4s var(--ease-out), filter 0.4s var(--ease-out);
+}
+
+@keyframes hero-word-in {
+  0% {
+    opacity: 0;
+    transform: translateY(58%) scale(0.96);
+    filter: blur(10px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+/* 高光带在文字间扫过:开始/结束 = 暗,中段 = 高光从右往左划过 */
+@keyframes hero-shimmer {
+  0%, 35%, 100% { background-position: 100% 0; }
+  60% { background-position: 0% 0; }
+}
+
+/* hover word:抬起 + 缩放 + 加阴影 + 锁定高光 */
+.hero-title .word:hover {
+  transform: translateY(-6px) scale(1.03);
+  filter: drop-shadow(0 12px 28px oklch(0.55 0.28 295 / 0.4));
+  background-position: 35% 0;
+  animation-play-state: running, paused;
+}
+
+/* italic 字 —— 暖琥珀色,有自己的流光循环 */
+.hero-title .word.italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  background-image: linear-gradient(
+    100deg,
+    var(--accent-warm) 0%,
+    var(--accent-warm) 45%,
+    oklch(0.80 0.18 50) 55%,
+    var(--accent-warm) 65%,
+    var(--accent-warm) 100%
+  );
+  background-size: 300% 100%;
+  background-position: 100% 0;
+}
+
+/* grad 字 —— 完整渐变循环移动,本身就是一道流动彩虹 */
+.hero-title .word.grad {
+  background-image: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent-2) 35%,
+    var(--accent-warm) 65%,
+    var(--accent) 100%
+  );
+  background-size: 250% 100%;
+  background-position: 0 0;
+  animation:
+    hero-word-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i, 0) * 90ms + 200ms) forwards,
+    hero-grad-flow 5s ease-in-out calc(var(--i, 0) * 200ms + 1500ms) infinite;
+}
+@keyframes hero-grad-flow {
+  0%, 100% { background-position: 0 0; }
+  50% { background-position: 100% 0; }
+}
+
+/* 粒子 canvas(footer 用) */
 .particle-canvas {
   position: absolute;
   inset: 0;
