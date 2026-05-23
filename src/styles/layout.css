@@ -104,16 +104,16 @@
 .view-settings,
 .view-chat,
 .view-portfolio {
-  max-width: min(1200px, 96vw);
+  max-width: min(1320px, 98vw);
   margin: 0 auto;
-  padding: 32px clamp(20px, 3vw, 40px) 80px;
+  padding: 32px clamp(24px, 4vw, 56px) 80px;
   position: relative;
   z-index: 2;
 }
 
 /* GraphView 的图谱画布更宽更舒展 */
 .view-graph {
-  max-width: min(1380px, 96vw);
+  max-width: min(1480px, 98vw);
 }
 
 /* ===== 主布局 grid(已废弃,保留兼容,改为单列) ===== */
@@ -266,11 +266,11 @@
   .app-menu a .badge { display: none; }
 }
 
-/* ===== 背景层 — 浅色主题下大幅降低对比度,只做点缀 ===== */
+/* ===== 背景层 — trae 风全宽延伸,让两侧不再纯白 ===== */
 .app-bg-grain {
   position: fixed; inset: 0;
   pointer-events: none; z-index: 1;
-  opacity: 0.025;
+  opacity: 0.03;
   mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/></svg>");
 }
@@ -281,26 +281,30 @@
 }
 .app-bg-aurora .blob {
   position: absolute;
-  width: 60vw; height: 60vw;
   border-radius: 50%;
-  filter: blur(130px);
-  opacity: 0.10;
+  filter: blur(140px);
   will-change: transform;
 }
+/* 左上紫色 — 大尺寸推到 viewport 之外,边缘晕染两侧 */
 .app-bg-aurora .blob.a {
+  width: 70vw; height: 70vw;
   background: radial-gradient(closest-side, var(--accent), transparent 70%);
-  top: -15%; left: -15%;
+  top: -25%; left: -25%;
+  opacity: 0.18;
 }
+/* 右下青色 — 与紫色对角线呼应 */
 .app-bg-aurora .blob.b {
+  width: 65vw; height: 65vw;
   background: radial-gradient(closest-side, var(--accent-2), transparent 70%);
-  bottom: -20%; right: -15%;
-  opacity: 0.08;
+  bottom: -30%; right: -25%;
+  opacity: 0.14;
 }
+/* 中部暖琥珀 — 给视觉中心加温度 */
 .app-bg-aurora .blob.c {
   background: radial-gradient(closest-side, var(--accent-warm), transparent 70%);
-  top: 40%; left: 30%;
-  width: 35vw; height: 35vw;
-  opacity: 0.06;
+  top: 35%; left: 28%;
+  width: 40vw; height: 40vw;
+  opacity: 0.10;
 }
 
 /* ===== 自定义光标 — 浅底下用主色实色 ===== */

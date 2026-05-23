@@ -381,9 +381,9 @@ function fmtDate(d) {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 260px;
   gap: clamp(24px, 3vw, 48px);
-  max-width: min(1380px, 96vw);
+  max-width: min(1500px, 98vw);
   margin: 0 auto;
-  padding: 30px clamp(20px, 3vw, 40px) 80px;
+  padding: 30px clamp(24px, 4vw, 56px) 80px;
 }
 
 .post-toc, .post-tools {

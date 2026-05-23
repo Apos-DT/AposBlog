@@ -552,22 +552,38 @@ const experience = [
 
 <style scoped>
 .home-page {
-  /* 全宽模式 — 不用三栏布局 */
-  max-width: min(1280px, 92vw);
+  /* trae 风:容器加宽,左右更接近 viewport,边界不明显 */
+  max-width: min(1440px, 98vw);
   margin: 0 auto;
-  padding: 0 clamp(20px, 4vw, 56px);
+  padding: 0 clamp(24px, 4vw, 64px);
 }
 
 /* ===== HERO — 紧凑布局,确保第一屏完整可见 ===== */
 .hero {
+  position: relative;
   min-height: calc(100svh - var(--nav-h));
-  /* 上 padding 紧贴 nav,下 padding 留下一屏滚动提示空间 */
   padding: clamp(32px, 5vh, 56px) 0 clamp(24px, 4vh, 40px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* 内容控制 max-height 避免大屏被拉得过开 */
   gap: 0;
+}
+/* 全宽 spotlight — 突破 home-page 的 max-width 约束,
+   背景延伸到 viewport 两侧,消除"内容边界感" */
+.hero::before {
+  content: "";
+  position: absolute;
+  /* 用负 margin + 100vw 突破父级 max-width,延伸到 viewport 边缘 */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 50% at 25% 30%, oklch(0.50 0.22 295 / 0.10), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 80% 70%, oklch(0.55 0.18 220 / 0.08), transparent 60%);
+  z-index: -1;
 }
 .hero-meta {
   display: inline-flex;
@@ -1206,8 +1222,23 @@ a.contact-value:hover { color: var(--accent); }
   position: relative;
   margin-top: clamp(60px, 10vh, 100px);
   padding: 50px 0 0;
-  border-top: 1px solid var(--line-soft);
   overflow: hidden;
+}
+/* 全宽 border-top — 突破 home-page 的 max-width 延伸到 viewport */
+.home-footer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    var(--line) 20%,
+    var(--line) 80%,
+    transparent
+  );
 }
 .footer-inner {
   display: flex;
