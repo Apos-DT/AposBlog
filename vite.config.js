@@ -7,7 +7,7 @@ import { fileURLToPath, URL } from 'node:url'
  * - base: 部署到 GitHub Pages 子路径 '/AposBlog/',本地开发 '/'
  * - outDir: 'docs' — GitHub Pages 支持从 main/docs 目录服务,无需 Actions
  * - alias: @ → src
- * - manualChunks: vue/echarts/gsap/lenis 分离,首屏更轻
+ * - manualChunks: vue/echarts/lenis 分离,首屏更轻
  */
 export default defineConfig(({ command }) => ({
   base: command === 'build' ? '/AposBlog/' : '/',
@@ -27,7 +27,6 @@ export default defineConfig(({ command }) => ({
         manualChunks: {
           vue: ['vue', 'vue-router', 'pinia'],
           echarts: ['echarts'],
-          gsap: ['gsap'],
           lenis: ['lenis'],
         },
       },
