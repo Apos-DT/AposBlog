@@ -104,261 +104,319 @@ onMounted(() => {
 })
 
 // ============================================================
-// 底部大字交互(拟人化:躲避 + 害怕 + 逃跑)
-//   状态机:每个字符独立 3 态
-//     idle       — 待机,sin 波呼吸
-//     avoid      — 鼠标靠近 (≤ fearRadius),反方向偏移
-//     frightened — 鼠标触碰到字符 (≤ touchRadius),三段动画:
-//                  0-220ms  shake   高频随机震动 (惊吓)
-//                  220-1600ms escape easeOut 沿反向逃跑 ~240px
-//                  1600-2800ms return 慢慢回归原位
-//   触碰判定使用 home position(未被 transform 影响的原始坐标),
-//   不会出现"字符跑了就检测不到 → 又回来 → 又触发"死循环。
-//   home position 在初始 / scroll / resize 时重新测量。
+// 底部 APOS — Canvas 粒子字幕 + 鼠标力场
+//   - offscreen canvas 渲染 "APOS" 字形,逐像素采样得到 ~800 粒子
+//   - 每粒子缓存 home 坐标,verlet 物理:弹簧拉回 + 阻尼 + 鼠标排斥
+//   - 鼠标进入 100px 半径 → 粒子被推开形成涟漪,移走后弹回
+//   - 入场:粒子从随机位置弹簧收拢成 APOS
+//   - 性能:固定 ~800 粒子,单 canvas drawImage,稳定 60fps
+//   - 不在视口 / reduced-motion 时停 rAF,零 idle 消耗
 // ============================================================
 let megaCleanup = null
 
 function initFooterMega() {
   const mega = megaEl.value
   if (!mega) return
-  const chars = Array.from(mega.querySelectorAll('.mega-char'))
-  if (!chars.length) return
 
-  // 初态:全部下移 50% + 透明,由 CSS transition 控制入场
-  chars.forEach((ch) => {
-    ch.style.transform = 'translate3d(0, 50%, 0)'
-  })
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // 降级:静态文字,后面 template fallback span 显式可见
+    mega.classList.add('static')
+    return
+  }
 
-  // 入场
+  // 创建 canvas(替代原 .mega-char span)
+  const canvas = document.createElement('canvas')
+  canvas.className = 'footer-canvas'
+  canvas.setAttribute('aria-hidden', 'true')
+  mega.appendChild(canvas)
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
+
+  // 状态
+  let dpr = 1
+  let W = 0, H = 0          // canvas 像素尺寸(含 dpr)
+  let cssW = 0, cssH = 0    // CSS 尺寸
+  let particles = []
+  const mouse = { x: -9999, y: -9999, active: false }
+  let raf = 0
+  let visible = false
   let entered = false
+  let revealStart = 0
+  let needsRender = true
+
+  // —— 1. 渲染 APOS 文字到 offscreen,逐像素采样生成粒子 ——
+  function sampleText() {
+    const off = document.createElement('canvas')
+    const octx = off.getContext('2d')
+
+    // 自适应字号:让 APOS 占容器宽度的 92%
+    const fontStack = '"Space Grotesk", "Inter", system-ui, -apple-system, sans-serif'
+    const measureSize = 200
+    octx.font = `900 ${measureSize}px ${fontStack}`
+    const w0 = octx.measureText('APOS').width
+    const fontSize = Math.min(measureSize * (cssW * 0.92) / w0, cssH * 0.95)
+
+    octx.font = `900 ${fontSize}px ${fontStack}`
+    const metrics = octx.measureText('APOS')
+    const textW = Math.ceil(metrics.width)
+    const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.78
+    const descent = metrics.actualBoundingBoxDescent || fontSize * 0.22
+    const textH = Math.ceil(ascent + descent)
+
+    off.width = textW + 4
+    off.height = textH + 4
+    const ctx2 = off.getContext('2d')
+    ctx2.font = `900 ${fontSize}px ${fontStack}`
+    ctx2.fillStyle = '#000'
+    ctx2.textBaseline = 'alphabetic'
+    ctx2.fillText('APOS', 2, ascent + 2)
+
+    const img = ctx2.getImageData(0, 0, off.width, off.height)
+    const data = img.data
+
+    // 采样步长 — 移动端放大以减少粒子数
+    const isMobile = cssW < 640
+    const step = isMobile ? 7 : 5
+
+    // 居中偏移(CSS 坐标)
+    const xOff = (cssW - off.width) / 2
+    const yOff = (cssH - off.height) / 2
+
+    const arr = []
+    for (let y = 0; y < off.height; y += step) {
+      for (let x = 0; x < off.width; x += step) {
+        const a = data[(y * off.width + x) * 4 + 3]
+        if (a > 128) {
+          const hx = (xOff + x) * dpr
+          const hy = (yOff + y) * dpr
+          // 入场起点:随机散开 + 上偏
+          const angle = Math.random() * Math.PI * 2
+          const dist = (180 + Math.random() * 260) * dpr
+          arr.push({
+            x: hx + Math.cos(angle) * dist,
+            y: hy + Math.sin(angle) * dist - 100 * dpr,
+            hx, hy,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            r: (1.2 + Math.random() * 1.0) * dpr,
+            seed: Math.random() * Math.PI * 2,
+            hueShift: (Math.random() - 0.5) * 28,
+            lit: 0,
+          })
+        }
+      }
+    }
+    particles = arr
+  }
+
+  // —— 2. 尺寸 ——
+  function resize() {
+    const rect = mega.getBoundingClientRect()
+    cssW = rect.width
+    cssH = rect.height
+    if (cssW < 10 || cssH < 10) return
+    dpr = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width = Math.ceil(cssW * dpr)
+    canvas.height = Math.ceil(cssH * dpr)
+    canvas.style.width = cssW + 'px'
+    canvas.style.height = cssH + 'px'
+    W = canvas.width
+    H = canvas.height
+    sampleText()
+    needsRender = true
+  }
+
+  // —— 3. 物理 + 渲染 ——
+  const FORCE_RADIUS_CSS = 120
+  const SPRING = 0.018
+  const DAMPING = 0.86
+
+  function tick(now) {
+    if (!visible) {
+      raf = 0
+      return
+    }
+    const mx = mouse.x * dpr
+    const my = mouse.y * dpr
+    const forceR = FORCE_RADIUS_CSS * dpr
+    const forceR2 = forceR * forceR
+    const time = now * 0.0008
+
+    // 入场进度
+    let intro = 1
+    if (revealStart > 0) {
+      intro = Math.min(1, (now - revealStart) / 1800)
+      if (intro < 1) needsRender = true
+    }
+
+    ctx.clearRect(0, 0, W, H)
+    ctx.globalCompositeOperation = 'source-over'
+
+    let movingAny = false
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i]
+
+      // 弹簧拉回 home
+      const dxh = p.hx - p.x
+      const dyh = p.hy - p.y
+      p.vx += dxh * SPRING
+      p.vy += dyh * SPRING
+
+      // 鼠标排斥力(只在距离 < forceR 时计算)
+      if (mouse.active) {
+        const dx = p.x - mx
+        const dy = p.y - my
+        const d2 = dx * dx + dy * dy
+        if (d2 < forceR2 && d2 > 0.5) {
+          const d = Math.sqrt(d2)
+          const f = 1 - d / forceR
+          // 推力 = (1-r/R)² * 强度,沿粒子→鼠标反向
+          const force = f * f * 22
+          const invD = 1 / d
+          p.vx += dx * invD * force
+          p.vy += dy * invD * force
+          if (f > p.lit) p.lit = f
+        }
+      }
+
+      // 阻尼
+      p.vx *= DAMPING
+      p.vy *= DAMPING
+
+      // 微弱漂浮(用 seed 解相关)
+      p.vx += Math.sin(time + p.seed) * 0.08
+      p.vy += Math.cos(time * 0.7 + p.seed * 1.3) * 0.06
+
+      p.x += p.vx
+      p.y += p.vy
+
+      // 高亮衰减
+      p.lit *= 0.9
+
+      // 是否仍在运动(idle 时也算微动,但用平方阈值判断)
+      const speed2 = p.vx * p.vx + p.vy * p.vy
+      if (speed2 > 0.04 || p.lit > 0.01 || dxh * dxh + dyh * dyh > 0.5) {
+        movingAny = true
+      }
+
+      // —— 绘制 ——
+      const baseHue = 282 + p.hueShift
+      const litHue = baseHue + p.lit * 18
+      const baseLight = 55 + p.lit * 18
+      const baseSat = 70 + p.lit * 15
+      const alpha = (0.55 + p.lit * 0.4) * intro
+      const radius = p.r * (1 + p.lit * 1.3)
+
+      // 高亮粒子加柔光晕
+      if (p.lit > 0.18) {
+        ctx.fillStyle = `hsla(${litHue.toFixed(0)}, ${baseSat.toFixed(0)}%, ${baseLight.toFixed(0)}%, ${(alpha * 0.35).toFixed(3)})`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, radius * 3.2, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      ctx.fillStyle = `hsla(${litHue.toFixed(0)}, ${baseSat.toFixed(0)}%, ${baseLight.toFixed(0)}%, ${alpha.toFixed(3)})`
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
+      ctx.fill()
+    }
+
+    // idle 静止 → 下一帧停 rAF
+    needsRender = movingAny || mouse.active || intro < 1
+
+    if (needsRender) {
+      raf = requestAnimationFrame(tick)
+    } else {
+      raf = 0
+    }
+  }
+
+  function ensureRunning() {
+    if (!raf && visible) {
+      needsRender = true
+      raf = requestAnimationFrame(tick)
+    }
+  }
+
+  // —— 4. 事件 ——
+  function onMove(e) {
+    const rect = mega.getBoundingClientRect()
+    mouse.x = e.clientX - rect.left
+    mouse.y = e.clientY - rect.top
+    mouse.active = true
+    mega.style.setProperty('--mx', mouse.x + 'px')
+    mega.style.setProperty('--my', mouse.y + 'px')
+    ensureRunning()
+  }
+  function onLeave() {
+    mouse.active = false
+    mouse.x = -9999
+    mouse.y = -9999
+    ensureRunning()  // 让弹簧回归过程跑完
+  }
+  function onTouchMove(e) {
+    const t = e.touches[0]
+    if (!t) return
+    const rect = mega.getBoundingClientRect()
+    mouse.x = t.clientX - rect.left
+    mouse.y = t.clientY - rect.top
+    mouse.active = true
+    ensureRunning()
+  }
+  function onTouchEnd() {
+    mouse.active = false
+    ensureRunning()
+  }
+
+  let resizeRaf = 0
+  function onResize() {
+    cancelAnimationFrame(resizeRaf)
+    resizeRaf = requestAnimationFrame(() => {
+      resize()
+      ensureRunning()
+    })
+  }
+
+  // 入场:IntersectionObserver
   const obs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
-        if (e.isIntersecting && !entered) {
-          entered = true
-          chars.forEach((ch, i) => {
-            setTimeout(() => {
-              ch.style.transform = 'translate3d(0, 0, 0)'
-              ch.classList.add('in')
-            }, i * 90)
-          })
-          // 入场结束后关 transition,JS tick 接管
-          setTimeout(() => {
-            chars.forEach((ch) => { ch.style.transition = 'none' })
-            startTick()
-          }, chars.length * 90 + 700)
-          obs.unobserve(e.target)
+        if (e.isIntersecting) {
+          visible = true
+          if (!entered) {
+            entered = true
+            revealStart = performance.now()
+          }
+          ensureRunning()
+        } else {
+          visible = false
         }
       })
     },
-    { threshold: 0.3 }
+    { threshold: 0.05 }
   )
+
+  // —— 初始化 ——
+  resize()
   obs.observe(mega)
-
-  // 状态
-  let isHovering = false
-  let mouseX = 0
-  let mouseY = 0
-  let breathT = 0
-  let raf = 0
-  let homePositions = []
-
-  // 每个字符的运行时状态机
-  const states = chars.map(() => ({
-    x: 0, y: 0, rot: 0, scale: 1,
-    mode: 'idle',              // 'idle' / 'avoid' / 'frightened'
-    frightenedAt: 0,
-    direction: { x: 0, y: 0 }, // 逃跑方向(归一化向量)
-  }))
-
-  // 测量字符原始位置(无 transform 影响)
-  // 临时清 transform → 取 rect → 恢复
-  function cacheHome() {
-    const saved = chars.map((ch) => ch.style.transform)
-    chars.forEach((ch) => { ch.style.transform = 'none' })
-    // 强制 reflow 让 getBoundingClientRect 拿到新值
-    void mega.offsetHeight
-    const rect = mega.getBoundingClientRect()
-    homePositions = chars.map((ch) => {
-      const cr = ch.getBoundingClientRect()
-      return {
-        cx: cr.left + cr.width / 2 - rect.left,
-        cy: cr.top + cr.height / 2 - rect.top,
-        w: cr.width,
-        h: cr.height,
-      }
-    })
-    chars.forEach((ch, i) => { ch.style.transform = saved[i] })
-  }
-
-  function startTick() {
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const reducedTouch = matchMedia('(hover: none)').matches
-
-    cacheHome()
-    // scroll / resize 节流后重新 cache
-    let cacheRaf = 0
-    function scheduleCache() {
-      cancelAnimationFrame(cacheRaf)
-      cacheRaf = requestAnimationFrame(cacheHome)
-    }
-    window.addEventListener('scroll', scheduleCache, { passive: true })
-    window.addEventListener('resize', scheduleCache)
-    megaCleanupExtras = () => {
-      cancelAnimationFrame(cacheRaf)
-      window.removeEventListener('scroll', scheduleCache)
-      window.removeEventListener('resize', scheduleCache)
-    }
-
-    const LERP = 0.18
-
-    function tick() {
-      const now = performance.now()
-      if (!isHovering) breathT += 0.014
-
-      chars.forEach((ch, i) => {
-        const s = states[i]
-        const home = homePositions[i]
-        if (!home) return
-
-        // —— Frightened 状态机 ——
-        if (s.mode === 'frightened') {
-          const elapsed = now - s.frightenedAt
-
-          if (elapsed < 220) {
-            // 震动阶段 — 高频随机抖动,不 lerp
-            const intensity = 16
-            const rx = (Math.random() - 0.5) * intensity * 2
-            const ry = (Math.random() - 0.5) * intensity * 2
-            const rr = (Math.random() - 0.5) * 28
-            s.x = rx
-            s.y = ry
-            s.rot = rr
-            s.scale = 0.92
-            ch.style.transform =
-              `translate3d(${rx.toFixed(1)}px, ${ry.toFixed(1)}px, 0) ` +
-              `rotate(${rr.toFixed(1)}deg) scale(0.92)`
-            raf = requestAnimationFrame(tick)
-            return
-          }
-
-          let tX = 0, tY = 0, tRot = 0, tScale = 1
-          if (elapsed < 1600) {
-            // 逃跑 easeOut
-            const t = (elapsed - 220) / 1380
-            const eased = 1 - Math.pow(1 - t, 3)
-            tX = s.direction.x * 240 * eased
-            tY = s.direction.y * 200 * eased
-            tRot = s.direction.x * 32 * eased
-            tScale = 1 - 0.18 * eased
-          } else if (elapsed < 2800) {
-            // 回归 easeIn
-            const t = (elapsed - 1600) / 1200
-            const eased = 1 - Math.pow(1 - t, 2)
-            tX = s.direction.x * 240 * (1 - eased)
-            tY = s.direction.y * 200 * (1 - eased)
-            tRot = s.direction.x * 32 * (1 - eased)
-            tScale = 1 - 0.18 * (1 - eased)
-          } else {
-            // 恢复 idle
-            s.mode = 'idle'
-            tX = 0; tY = 0; tRot = 0; tScale = 1
-          }
-
-          // lerp 平滑(逃跑/回归阶段)
-          s.x += (tX - s.x) * 0.3
-          s.y += (tY - s.y) * 0.3
-          s.rot += (tRot - s.rot) * 0.3
-          s.scale += (tScale - s.scale) * 0.3
-        } else {
-          // —— Idle / Avoid ——
-          let tX = 0, tY = 0, tRot = 0, tScale = 1
-
-          if (isHovering && !reducedTouch) {
-            const dx = home.cx - mouseX
-            const dy = home.cy - mouseY
-            const distance = Math.sqrt(dx * dx + dy * dy)
-            const touchRadius = Math.min(home.w, home.h) * 0.42
-            const fearRadius = 220
-
-            if (distance < touchRadius) {
-              // 触碰!进入 frightened
-              s.mode = 'frightened'
-              s.frightenedAt = now
-              const len = distance || 1
-              s.direction = { x: dx / len, y: dy / len }
-              raf = requestAnimationFrame(tick)
-              return
-            } else if (distance < fearRadius) {
-              // 躲避 — 沿反向偏移
-              const ratio = 1 - distance / fearRadius
-              const eased = ratio * ratio
-              const len = distance || 1
-              const norm = { x: dx / len, y: dy / len }
-              tX = norm.x * 75 * eased
-              tY = norm.y * 55 * eased
-              tRot = norm.x * 18 * eased
-              tScale = 1 - 0.05 * eased
-            } else {
-              // 远 — idle 呼吸
-              tY = Math.sin(breathT + i * 0.6) * 6
-              tRot = Math.sin(breathT * 0.7 + i * 0.4) * 1.5
-            }
-          } else {
-            // 完全 idle 呼吸
-            tY = Math.sin(breathT + i * 0.6) * 6
-            tRot = Math.sin(breathT * 0.7 + i * 0.4) * 1.5
-          }
-
-          s.x += (tX - s.x) * LERP
-          s.y += (tY - s.y) * LERP
-          s.rot += (tRot - s.rot) * LERP
-          s.scale += (tScale - s.scale) * LERP
-        }
-
-        ch.style.transform =
-          `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0) ` +
-          `rotate(${s.rot.toFixed(1)}deg) ` +
-          `scale(${s.scale.toFixed(3)})`
-      })
-
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-  }
-
-  function onEnter(e) {
-    isHovering = true
-    onMove(e)
-  }
-  function onMove(e) {
-    const rect = mega.getBoundingClientRect()
-    mouseX = e.clientX - rect.left
-    mouseY = e.clientY - rect.top
-    mega.style.setProperty('--mx', mouseX + 'px')
-    mega.style.setProperty('--my', mouseY + 'px')
-  }
-  function onLeave() {
-    isHovering = false
-  }
-
-  if (!matchMedia('(hover: none)').matches) {
-    mega.addEventListener('mouseenter', onEnter)
-    mega.addEventListener('mousemove', onMove)
-    mega.addEventListener('mouseleave', onLeave)
-  }
+  window.addEventListener('resize', onResize)
+  mega.addEventListener('mousemove', onMove)
+  mega.addEventListener('mouseleave', onLeave)
+  mega.addEventListener('touchmove', onTouchMove, { passive: true })
+  mega.addEventListener('touchend', onTouchEnd)
 
   megaCleanup = () => {
     obs.disconnect()
     cancelAnimationFrame(raf)
-    if (megaCleanupExtras) megaCleanupExtras()
-    mega.removeEventListener('mouseenter', onEnter)
+    cancelAnimationFrame(resizeRaf)
+    window.removeEventListener('resize', onResize)
     mega.removeEventListener('mousemove', onMove)
     mega.removeEventListener('mouseleave', onLeave)
+    mega.removeEventListener('touchmove', onTouchMove)
+    mega.removeEventListener('touchend', onTouchEnd)
+    if (canvas.parentNode) canvas.parentNode.removeChild(canvas)
   }
 }
-
-let megaCleanupExtras = null
 
 onBeforeUnmount(() => {
   if (megaCleanup) megaCleanup()
@@ -656,7 +714,7 @@ const experience = [
         </div>
       </div>
       <div ref="megaEl" class="footer-mega" aria-hidden="true">
-        <span v-for="(c, i) in 'APOS'" :key="i" class="mega-char">{{ c }}</span>
+        <span class="footer-mega-fallback">APOS</span>
       </div>
     </footer>
   </div>
@@ -1385,69 +1443,76 @@ a.contact-value:hover { color: var(--accent); }
 .dot-sep { color: var(--ink-3); }
 .footer-mega {
   position: relative;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(100px, 22vw, 320px);
-  letter-spacing: -0.04em;
-  line-height: 0.8;
-  text-align: center;
-  margin: 0 auto -0.18em;
+  width: 100%;
+  /* 用 aspect-ratio 给 canvas 提供尺寸,不依赖文字行高 */
+  aspect-ratio: 4 / 1;
+  max-height: 360px;
+  min-height: 140px;
+  margin: 0 auto -2vw;
   user-select: none;
   cursor: default;
   overflow: visible;
-  /* 3D 透视 — 让字符 rotateY/X 有立体感 */
-  perspective: 900px;
-  transform-style: preserve-3d;
   isolation: isolate;
+  contain: layout paint;
 }
-/* 鼠标辉光斑 — 大字背后 radial-gradient 跟随鼠标 */
+/* 鼠标辉光斑 — canvas 背后 radial-gradient 跟随鼠标 */
 .footer-mega::before {
   content: "";
   position: absolute;
   left: var(--mx, 50%);
   top: var(--my, 50%);
-  width: clamp(280px, 40vw, 560px);
-  height: clamp(280px, 40vw, 560px);
+  width: clamp(280px, 40vw, 600px);
+  height: clamp(280px, 40vw, 600px);
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    oklch(0.55 0.25 295 / 0.40) 0%,
-    oklch(0.65 0.20 220 / 0.20) 35%,
+    oklch(0.55 0.25 295 / 0.45) 0%,
+    oklch(0.65 0.20 220 / 0.22) 35%,
     transparent 70%
   );
   transform: translate(-50%, -50%);
   pointer-events: none;
   opacity: 0;
-  filter: blur(40px);
-  transition: opacity 0.5s var(--ease-out);
-  z-index: -1;
+  filter: blur(48px);
+  transition: opacity 0.6s var(--ease-out);
+  z-index: 0;
 }
 .footer-mega:hover::before { opacity: 1; }
 
-.mega-char {
-  display: inline-block;
-  position: relative;
-  transform-origin: center bottom;
-  transform-style: preserve-3d;
-  /* 渐变 mask 着色 — 加深色彩与饱和度,让悬停时颜色更跳 */
+.footer-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* SR-only fallback,prefers-reduced-motion 下显示真实 APOS 文字 */
+.footer-mega-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(100px, 22vw, 320px);
+  letter-spacing: -0.04em;
   background: linear-gradient(
     180deg,
     oklch(0.50 0.25 295 / 0.85) 0%,
-    oklch(0.62 0.18 280 / 0.65) 40%,
-    oklch(0.78 0.10 295 / 0.35) 75%,
+    oklch(0.62 0.18 280 / 0.55) 40%,
+    oklch(0.78 0.10 295 / 0.25) 75%,
     transparent 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  opacity: 0;
-  /* 初态用 transition 配合入场,JS tick 启动后会把 transition 关掉(JS 直接每帧设值,无需 transition)*/
-  transition: transform 0.6s var(--ease-out), opacity 0.9s var(--ease-out);
-  will-change: transform;
-  z-index: 1;
+  opacity: 0;  /* canvas 接管时隐藏 */
+  pointer-events: none;
 }
-.mega-char.in { opacity: 1; }
-.mega-char + .mega-char { margin-left: 0.01em; }
+.footer-mega.static .footer-mega-fallback { opacity: 1; }
 
 /* ===== reveal ===== */
 .reveal-up { opacity: 0; transform: translateY(24px); transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); }
