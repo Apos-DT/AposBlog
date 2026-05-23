@@ -976,10 +976,11 @@ const experience = [
 .hero-title {
   position: relative;
   font-family: var(--font-display);
-  /* 巨型字但克制 — 1080p 100% 缩放下三行 ~340px 高,完整可见 */
+  /* 巨型字但克制 — 1080p 100% 缩放下三行 ~360px 高,完整可见 */
   font-size: clamp(46px, 8.5vw, 120px);
   font-weight: 700;
-  line-height: 0.96;
+  /* line-height 1.0 — 让 italic serif 的 e/g 等下伸尾不被截 */
+  line-height: 1.0;
   letter-spacing: -0.04em;
   margin: 0 0 clamp(20px, 2.8vh, 32px);
   color: var(--ink);
@@ -1083,11 +1084,15 @@ const experience = [
   animation-play-state: running, paused;
 }
 
-/* italic 字 —— 暖琥珀色,有自己的流光循环 */
+/* italic 字 —— 暖琥珀色,有自己的流光循环
+   serif italic 字符向右下倾斜,e/y/g 等的尾部超出字符 advance 框,
+   需 padding-right 释放右侧 + 微调 padding-bottom 兜底 descender */
 .hero-title .word.italic {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
+  padding-right: 0.08em;
+  padding-bottom: 0.05em;
   background-image: linear-gradient(
     100deg,
     var(--accent-warm) 0%,
