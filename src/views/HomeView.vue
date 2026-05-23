@@ -109,11 +109,10 @@ onMounted(() => {
 })
 
 // ============================================================
-// Footer APOS — 三层叠加:粒子拼字 + ambient 流 + fixed spotlight
-//   层 1 (text canvas):  ~800 粒子构成 APOS 字形,verlet 物理弹簧拉回 + 鼠标力场
-//   层 2 (ambient canvas): 持续从四周向中央生成微小粒子,粒子"溶入"字里消失
-//   层 3 (fixed spotlight): body 上 fixed div,鼠标光斑不受容器边界限制
-//   IntersectionObserver threshold 0.4 触发 .in 入场 + 控制 rAF 启停
+// Footer APOS — 最简版:单 canvas + 粒子拼字 + 鼠标力场
+//   ~800 粒子构成 APOS 字形,verlet 物理弹簧拉回 + 阻尼 + 漂浮
+//   鼠标 60px 力场推开,粒子高亮 + 柔光晕
+//   IntersectionObserver 控制 rAF 启停,出视口暂停
 // ============================================================
 let megaCleanup = null
 
@@ -122,70 +121,27 @@ function initFooterMega() {
   if (!el) return
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // reduced-motion 降级:不跑 canvas/spotlight,显示真实 CSS 文字
     el.classList.add('static')
-    el.classList.add('in')
     return
   }
 
-  // ============ canvas 1: 文字粒子(APOS 拼字) ============
-  const textCanvas = document.createElement('canvas')
-  textCanvas.className = 'footer-text-canvas'
-  textCanvas.setAttribute('aria-hidden', 'true')
-  el.appendChild(textCanvas)
-  const tctx = textCanvas.getContext('2d', { alpha: true, desynchronized: true })
+  const canvas = document.createElement('canvas')
+  canvas.className = 'footer-canvas'
+  canvas.setAttribute('aria-hidden', 'true')
+  el.appendChild(canvas)
+  const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
 
-  // ============ canvas 2: ambient 粒子流(四周向中央汇聚) ============
-  const ambientCanvas = document.createElement('canvas')
-  ambientCanvas.className = 'footer-ambient'
-  ambientCanvas.setAttribute('aria-hidden', 'true')
-  el.insertBefore(ambientCanvas, el.firstChild)  // ambient 在文字粒子下面
-  const actx = ambientCanvas.getContext('2d', { alpha: true, desynchronized: true })
-
-  // ============ layer 3: fixed spotlight(挂 body) ============
-  const spotlight = document.createElement('div')
-  spotlight.setAttribute('aria-hidden', 'true')
-  spotlight.style.cssText = `
-    position: fixed;
-    pointer-events: none;
-    width: 70vmin;
-    height: 70vmin;
-    border-radius: 50%;
-    background: radial-gradient(
-      closest-side,
-      oklch(0.58 0.27 295 / 0.45),
-      oklch(0.65 0.22 230 / 0.22) 35%,
-      transparent 72%
-    );
-    filter: blur(72px);
-    z-index: 40;
-    opacity: 0;
-    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-    transform: translate3d(-9999px, -9999px, 0);
-    mix-blend-mode: multiply;
-    will-change: transform, opacity;
-  `
-  document.body.appendChild(spotlight)
-
-  // ============ 共享状态 ============
   let dpr = 1
   let W = 0, H = 0
   let cssW = 0, cssH = 0
+  let particles = []
+  const mouse = { x: -9999, y: -9999, active: false }
   let raf = 0
   let visible = false
   let entered = false
   let revealStart = 0
-  const ambientParticles = []
-  let textParticles = []
-  const mouse = { x: -9999, y: -9999, active: false }
+  let needsRender = true
 
-  // 文字粒子常量
-  const FORCE_R = 60
-  const FORCE_STRENGTH = 22
-  const SPRING = 0.018
-  const DAMPING = 0.86
-
-  // ============ 文字粒子采样 — APOS 字形 ============
   function sampleText() {
     const off = document.createElement('canvas')
     const octx = off.getContext('2d')
@@ -240,7 +196,7 @@ function initFooterMega() {
         }
       }
     }
-    textParticles = arr
+    particles = arr
   }
 
   function resize() {
@@ -248,103 +204,46 @@ function initFooterMega() {
     cssW = rect.width
     cssH = rect.height
     if (cssW < 10 || cssH < 10) {
-      // 容器尚未布局完成 — 下一帧再试
       requestAnimationFrame(resize)
       return
     }
     dpr = Math.min(window.devicePixelRatio || 1, 2)
-    for (const c of [textCanvas, ambientCanvas]) {
-      c.width = Math.ceil(cssW * dpr)
-      c.height = Math.ceil(cssH * dpr)
-      c.style.width = cssW + 'px'
-      c.style.height = cssH + 'px'
-    }
-    W = textCanvas.width
-    H = textCanvas.height
+    canvas.width = Math.ceil(cssW * dpr)
+    canvas.height = Math.ceil(cssH * dpr)
+    canvas.style.width = cssW + 'px'
+    canvas.style.height = cssH + 'px'
+    W = canvas.width
+    H = canvas.height
     sampleText()
+    needsRender = true
   }
 
-  // ============ ambient 粒子 — 从四周向中央汇聚 ============
-  function spawnAmbient() {
-    const edge = Math.floor(Math.random() * 4)
-    let x, y
-    const margin = 30 * dpr
-    if (edge === 0) { x = Math.random() * W; y = -margin }
-    else if (edge === 1) { x = W + margin; y = Math.random() * H }
-    else if (edge === 2) { x = Math.random() * W; y = H + margin }
-    else { x = -margin; y = Math.random() * H }
+  const FORCE_R = 60
+  const SPRING = 0.018
+  const DAMPING = 0.86
 
-    const tx = W / 2 + (Math.random() - 0.5) * W * 0.5
-    const ty = H / 2 + (Math.random() - 0.5) * H * 0.4
-    const dx = tx - x
-    const dy = ty - y
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    const speed = (0.4 + Math.random() * 0.45) * dpr
-    ambientParticles.push({
-      x, y,
-      vx: dx / dist * speed,
-      vy: dy / dist * speed,
-      tx, ty,
-      r: (0.7 + Math.random() * 1.1) * dpr,
-      hue: 268 + Math.random() * 32,
-      life: 1.0,
-      drain: 0.0035 + Math.random() * 0.003,
-    })
-  }
-
-  // ============ 物理 + 渲染 tick ============
   function tick(now) {
     if (!visible) {
       raf = 0
       return
     }
-
-    // 入场进度
-    let intro = 1
-    if (revealStart > 0) {
-      intro = Math.min(1, (now - revealStart) / 1800)
-    }
-
-    // ---- 1. ambient canvas 渲染 ----
-    actx.clearRect(0, 0, W, H)
-    if (Math.random() < 0.7) spawnAmbient()
-    if (Math.random() < 0.5) spawnAmbient()
-
-    for (let i = ambientParticles.length - 1; i >= 0; i--) {
-      const p = ambientParticles[i]
-      p.x += p.vx
-      p.y += p.vy
-      p.vx *= 1.008
-      p.vy *= 1.008
-      const dx = p.x - p.tx
-      const dy = p.y - p.ty
-      const d2 = dx * dx + dy * dy
-      if (d2 < 22500 * dpr * dpr) p.life -= p.drain * 4
-      else p.life -= p.drain
-      if (p.life <= 0 || p.x < -50 * dpr || p.x > W + 50 * dpr ||
-          p.y < -50 * dpr || p.y > H + 50 * dpr) {
-        ambientParticles.splice(i, 1)
-        continue
-      }
-      const proximity = Math.max(0, 1 - Math.sqrt(d2) / (Math.max(W, H) * 0.4))
-      const alpha = p.life * (0.32 + proximity * 0.28) * intro
-      const radius = p.r * (1 + proximity * 0.5)
-      actx.fillStyle = `hsla(${p.hue.toFixed(0)}, 70%, 62%, ${alpha.toFixed(3)})`
-      actx.beginPath()
-      actx.arc(p.x, p.y, radius, 0, Math.PI * 2)
-      actx.fill()
-    }
-
-    // ---- 2. text canvas 渲染(粒子拼字 APOS) ----
-    tctx.clearRect(0, 0, W, H)
     const mx = mouse.x * dpr
     const my = mouse.y * dpr
     const forceR = FORCE_R * dpr
     const forceR2 = forceR * forceR
     const time = now * 0.0008
 
-    for (let i = 0; i < textParticles.length; i++) {
-      const p = textParticles[i]
+    let intro = 1
+    if (revealStart > 0) {
+      intro = Math.min(1, (now - revealStart) / 1800)
+      if (intro < 1) needsRender = true
+    }
+
+    ctx.clearRect(0, 0, W, H)
+    let movingAny = false
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i]
       const dxh = p.hx - p.x
       const dyh = p.hy - p.y
       p.vx += dxh * SPRING
@@ -357,7 +256,7 @@ function initFooterMega() {
         if (d2 < forceR2 && d2 > 0.5) {
           const d = Math.sqrt(d2)
           const f = 1 - d / forceR
-          const force = f * f * FORCE_STRENGTH
+          const force = f * f * 22
           const invD = 1 / d
           p.vx += dx * invD * force
           p.vy += dy * invD * force
@@ -373,6 +272,11 @@ function initFooterMega() {
       p.y += p.vy
       p.lit *= 0.9
 
+      const speed2 = p.vx * p.vx + p.vy * p.vy
+      if (speed2 > 0.04 || p.lit > 0.01 || dxh * dxh + dyh * dyh > 0.5) {
+        movingAny = true
+      }
+
       const hue = 282 + p.hueShift + p.lit * 18
       const sat = 70 + p.lit * 15
       const light = 55 + p.lit * 18
@@ -380,22 +284,34 @@ function initFooterMega() {
       const radius = p.r * (1 + p.lit * 1.3)
 
       if (p.lit > 0.18) {
-        tctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.32).toFixed(3)})`
-        tctx.beginPath()
-        tctx.arc(p.x, p.y, radius * 3.4, 0, Math.PI * 2)
-        tctx.fill()
+        ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.32).toFixed(3)})`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, radius * 3.4, 0, Math.PI * 2)
+        ctx.fill()
       }
 
-      tctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${alpha.toFixed(3)})`
-      tctx.beginPath()
-      tctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
-      tctx.fill()
+      ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${alpha.toFixed(3)})`
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
+      ctx.fill()
     }
 
-    raf = requestAnimationFrame(tick)
+    needsRender = movingAny || mouse.active || intro < 1
+
+    if (needsRender) {
+      raf = requestAnimationFrame(tick)
+    } else {
+      raf = 0
+    }
   }
 
-  // ============ 入场 / 视口监听 ============
+  function ensureRunning() {
+    if (!raf && visible) {
+      needsRender = true
+      raf = requestAnimationFrame(tick)
+    }
+  }
+
   const obs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
@@ -404,52 +320,42 @@ function initFooterMega() {
           if (!entered) {
             entered = true
             revealStart = performance.now()
-            el.classList.add('in')
           }
-          if (!raf) raf = requestAnimationFrame(tick)
+          ensureRunning()
         } else {
           visible = false
         }
       })
     },
-    { threshold: 0.05 }  // 进视口即触发(footer 通常比视口小,40% 阈值会永远不达到)
+    { threshold: 0.05 }
   )
   obs.observe(el)
 
-  // ============ 鼠标事件 ============
-  let mouseRaf = 0
-  let pending = false
-  function flushMouse() {
-    spotlight.style.transform = `translate3d(${mouse.clientX}px, ${mouse.clientY}px, 0) translate(-50%, -50%)`
-    pending = false
-  }
   function onMove(e) {
     const rect = el.getBoundingClientRect()
     mouse.x = e.clientX - rect.left
     mouse.y = e.clientY - rect.top
-    mouse.clientX = e.clientX
-    mouse.clientY = e.clientY
     mouse.active = true
-    spotlight.style.opacity = '1'
-    if (!pending) {
-      pending = true
-      mouseRaf = requestAnimationFrame(flushMouse)
-    }
+    el.style.setProperty('--mx', mouse.x + 'px')
+    el.style.setProperty('--my', mouse.y + 'px')
+    ensureRunning()
   }
   function onLeave() {
     mouse.active = false
     mouse.x = -9999
     mouse.y = -9999
-    spotlight.style.opacity = '0'
+    ensureRunning()
   }
-
   el.addEventListener('mousemove', onMove)
   el.addEventListener('mouseleave', onLeave)
 
   let resizeRaf = 0
   function onResize() {
     cancelAnimationFrame(resizeRaf)
-    resizeRaf = requestAnimationFrame(resize)
+    resizeRaf = requestAnimationFrame(() => {
+      resize()
+      ensureRunning()
+    })
   }
   window.addEventListener('resize', onResize)
 
@@ -458,17 +364,13 @@ function initFooterMega() {
   megaCleanup = () => {
     obs.disconnect()
     cancelAnimationFrame(raf)
-    cancelAnimationFrame(mouseRaf)
     cancelAnimationFrame(resizeRaf)
     window.removeEventListener('resize', onResize)
     el.removeEventListener('mousemove', onMove)
     el.removeEventListener('mouseleave', onLeave)
-    if (textCanvas.parentNode) textCanvas.parentNode.removeChild(textCanvas)
-    if (ambientCanvas.parentNode) ambientCanvas.parentNode.removeChild(ambientCanvas)
-    if (spotlight.parentNode) spotlight.parentNode.removeChild(spotlight)
+    if (canvas.parentNode) canvas.parentNode.removeChild(canvas)
   }
 }
-
 
 // hero 标题:真实 CSS 文字 + 鼠标 spotlight(JS 只 setProperty,无 RAF 物理)
 //   入场 / 流光 / hover 抬起全 CSS keyframe + animation-delay var(--i) 实现
@@ -1862,13 +1764,7 @@ a.contact-value:hover { color: var(--accent); }
   flex-wrap: wrap;
 }
 .dot-sep { color: var(--ink-3); }
-/* ===== Footer APOS — 大字 + 环境粒子流 + 滚动揭示 =====
-   设计:
-   - .footer-mega 容器无 contain/overflow:hidden,让粒子和光斑可越界
-   - .footer-text 真实 CSS 渐变文字(永远清晰),初态隐藏 → .in 触发 reveal
-   - .footer-ambient canvas 持续生成四周向中央汇聚的粒子
-   - 鼠标 spotlight 用 body 上 fixed 元素(JS 创建,inline style)
-   ============================================================ */
+/* ===== Footer APOS — 最简版:单 canvas 粒子拼字 + 鼠标光斑 ===== */
 .footer-mega {
   position: relative;
   width: 100%;
@@ -1880,11 +1776,43 @@ a.contact-value:hover { color: var(--accent); }
   cursor: default;
   overflow: visible;
   isolation: isolate;
-  /* 显式无 contain — 让 ambient canvas / 大字阴影可向外扩散 */
 }
 
-/* 真实 CSS 文字 fallback —— 仅在 reduced-motion(.static) 下显示
-   非 reduced-motion 时由两个 canvas 接管(粒子拼字 + ambient) */
+/* 鼠标光斑 — 容器内 ::before 跟随鼠标 */
+.footer-mega::before {
+  content: "";
+  position: absolute;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: clamp(280px, 40vw, 600px);
+  height: clamp(280px, 40vw, 600px);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.58 0.27 295 / 0.45),
+    oklch(0.65 0.22 220 / 0.22) 35%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(48px);
+  transition: opacity 0.5s var(--ease-out);
+  z-index: 0;
+}
+.footer-mega:hover::before { opacity: 1; }
+
+/* 粒子 canvas */
+.footer-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* reduced-motion 降级 — 显示真实 CSS 文字 */
 .footer-text {
   position: absolute;
   inset: 0;
@@ -1910,27 +1838,6 @@ a.contact-value:hover { color: var(--accent); }
   opacity: 0;
 }
 .footer-mega.static .footer-text { opacity: 1; }
-
-/* 文字粒子 canvas — 在上层(z:2),粒子拼出 APOS
-   始终可见(opacity 1),粒子 alpha 由 JS intro 控制渐入 */
-.footer-text-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* 环境粒子 canvas — 在下层(z:1),四周向中央汇聚 */
-.footer-ambient {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
 
 /* ===== reveal ===== */
 .reveal-up { opacity: 0; transform: translateY(24px); transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); }
