@@ -8,7 +8,6 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
 import { useSettingsStore } from '@/stores/settings'
-import { gsap } from 'gsap'
 
 import IconBase from '@/components/IconBase.vue'
 
@@ -16,6 +15,7 @@ const posts = usePostsStore()
 const settings = useSettingsStore()
 
 const heroEl = ref(null)
+const heroTitleEl = ref(null)
 const megaEl = ref(null)
 const yearEl = computed(() => new Date().getFullYear())
 
@@ -73,17 +73,6 @@ function resetContact() {
 // ===== Hero 字符 stagger 入场动画 =====
 onMounted(() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const words = heroEl.value?.querySelectorAll('.hero-title .word')
-  if (words?.length) {
-    gsap.to(words, {
-      y: 0,
-      opacity: 1,
-      duration: 1.1,
-      ease: 'expo.out',
-      stagger: 0.08,
-      delay: 0.1,
-    })
-  }
 
   // 滚动揭示
   const io = new IntersectionObserver(
@@ -99,42 +88,75 @@ onMounted(() => {
   )
   document.querySelectorAll('.reveal-up, .reveal').forEach((el) => io.observe(el))
 
-  // 底部 APOS 大字 — trae 风磁吸交互
+  // hero 标题 — Canvas 粒子化(高密度高可视度)
+  initHeroParticles()
+
+  // 底部 APOS 大字 — Canvas 粒子 + 鼠标力场
   initFooterMega()
 })
 
 // ============================================================
-// 底部 APOS — Canvas 粒子字幕 + 鼠标力场
-//   - offscreen canvas 渲染 "APOS" 字形,逐像素采样得到 ~800 粒子
-//   - 每粒子缓存 home 坐标,verlet 物理:弹簧拉回 + 阻尼 + 鼠标排斥
-//   - 鼠标进入 100px 半径 → 粒子被推开形成涟漪,移走后弹回
-//   - 入场:粒子从随机位置弹簧收拢成 APOS
-//   - 性能:固定 ~800 粒子,单 canvas drawImage,稳定 60fps
-//   - 不在视口 / reduced-motion 时停 rAF,零 idle 消耗
+// Canvas 粒子字幕 — 通用工厂
+//   把任意文字渲染到 offscreen canvas → 逐像素采样成粒子
+//   verlet 物理:弹簧拉回 + 阻尼 + 鼠标排斥 + 微弱漂浮
+//   idle 静止 / 出视口 / reduced-motion → 自动停 rAF
+//   两处使用:
+//     - hero 标题 (多行,高密度,深紫高可视)
+//     - footer APOS (单行,常规密度,氛围柔光)
+//   返回 cleanup 函数
 // ============================================================
 let megaCleanup = null
+let heroParticlesCleanup = null
 
-function initFooterMega() {
-  const mega = megaEl.value
-  if (!mega) return
+function createParticleField(container, opts = {}) {
+  const {
+    text = 'APOS',
+    fontWeight = 900,
+    fontFamily = '"Space Grotesk", "Inter", system-ui, -apple-system, sans-serif',
+    forceRadius = 60,
+    forceStrength = 22,
+    stepDesktop = 5,
+    stepMobile = 7,
+    mobileBreakpoint = 640,
+    fitWidthRatio = 0.92,
+    fitHeightRatio = 0.95,
+    lineHeight = 1.0,
+    baseHueCenter = 282,
+    hueJitter = 28,
+    baseSat = 70,
+    satBoost = 15,
+    baseLight = 55,
+    lightBoost = 18,
+    baseAlpha = 0.55,
+    alphaBoost = 0.4,
+    radiusRange = [1.2, 2.2],     // [min, min+random]
+    radiusBoost = 1.3,             // 鼠标推力时半径放大倍率
+    enableGlow = true,
+    introMs = 1800,
+    introSpread = [180, 440],      // 入场起点距离 home 的 [min, max] (CSS px)
+    spring = 0.018,
+    damping = 0.86,
+    floatAmp = [0.08, 0.06],       // [x, y] 漂浮幅度
+  } = opts
+
+  if (!container) return () => {}
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // 降级:静态文字,后面 template fallback span 显式可见
-    mega.classList.add('static')
-    return
+    container.classList.add('static')
+    return () => container.classList.remove('static')
   }
 
-  // 创建 canvas(替代原 .mega-char span)
+  // 创建 canvas
   const canvas = document.createElement('canvas')
-  canvas.className = 'footer-canvas'
+  canvas.className = 'particle-canvas'
   canvas.setAttribute('aria-hidden', 'true')
-  mega.appendChild(canvas)
+  container.appendChild(canvas)
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
 
   // 状态
   let dpr = 1
-  let W = 0, H = 0          // canvas 像素尺寸(含 dpr)
-  let cssW = 0, cssH = 0    // CSS 尺寸
+  let W = 0, H = 0
+  let cssW = 0, cssH = 0
   let particles = []
   const mouse = { x: -9999, y: -9999, active: false }
   let raf = 0
@@ -143,44 +165,56 @@ function initFooterMega() {
   let revealStart = 0
   let needsRender = true
 
-  // —— 1. 渲染 APOS 文字到 offscreen,逐像素采样生成粒子 ——
   function sampleText() {
+    const lines = text.split('\n')
     const off = document.createElement('canvas')
     const octx = off.getContext('2d')
 
-    // 自适应字号:让 APOS 占容器宽度的 92%
-    const fontStack = '"Space Grotesk", "Inter", system-ui, -apple-system, sans-serif'
+    // 测最长行宽,自适应字号
     const measureSize = 200
-    octx.font = `900 ${measureSize}px ${fontStack}`
-    const w0 = octx.measureText('APOS').width
-    const fontSize = Math.min(measureSize * (cssW * 0.92) / w0, cssH * 0.95)
+    octx.font = `${fontWeight} ${measureSize}px ${fontFamily}`
+    const widths = lines.map((l) => octx.measureText(l).width)
+    const maxLineW = Math.max(...widths)
 
-    octx.font = `900 ${fontSize}px ${fontStack}`
-    const metrics = octx.measureText('APOS')
-    const textW = Math.ceil(metrics.width)
-    const ascent = metrics.actualBoundingBoxAscent || fontSize * 0.78
-    const descent = metrics.actualBoundingBoxDescent || fontSize * 0.22
-    const textH = Math.ceil(ascent + descent)
+    const widthFit = measureSize * (cssW * fitWidthRatio) / maxLineW
+    const heightFit = (cssH * fitHeightRatio) / (lines.length * lineHeight)
+    const fontSize = Math.min(widthFit, heightFit)
 
-    off.width = textW + 4
-    off.height = textH + 4
+    octx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
+    const sampleMetrics = octx.measureText(lines[0])
+    const ascent = sampleMetrics.actualBoundingBoxAscent || fontSize * 0.78
+    const descent = sampleMetrics.actualBoundingBoxDescent || fontSize * 0.22
+    const lineGap = fontSize * lineHeight
+    const finalWidths = lines.map((l) => octx.measureText(l).width)
+    const textBlockW = Math.max(...finalWidths)
+    const textBlockH = (lines.length - 1) * lineGap + ascent + descent
+
+    off.width = Math.ceil(textBlockW) + 6
+    off.height = Math.ceil(textBlockH) + 6
     const ctx2 = off.getContext('2d')
-    ctx2.font = `900 ${fontSize}px ${fontStack}`
+    ctx2.font = `${fontWeight} ${fontSize}px ${fontFamily}`
     ctx2.fillStyle = '#000'
     ctx2.textBaseline = 'alphabetic'
-    ctx2.fillText('APOS', 2, ascent + 2)
+
+    // 每行居中绘制
+    lines.forEach((line, i) => {
+      const lw = finalWidths[i]
+      const x = (off.width - lw) / 2
+      const y = ascent + 3 + i * lineGap
+      ctx2.fillText(line, x, y)
+    })
 
     const img = ctx2.getImageData(0, 0, off.width, off.height)
     const data = img.data
 
-    // 采样步长 — 移动端放大以减少粒子数
-    const isMobile = cssW < 640
-    const step = isMobile ? 7 : 5
+    const isMobile = cssW < mobileBreakpoint
+    const step = isMobile ? stepMobile : stepDesktop
 
-    // 居中偏移(CSS 坐标)
     const xOff = (cssW - off.width) / 2
     const yOff = (cssH - off.height) / 2
 
+    const [rMin, rRand] = [radiusRange[0], radiusRange[1] - radiusRange[0]]
+    const [spreadMin, spreadRange] = [introSpread[0], introSpread[1] - introSpread[0]]
     const arr = []
     for (let y = 0; y < off.height; y += step) {
       for (let x = 0; x < off.width; x += step) {
@@ -188,18 +222,17 @@ function initFooterMega() {
         if (a > 128) {
           const hx = (xOff + x) * dpr
           const hy = (yOff + y) * dpr
-          // 入场起点:随机散开 + 上偏
           const angle = Math.random() * Math.PI * 2
-          const dist = (180 + Math.random() * 260) * dpr
+          const dist = (spreadMin + Math.random() * spreadRange) * dpr
           arr.push({
             x: hx + Math.cos(angle) * dist,
-            y: hy + Math.sin(angle) * dist - 100 * dpr,
+            y: hy + Math.sin(angle) * dist - 60 * dpr,
             hx, hy,
             vx: (Math.random() - 0.5) * 2,
             vy: (Math.random() - 0.5) * 2,
-            r: (1.2 + Math.random() * 1.0) * dpr,
+            r: (rMin + Math.random() * rRand) * dpr,
             seed: Math.random() * Math.PI * 2,
-            hueShift: (Math.random() - 0.5) * 28,
+            hueShift: (Math.random() - 0.5) * hueJitter,
             lit: 0,
           })
         }
@@ -208,9 +241,8 @@ function initFooterMega() {
     particles = arr
   }
 
-  // —— 2. 尺寸 ——
   function resize() {
-    const rect = mega.getBoundingClientRect()
+    const rect = container.getBoundingClientRect()
     cssW = rect.width
     cssH = rect.height
     if (cssW < 10 || cssH < 10) return
@@ -225,11 +257,6 @@ function initFooterMega() {
     needsRender = true
   }
 
-  // —— 3. 物理 + 渲染 ——
-  const FORCE_RADIUS_CSS = 120
-  const SPRING = 0.018
-  const DAMPING = 0.86
-
   function tick(now) {
     if (!visible) {
       raf = 0
@@ -237,14 +264,13 @@ function initFooterMega() {
     }
     const mx = mouse.x * dpr
     const my = mouse.y * dpr
-    const forceR = FORCE_RADIUS_CSS * dpr
+    const forceR = forceRadius * dpr
     const forceR2 = forceR * forceR
     const time = now * 0.0008
 
-    // 入场进度
     let intro = 1
     if (revealStart > 0) {
-      intro = Math.min(1, (now - revealStart) / 1800)
+      intro = Math.min(1, (now - revealStart) / introMs)
       if (intro < 1) needsRender = true
     }
 
@@ -252,17 +278,17 @@ function initFooterMega() {
     ctx.globalCompositeOperation = 'source-over'
 
     let movingAny = false
+    const fAmpX = floatAmp[0]
+    const fAmpY = floatAmp[1]
 
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i]
 
-      // 弹簧拉回 home
       const dxh = p.hx - p.x
       const dyh = p.hy - p.y
-      p.vx += dxh * SPRING
-      p.vy += dyh * SPRING
+      p.vx += dxh * spring
+      p.vy += dyh * spring
 
-      // 鼠标排斥力(只在距离 < forceR 时计算)
       if (mouse.active) {
         const dx = p.x - mx
         const dy = p.y - my
@@ -270,8 +296,7 @@ function initFooterMega() {
         if (d2 < forceR2 && d2 > 0.5) {
           const d = Math.sqrt(d2)
           const f = 1 - d / forceR
-          // 推力 = (1-r/R)² * 强度,沿粒子→鼠标反向
-          const force = f * f * 22
+          const force = f * f * forceStrength
           const invD = 1 / d
           p.vx += dx * invD * force
           p.vy += dy * invD * force
@@ -279,49 +304,41 @@ function initFooterMega() {
         }
       }
 
-      // 阻尼
-      p.vx *= DAMPING
-      p.vy *= DAMPING
+      p.vx *= damping
+      p.vy *= damping
 
-      // 微弱漂浮(用 seed 解相关)
-      p.vx += Math.sin(time + p.seed) * 0.08
-      p.vy += Math.cos(time * 0.7 + p.seed * 1.3) * 0.06
+      p.vx += Math.sin(time + p.seed) * fAmpX
+      p.vy += Math.cos(time * 0.7 + p.seed * 1.3) * fAmpY
 
       p.x += p.vx
       p.y += p.vy
 
-      // 高亮衰减
       p.lit *= 0.9
 
-      // 是否仍在运动(idle 时也算微动,但用平方阈值判断)
       const speed2 = p.vx * p.vx + p.vy * p.vy
       if (speed2 > 0.04 || p.lit > 0.01 || dxh * dxh + dyh * dyh > 0.5) {
         movingAny = true
       }
 
-      // —— 绘制 ——
-      const baseHue = 282 + p.hueShift
-      const litHue = baseHue + p.lit * 18
-      const baseLight = 55 + p.lit * 18
-      const baseSat = 70 + p.lit * 15
-      const alpha = (0.55 + p.lit * 0.4) * intro
-      const radius = p.r * (1 + p.lit * 1.3)
+      const hue = baseHueCenter + p.hueShift + p.lit * 18
+      const sat = baseSat + p.lit * satBoost
+      const light = baseLight + p.lit * lightBoost
+      const alpha = (baseAlpha + p.lit * alphaBoost) * intro
+      const radius = p.r * (1 + p.lit * radiusBoost)
 
-      // 高亮粒子加柔光晕
-      if (p.lit > 0.18) {
-        ctx.fillStyle = `hsla(${litHue.toFixed(0)}, ${baseSat.toFixed(0)}%, ${baseLight.toFixed(0)}%, ${(alpha * 0.35).toFixed(3)})`
+      if (enableGlow && p.lit > 0.18) {
+        ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.35).toFixed(3)})`
         ctx.beginPath()
         ctx.arc(p.x, p.y, radius * 3.2, 0, Math.PI * 2)
         ctx.fill()
       }
 
-      ctx.fillStyle = `hsla(${litHue.toFixed(0)}, ${baseSat.toFixed(0)}%, ${baseLight.toFixed(0)}%, ${alpha.toFixed(3)})`
+      ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${alpha.toFixed(3)})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
       ctx.fill()
     }
 
-    // idle 静止 → 下一帧停 rAF
     needsRender = movingAny || mouse.active || intro < 1
 
     if (needsRender) {
@@ -338,26 +355,25 @@ function initFooterMega() {
     }
   }
 
-  // —— 4. 事件 ——
   function onMove(e) {
-    const rect = mega.getBoundingClientRect()
+    const rect = container.getBoundingClientRect()
     mouse.x = e.clientX - rect.left
     mouse.y = e.clientY - rect.top
     mouse.active = true
-    mega.style.setProperty('--mx', mouse.x + 'px')
-    mega.style.setProperty('--my', mouse.y + 'px')
+    container.style.setProperty('--mx', mouse.x + 'px')
+    container.style.setProperty('--my', mouse.y + 'px')
     ensureRunning()
   }
   function onLeave() {
     mouse.active = false
     mouse.x = -9999
     mouse.y = -9999
-    ensureRunning()  // 让弹簧回归过程跑完
+    ensureRunning()
   }
   function onTouchMove(e) {
     const t = e.touches[0]
     if (!t) return
-    const rect = mega.getBoundingClientRect()
+    const rect = container.getBoundingClientRect()
     mouse.x = t.clientX - rect.left
     mouse.y = t.clientY - rect.top
     mouse.active = true
@@ -377,7 +393,6 @@ function initFooterMega() {
     })
   }
 
-  // 入场:IntersectionObserver
   const obs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
@@ -396,30 +411,77 @@ function initFooterMega() {
     { threshold: 0.05 }
   )
 
-  // —— 初始化 ——
   resize()
-  obs.observe(mega)
+  obs.observe(container)
   window.addEventListener('resize', onResize)
-  mega.addEventListener('mousemove', onMove)
-  mega.addEventListener('mouseleave', onLeave)
-  mega.addEventListener('touchmove', onTouchMove, { passive: true })
-  mega.addEventListener('touchend', onTouchEnd)
+  container.addEventListener('mousemove', onMove)
+  container.addEventListener('mouseleave', onLeave)
+  container.addEventListener('touchmove', onTouchMove, { passive: true })
+  container.addEventListener('touchend', onTouchEnd)
 
-  megaCleanup = () => {
+  return () => {
     obs.disconnect()
     cancelAnimationFrame(raf)
     cancelAnimationFrame(resizeRaf)
     window.removeEventListener('resize', onResize)
-    mega.removeEventListener('mousemove', onMove)
-    mega.removeEventListener('mouseleave', onLeave)
-    mega.removeEventListener('touchmove', onTouchMove)
-    mega.removeEventListener('touchend', onTouchEnd)
+    container.removeEventListener('mousemove', onMove)
+    container.removeEventListener('mouseleave', onLeave)
+    container.removeEventListener('touchmove', onTouchMove)
+    container.removeEventListener('touchend', onTouchEnd)
     if (canvas.parentNode) canvas.parentNode.removeChild(canvas)
   }
 }
 
+function initFooterMega() {
+  megaCleanup = createParticleField(megaEl.value, {
+    text: 'APOS',
+    forceRadius: 60,
+    stepDesktop: 5,
+    stepMobile: 7,
+    baseAlpha: 0.55,
+    baseLight: 55,
+    baseSat: 70,
+    radiusRange: [1.2, 2.2],
+    enableGlow: true,
+    introSpread: [180, 440],
+    introMs: 1800,
+    floatAmp: [0.08, 0.06],
+  })
+}
+
+function initHeroParticles() {
+  // hero 多行 + 高可视度:深紫高饱和 + 步长更小 + 关掉柔光晕(粒子多省一倍 fill)
+  heroParticlesCleanup = createParticleField(heroTitleEl.value, {
+    text: 'Building at\nthe Edge of\nManufacturing.',
+    fontWeight: 800,
+    forceRadius: 60,
+    forceStrength: 18,
+    stepDesktop: 4,
+    stepMobile: 6,
+    fitWidthRatio: 0.96,
+    fitHeightRatio: 0.92,
+    lineHeight: 1.04,
+    baseAlpha: 0.82,     // 高不透明,字形清晰
+    baseLight: 38,       // 深紫
+    lightBoost: 22,      // 鼠标过去高亮强
+    baseSat: 82,         // 高饱和
+    satBoost: 10,
+    baseHueCenter: 278,
+    hueJitter: 22,
+    radiusRange: [1.3, 2.4],
+    radiusBoost: 1.0,    // 推力放大温和(避免破坏字形)
+    enableGlow: false,   // 粒子多 -> 关晕省 fillCircle 一半
+    introSpread: [100, 260],
+    introMs: 1600,
+    spring: 0.022,       // 收拢更快
+    damping: 0.85,
+    floatAmp: [0.05, 0.04],
+  })
+}
+
 onBeforeUnmount(() => {
   if (megaCleanup) megaCleanup()
+  if (heroParticlesCleanup) heroParticlesCleanup()
 })
 
 // ===== 最新文章 / 归档 =====
@@ -486,11 +548,8 @@ const experience = [
         <span>WRITING · BUILDING · THINKING — Since 2024</span>
       </div>
 
-      <h1 class="hero-title">
-        <span class="line"><span class="word">Building</span> <span class="word">at</span></span>
-        <span class="line"><span class="word italic">the</span> <span class="word">Edge</span></span>
-        <span class="line"><span class="word">of</span> <span class="word grad">Manufacturing.</span></span>
-      </h1>
+      <div ref="heroTitleEl" class="hero-title-wrap" aria-hidden="true"></div>
+      <h1 class="hero-title visually-hidden">Building at the Edge of Manufacturing.</h1>
 
       <p class="hero-lede">
         我是 <strong>赵祥生 (Apos)</strong>。山东科技大学软件工程在读,目前在青岛火一五信息科技做 Odoo ERP 二开与工业机器视觉。
@@ -778,37 +837,61 @@ const experience = [
   50% { opacity: 0.35; }
 }
 
-.hero-title {
-  font-family: var(--font-display);
-  /* 从 10vw / 160px 缩到 7vw / 96px,三行占用从 ~450px 缩到 ~280px */
-  font-size: clamp(40px, 7vw, 96px);
-  font-weight: 600;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+/* hero 标题:wrap 容器占布局 + canvas 粒子(JS 注入),
+   原 h1 改 visually-hidden 仅供屏幕阅读器与 SEO */
+.hero-title-wrap {
+  position: relative;
+  width: 100%;
+  height: clamp(150px, 24vw, 320px);
   margin: 0 0 clamp(18px, 2.5vh, 26px);
-  color: var(--ink);
+  contain: layout paint;
+  isolation: isolate;
 }
-.hero-title .line {
-  display: block;
-  padding-right: 0.1em;
-}
-.hero-title .word {
-  display: inline-block;
-  transform: translateY(40%);
+/* hero 区域 spotlight 跟随鼠标(粒子下方的环境光) */
+.hero-title-wrap::before {
+  content: "";
+  position: absolute;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: clamp(220px, 30vw, 440px);
+  height: clamp(220px, 30vw, 440px);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.55 0.22 295 / 0.20) 0%,
+    oklch(0.65 0.18 250 / 0.10) 35%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  pointer-events: none;
   opacity: 0;
-  will-change: transform, opacity;
+  filter: blur(44px);
+  transition: opacity 0.5s var(--ease-out);
+  z-index: 0;
 }
-.hero-title .word.italic {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
-  color: var(--accent-warm);
+.hero-title-wrap:hover::before { opacity: 1; }
+
+.hero-title.visually-hidden,
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
-.hero-title .word.grad {
-  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 60%, var(--accent-warm) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+
+/* 粒子 canvas 通用样式(footer + hero 共用) */
+.particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
 }
 
 .hero-lede {
@@ -1478,15 +1561,6 @@ a.contact-value:hover { color: var(--accent); }
   z-index: 0;
 }
 .footer-mega:hover::before { opacity: 1; }
-
-.footer-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
 
 /* SR-only fallback,prefers-reduced-motion 下显示真实 APOS 文字 */
 .footer-mega-fallback {
