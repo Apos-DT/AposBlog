@@ -601,11 +601,6 @@ const experience = [
         </span>
       </h1>
 
-      <p class="hero-lede">
-        我是 <strong>赵祥生 (Apos)</strong>。山东科技大学软件工程在读,目前在青岛火一五信息科技做 Odoo ERP 二开与工业机器视觉。
-        这里写工程、AI、产品、设计的长文笔记 — 没有 SEO 套话,只有真实的思考过程与可复用的工程经验。
-      </p>
-
       <div class="hero-actions">
         <RouterLink class="btn btn-primary" to="/library">
           <span>浏览全部文章</span>
@@ -1045,15 +1040,6 @@ const experience = [
   pointer-events: none;
   z-index: 2;
 }
-
-.hero-lede {
-  max-width: 680px;
-  font-size: clamp(14px, 1.4vw, 16.5px);
-  color: var(--ink-2);
-  margin: 0 0 clamp(20px, 3vh, 32px);
-  line-height: 1.65;
-}
-.hero-lede strong { color: var(--ink); font-weight: 600; }
 
 .hero-actions {
   display: flex;
