@@ -16,6 +16,7 @@ const posts = usePostsStore()
 const settings = useSettingsStore()
 
 const heroEl = ref(null)
+const megaEl = ref(null)
 const yearEl = computed(() => new Date().getFullYear())
 
 // ===== 联系表单 =====
@@ -97,6 +98,100 @@ onMounted(() => {
     { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
   )
   document.querySelectorAll('.reveal-up, .reveal').forEach((el) => io.observe(el))
+
+  // 底部 APOS 大字 — trae 风磁吸交互
+  initFooterMega()
+})
+
+// ============================================================
+// 底部大字交互(参考 trae.ai footer)
+//   1. 滚动到底:每个字符 stagger 从下浮入
+//   2. 鼠标移动:基于鼠标 X 距离做 magnetic translateY,近的浮起多,远的不动
+//   3. 鼠标移出:平滑回正
+//   4. 支持 reduced-motion
+// ============================================================
+let megaCleanup = null
+
+function initFooterMega() {
+  const mega = megaEl.value
+  if (!mega) return
+  const chars = Array.from(mega.querySelectorAll('.mega-char'))
+  if (!chars.length) return
+
+  // 初态:全部下移 50% + 透明
+  chars.forEach((ch) => {
+    ch.style.transform = 'translateY(50%)'
+    ch.dataset.baseY = '0'
+  })
+
+  // 滚动到底触发 stagger 浮入
+  const obs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          chars.forEach((ch, i) => {
+            setTimeout(() => {
+              ch.style.transform = 'translateY(0)'
+              ch.classList.add('in')
+            }, i * 90)
+          })
+          obs.unobserve(e.target)
+        }
+      })
+    },
+    { threshold: 0.3 }
+  )
+  obs.observe(mega)
+
+  // 磁吸 — 鼠标移动驱动
+  let raf = 0
+  let entered = false
+  function onMove(e) {
+    if (!entered) return
+    cancelAnimationFrame(raf)
+    raf = requestAnimationFrame(() => {
+      const rect = mega.getBoundingClientRect()
+      const mx = e.clientX - rect.left
+      const charsW = chars.map((ch) => {
+        const cr = ch.getBoundingClientRect()
+        return cr.left + cr.width / 2 - rect.left
+      })
+      // 影响半径 — 30% 容器宽度
+      const maxDist = rect.width * 0.30
+      chars.forEach((ch, i) => {
+        const dist = Math.abs(mx - charsW[i])
+        const ratio = Math.max(0, 1 - dist / maxDist)
+        // 缓动函数让靠近时上升更快
+        const eased = ratio * ratio * (3 - 2 * ratio)
+        const ty = -eased * 60
+        ch.style.transform = `translateY(${ty}px)`
+      })
+    })
+  }
+  function onEnter() { entered = true }
+  function onLeave() {
+    entered = false
+    cancelAnimationFrame(raf)
+    chars.forEach((ch) => { ch.style.transform = 'translateY(0)' })
+  }
+
+  if (!matchMedia('(hover: none)').matches) {
+    mega.addEventListener('mouseenter', onEnter)
+    mega.addEventListener('mousemove', onMove)
+    mega.addEventListener('mouseleave', onLeave)
+  }
+
+  megaCleanup = () => {
+    obs.disconnect()
+    cancelAnimationFrame(raf)
+    mega.removeEventListener('mouseenter', onEnter)
+    mega.removeEventListener('mousemove', onMove)
+    mega.removeEventListener('mouseleave', onLeave)
+  }
+}
+
+onBeforeUnmount(() => {
+  if (megaCleanup) megaCleanup()
 })
 
 // ===== 最新文章 / 归档 =====
@@ -390,7 +485,9 @@ const experience = [
           <span>Built with Vue 3 · Hosted on GitHub Pages</span>
         </div>
       </div>
-      <div class="footer-mega" aria-hidden="true">APOS</div>
+      <div ref="megaEl" class="footer-mega" aria-hidden="true">
+        <span v-for="(c, i) in 'APOS'" :key="i" class="mega-char">{{ c }}</span>
+      </div>
     </footer>
   </div>
 </template>
@@ -1092,14 +1189,29 @@ a.contact-value:hover { color: var(--accent); }
   letter-spacing: -0.04em;
   line-height: 0.8;
   text-align: center;
-  background: linear-gradient(180deg, oklch(0.78 0.10 295 / 0.45), transparent 75%);
+  margin: 0 auto -0.18em;
+  user-select: none;
+  /* 容器自身需要接收鼠标事件做磁吸,默认就 auto */
+  cursor: default;
+  /* 内部 char 浮动溢出不裁切 */
+  overflow: visible;
+}
+.mega-char {
+  display: inline-block;
+  /* 渐变 mask 着色 — 每个字符独立 background-clip(因为 inline-block 子元素不继承父 background-clip)*/
+  background: linear-gradient(180deg, oklch(0.55 0.20 295 / 0.65) 0%, oklch(0.78 0.10 295 / 0.40) 50%, transparent 80%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  margin: 0 auto -0.18em;
-  user-select: none;
-  pointer-events: none;
+  /* 初始下移 50% + 透明,等 IntersectionObserver 触发 stagger 浮入 */
+  opacity: 0;
+  /* transform 由 JS 直接控制(initFooterMega 设置),只过渡平滑 */
+  transition: transform 0.6s var(--ease-out), opacity 0.9s var(--ease-out);
+  will-change: transform;
 }
+.mega-char.in { opacity: 1; }
+/* 字符之间留一点呼吸,字间距用 margin 补,letter-spacing 父级已设负值 */
+.mega-char + .mega-char { margin-left: 0.01em; }
 
 /* ===== reveal ===== */
 .reveal-up { opacity: 0; transform: translateY(24px); transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); }
