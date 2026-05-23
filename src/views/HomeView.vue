@@ -109,176 +109,67 @@ onMounted(() => {
 })
 
 // ============================================================
-// Canvas 粒子字幕 — 通用工厂
-//   把任意文字渲染到 offscreen canvas → 逐像素采样成粒子
-//   verlet 物理:弹簧拉回 + 阻尼 + 鼠标排斥 + 微弱漂浮
-//   idle 静止 / 出视口 / reduced-motion → 自动停 rAF
-//   两处使用:
-//     - hero 标题 (多行,高密度,深紫高可视)
-//     - footer APOS (单行,常规密度,氛围柔光)
-//   返回 cleanup 函数
+// Footer APOS — 大字 + 持续环境粒子 + 滚动揭示 + 全屏光斑
+//   - 大字本身用 CSS 渐变文字渲染(清晰可读)
+//   - canvas 持续从四周向中心生成微小粒子(氛围层)
+//   - 鼠标 spotlight = body 上 fixed 元素,不受任何容器边界限制
+//   - IntersectionObserver threshold 0.4 触发 .in 类,大字从下渐入(trae 风)
+//   - 出视口 / reduced-motion 停 rAF
 // ============================================================
 let megaCleanup = null
 
-function createParticleField(container, opts = {}) {
-  const {
-    text = 'APOS',
-    fontWeight = 900,
-    fontFamily = '"Space Grotesk", "Inter", system-ui, -apple-system, sans-serif',
-    forceRadius = 60,
-    forceStrength = 22,
-    stepDesktop = 5,
-    stepMobile = 7,
-    mobileBreakpoint = 640,
-    fitWidthRatio = 0.92,
-    fitHeightRatio = 0.95,
-    lineHeight = 1.0,
-    baseHueCenter = 282,
-    hueJitter = 28,
-    baseSat = 70,
-    satBoost = 15,
-    baseLight = 55,
-    lightBoost = 18,
-    baseAlpha = 0.55,
-    alphaBoost = 0.4,
-    radiusRange = [1.2, 2.2],     // [min, min+random]
-    radiusBoost = 1.3,             // 鼠标推力时半径放大倍率
-    enableGlow = true,
-    introMs = 1800,
-    introSpread = [180, 440],      // 入场起点距离 home 的 [min, max] (CSS px)
-    originMode = 'random',          // 'random' = 随机散开 / 'converge' = 从容器四周向中央汇聚
-    introGlowPeak = 0.0,           // 入场期间全粒子假"亮度"峰值(钟形,0=关)
-    spring = 0.018,
-    damping = 0.86,
-    floatAmp = [0.08, 0.06],       // [x, y] 漂浮幅度
-  } = opts
-
-  if (!container) return () => {}
+function initFooterMega() {
+  const el = megaEl.value
+  if (!el) return
 
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    container.classList.add('static')
-    return () => container.classList.remove('static')
+    el.classList.add('in')
+    return
   }
 
-  // 创建 canvas
+  // 1. ambient 粒子 canvas
   const canvas = document.createElement('canvas')
-  canvas.className = 'particle-canvas'
+  canvas.className = 'footer-ambient'
   canvas.setAttribute('aria-hidden', 'true')
-  container.appendChild(canvas)
+  el.insertBefore(canvas, el.firstChild)
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true })
 
-  // 状态
+  // 2. fixed 全屏 spotlight(挂 body,不受 container 限制 + scoped CSS)
+  //    用 inline style 直接控制,跳过 Vue scoped 限制
+  const spotlight = document.createElement('div')
+  spotlight.setAttribute('aria-hidden', 'true')
+  spotlight.style.cssText = `
+    position: fixed;
+    pointer-events: none;
+    width: 70vmin;
+    height: 70vmin;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.58 0.27 295 / 0.45),
+      oklch(0.65 0.22 230 / 0.22) 35%,
+      transparent 72%
+    );
+    filter: blur(72px);
+    z-index: 40;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translate3d(-9999px, -9999px, 0);
+    mix-blend-mode: multiply;
+    will-change: transform, opacity;
+  `
+  document.body.appendChild(spotlight)
+
   let dpr = 1
   let W = 0, H = 0
   let cssW = 0, cssH = 0
-  let particles = []
-  const mouse = { x: -9999, y: -9999, active: false }
+  const particles = []
   let raf = 0
   let visible = false
   let entered = false
-  let revealStart = 0
-  let needsRender = true
-
-  function sampleText() {
-    const lines = text.split('\n')
-    const off = document.createElement('canvas')
-    const octx = off.getContext('2d')
-
-    // 测最长行宽,自适应字号
-    const measureSize = 200
-    octx.font = `${fontWeight} ${measureSize}px ${fontFamily}`
-    const widths = lines.map((l) => octx.measureText(l).width)
-    const maxLineW = Math.max(...widths)
-
-    const widthFit = measureSize * (cssW * fitWidthRatio) / maxLineW
-    const heightFit = (cssH * fitHeightRatio) / (lines.length * lineHeight)
-    const fontSize = Math.min(widthFit, heightFit)
-
-    octx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-    const sampleMetrics = octx.measureText(lines[0])
-    const ascent = sampleMetrics.actualBoundingBoxAscent || fontSize * 0.78
-    const descent = sampleMetrics.actualBoundingBoxDescent || fontSize * 0.22
-    const lineGap = fontSize * lineHeight
-    const finalWidths = lines.map((l) => octx.measureText(l).width)
-    const textBlockW = Math.max(...finalWidths)
-    const textBlockH = (lines.length - 1) * lineGap + ascent + descent
-
-    off.width = Math.ceil(textBlockW) + 6
-    off.height = Math.ceil(textBlockH) + 6
-    const ctx2 = off.getContext('2d')
-    ctx2.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-    ctx2.fillStyle = '#000'
-    ctx2.textBaseline = 'alphabetic'
-
-    // 每行居中绘制
-    lines.forEach((line, i) => {
-      const lw = finalWidths[i]
-      const x = (off.width - lw) / 2
-      const y = ascent + 3 + i * lineGap
-      ctx2.fillText(line, x, y)
-    })
-
-    const img = ctx2.getImageData(0, 0, off.width, off.height)
-    const data = img.data
-
-    const isMobile = cssW < mobileBreakpoint
-    const step = isMobile ? stepMobile : stepDesktop
-
-    const xOff = (cssW - off.width) / 2
-    const yOff = (cssH - off.height) / 2
-
-    const [rMin, rRand] = [radiusRange[0], radiusRange[1] - radiusRange[0]]
-    const [spreadMin, spreadRange] = [introSpread[0], introSpread[1] - introSpread[0]]
-
-    // 容器中心 + 对角线长度 — converge 模式从外围向中央汇聚
-    const cxDpr = (cssW / 2) * dpr
-    const cyDpr = (cssH / 2) * dpr
-    const diagDpr = Math.sqrt(cssW * cssW + cssH * cssH) * dpr
-    const spawnR = diagDpr * 0.6  // 容器外稍远
-
-    const arr = []
-    for (let y = 0; y < off.height; y += step) {
-      for (let x = 0; x < off.width; x += step) {
-        const a = data[(y * off.width + x) * 4 + 3]
-        if (a > 128) {
-          const hx = (xOff + x) * dpr
-          const hy = (yOff + y) * dpr
-
-          let startX, startY
-          if (originMode === 'converge') {
-            // 从容器中心向外某随机角度发射,起点在容器边缘外
-            // → 视觉:粒子从四周向中央聚集成字
-            const angle = Math.random() * Math.PI * 2
-            const r = spawnR * (0.85 + Math.random() * 0.4)
-            startX = cxDpr + Math.cos(angle) * r
-            startY = cyDpr + Math.sin(angle) * r
-          } else {
-            // random: 各粒子从 home 附近随机方向散开
-            const angle = Math.random() * Math.PI * 2
-            const dist = (spreadMin + Math.random() * spreadRange) * dpr
-            startX = hx + Math.cos(angle) * dist
-            startY = hy + Math.sin(angle) * dist - 60 * dpr
-          }
-
-          arr.push({
-            x: startX,
-            y: startY,
-            hx, hy,
-            vx: (Math.random() - 0.5) * 2,
-            vy: (Math.random() - 0.5) * 2,
-            r: (rMin + Math.random() * rRand) * dpr,
-            seed: Math.random() * Math.PI * 2,
-            hueShift: (Math.random() - 0.5) * hueJitter,
-            lit: 0,
-          })
-        }
-      }
-    }
-    particles = arr
-  }
 
   function resize() {
-    const rect = container.getBoundingClientRect()
+    const rect = el.getBoundingClientRect()
     cssW = rect.width
     cssH = rect.height
     if (cssW < 10 || cssH < 10) return
@@ -289,155 +180,92 @@ function createParticleField(container, opts = {}) {
     canvas.style.height = cssH + 'px'
     W = canvas.width
     H = canvas.height
-    sampleText()
-    needsRender = true
   }
 
-  function tick(now) {
+  // 从四周边缘随机点 spawn,目标 = 中央 APOS 字位置(画布中心 ± 微抖)
+  function spawnParticle() {
+    const edge = Math.floor(Math.random() * 4)
+    let x, y
+    const margin = 30 * dpr
+    if (edge === 0) { x = Math.random() * W; y = -margin }
+    else if (edge === 1) { x = W + margin; y = Math.random() * H }
+    else if (edge === 2) { x = Math.random() * W; y = H + margin }
+    else { x = -margin; y = Math.random() * H }
+
+    // 目标 = 中央(允许小范围漂移让粒子不全堆同一点)
+    const tx = W / 2 + (Math.random() - 0.5) * W * 0.5
+    const ty = H / 2 + (Math.random() - 0.5) * H * 0.4
+
+    const dx = tx - x
+    const dy = ty - y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const speed = (0.45 + Math.random() * 0.5) * dpr  // 慢
+    particles.push({
+      x, y,
+      vx: dx / dist * speed,
+      vy: dy / dist * speed,
+      tx, ty,
+      r: (0.8 + Math.random() * 1.3) * dpr,
+      hue: 268 + Math.random() * 32,           // 紫到蓝紫
+      sat: 60 + Math.random() * 25,
+      light: 55 + Math.random() * 15,
+      life: 1.0,
+      drain: 0.0035 + Math.random() * 0.003,
+    })
+  }
+
+  function tick() {
     if (!visible) {
       raf = 0
       return
     }
-    const mx = mouse.x * dpr
-    const my = mouse.y * dpr
-    const forceR = forceRadius * dpr
-    const forceR2 = forceR * forceR
-    const time = now * 0.0008
-
-    let intro = 1
-    if (revealStart > 0) {
-      intro = Math.min(1, (now - revealStart) / introMs)
-      if (intro < 1) needsRender = true
-    }
-
     ctx.clearRect(0, 0, W, H)
-    ctx.globalCompositeOperation = 'source-over'
 
-    let movingAny = false
-    const fAmpX = floatAmp[0]
-    const fAmpY = floatAmp[1]
+    // spawn 频率 — 每帧约 1-2 个,稳态约 70-120 个粒子在画布上
+    if (Math.random() < 0.7) spawnParticle()
+    if (Math.random() < 0.5) spawnParticle()
 
-    // 入场全粒子高亮 — 钟形曲线,聚拢瞬间(intro≈0.7) 字体最亮
-    // 让"粒子从四周飞来→拼成发光字→光晕消散"看起来像点亮一盏灯
-    const introGlow = (introGlowPeak > 0 && intro < 1)
-      ? Math.sin(intro * Math.PI) * introGlowPeak
-      : 0
-
-    for (let i = 0; i < particles.length; i++) {
+    for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i]
-
-      const dxh = p.hx - p.x
-      const dyh = p.hy - p.y
-      p.vx += dxh * spring
-      p.vy += dyh * spring
-
-      if (mouse.active) {
-        const dx = p.x - mx
-        const dy = p.y - my
-        const d2 = dx * dx + dy * dy
-        if (d2 < forceR2 && d2 > 0.5) {
-          const d = Math.sqrt(d2)
-          const f = 1 - d / forceR
-          const force = f * f * forceStrength
-          const invD = 1 / d
-          p.vx += dx * invD * force
-          p.vy += dy * invD * force
-          if (f > p.lit) p.lit = f
-        }
-      }
-
-      p.vx *= damping
-      p.vy *= damping
-
-      p.vx += Math.sin(time + p.seed) * fAmpX
-      p.vy += Math.cos(time * 0.7 + p.seed * 1.3) * fAmpY
-
       p.x += p.vx
       p.y += p.vy
+      // 接近中心时加速,模拟"被吸"
+      p.vx *= 1.008
+      p.vy *= 1.008
 
-      p.lit *= 0.9
+      // 距离中心
+      const dx = p.x - p.tx
+      const dy = p.y - p.ty
+      const d2 = dx * dx + dy * dy
 
-      const speed2 = p.vx * p.vx + p.vy * p.vy
-      if (speed2 > 0.04 || p.lit > 0.01 || dxh * dxh + dyh * dyh > 0.5) {
-        movingAny = true
+      // 接近字位置 (~150px) 加速衰减 — 粒子"溶解"进字里
+      if (d2 < 22500 * dpr * dpr) {
+        p.life -= p.drain * 4
+      } else {
+        p.life -= p.drain
       }
 
-      // 入场期间引入全粒子假亮度,与鼠标力场 lit 取大
-      const effLit = introGlow > p.lit ? introGlow : p.lit
-
-      const hue = baseHueCenter + p.hueShift + effLit * 18
-      const sat = baseSat + effLit * satBoost
-      const light = baseLight + effLit * lightBoost
-      const alpha = (baseAlpha + effLit * alphaBoost) * intro
-      const radius = p.r * (1 + effLit * radiusBoost)
-
-      if (enableGlow && effLit > 0.15) {
-        ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.30).toFixed(3)})`
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, radius * 3.4, 0, Math.PI * 2)
-        ctx.fill()
+      // 出界 or 寿命到 → 删除
+      if (p.life <= 0 || p.x < -50 * dpr || p.x > W + 50 * dpr ||
+          p.y < -50 * dpr || p.y > H + 50 * dpr) {
+        particles.splice(i, 1)
+        continue
       }
 
-      ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${alpha.toFixed(3)})`
+      // 绘制 — 接近中心时变亮
+      const proximity = Math.max(0, 1 - Math.sqrt(d2) / (Math.max(W, H) * 0.4))
+      const alpha = p.life * (0.35 + proximity * 0.3)
+      const radius = p.r * (1 + proximity * 0.5)
+      ctx.fillStyle = `hsla(${p.hue.toFixed(0)}, ${p.sat.toFixed(0)}%, ${p.light.toFixed(0)}%, ${alpha.toFixed(3)})`
       ctx.beginPath()
       ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
       ctx.fill()
     }
 
-    needsRender = movingAny || mouse.active || intro < 1
-
-    if (needsRender) {
-      raf = requestAnimationFrame(tick)
-    } else {
-      raf = 0
-    }
+    raf = requestAnimationFrame(tick)
   }
 
-  function ensureRunning() {
-    if (!raf && visible) {
-      needsRender = true
-      raf = requestAnimationFrame(tick)
-    }
-  }
-
-  function onMove(e) {
-    const rect = container.getBoundingClientRect()
-    mouse.x = e.clientX - rect.left
-    mouse.y = e.clientY - rect.top
-    mouse.active = true
-    container.style.setProperty('--mx', mouse.x + 'px')
-    container.style.setProperty('--my', mouse.y + 'px')
-    ensureRunning()
-  }
-  function onLeave() {
-    mouse.active = false
-    mouse.x = -9999
-    mouse.y = -9999
-    ensureRunning()
-  }
-  function onTouchMove(e) {
-    const t = e.touches[0]
-    if (!t) return
-    const rect = container.getBoundingClientRect()
-    mouse.x = t.clientX - rect.left
-    mouse.y = t.clientY - rect.top
-    mouse.active = true
-    ensureRunning()
-  }
-  function onTouchEnd() {
-    mouse.active = false
-    ensureRunning()
-  }
-
-  let resizeRaf = 0
-  function onResize() {
-    cancelAnimationFrame(resizeRaf)
-    resizeRaf = requestAnimationFrame(() => {
-      resize()
-      ensureRunning()
-    })
-  }
-
+  // 滚动揭示 + canvas 启停
   const obs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
@@ -445,54 +273,64 @@ function createParticleField(container, opts = {}) {
           visible = true
           if (!entered) {
             entered = true
-            revealStart = performance.now()
+            el.classList.add('in')
           }
-          ensureRunning()
+          if (!raf) raf = requestAnimationFrame(tick)
         } else {
           visible = false
         }
       })
     },
-    { threshold: 0.05 }
+    { threshold: 0.4 }  // 进入 40% 才触发(trae 风:滚到底再揭示)
   )
+  obs.observe(el)
+
+  // 鼠标 spotlight — fixed 元素直接位置改 transform,平滑跟随
+  let mouseRaf = 0
+  let mx = 0, my = 0
+  let pending = false
+  function flushMouse() {
+    spotlight.style.transform = `translate3d(${mx}px, ${my}px, 0) translate(-50%, -50%)`
+    pending = false
+  }
+  function onMove(e) {
+    mx = e.clientX
+    my = e.clientY
+    spotlight.style.opacity = '1'
+    if (!pending) {
+      pending = true
+      mouseRaf = requestAnimationFrame(flushMouse)
+    }
+  }
+  function onLeave() {
+    spotlight.style.opacity = '0'
+  }
+
+  el.addEventListener('mousemove', onMove)
+  el.addEventListener('mouseleave', onLeave)
+
+  let resizeRaf = 0
+  function onResize() {
+    cancelAnimationFrame(resizeRaf)
+    resizeRaf = requestAnimationFrame(resize)
+  }
+  window.addEventListener('resize', onResize)
 
   resize()
-  obs.observe(container)
-  window.addEventListener('resize', onResize)
-  container.addEventListener('mousemove', onMove)
-  container.addEventListener('mouseleave', onLeave)
-  container.addEventListener('touchmove', onTouchMove, { passive: true })
-  container.addEventListener('touchend', onTouchEnd)
 
-  return () => {
+  megaCleanup = () => {
     obs.disconnect()
     cancelAnimationFrame(raf)
+    cancelAnimationFrame(mouseRaf)
     cancelAnimationFrame(resizeRaf)
     window.removeEventListener('resize', onResize)
-    container.removeEventListener('mousemove', onMove)
-    container.removeEventListener('mouseleave', onLeave)
-    container.removeEventListener('touchmove', onTouchMove)
-    container.removeEventListener('touchend', onTouchEnd)
+    el.removeEventListener('mousemove', onMove)
+    el.removeEventListener('mouseleave', onLeave)
     if (canvas.parentNode) canvas.parentNode.removeChild(canvas)
+    if (spotlight.parentNode) spotlight.parentNode.removeChild(spotlight)
   }
 }
 
-function initFooterMega() {
-  megaCleanup = createParticleField(megaEl.value, {
-    text: 'APOS',
-    forceRadius: 60,
-    stepDesktop: 5,
-    stepMobile: 7,
-    baseAlpha: 0.55,
-    baseLight: 55,
-    baseSat: 70,
-    radiusRange: [1.2, 2.2],
-    enableGlow: true,
-    introSpread: [180, 440],
-    introMs: 1800,
-    floatAmp: [0.08, 0.06],
-  })
-}
 
 // hero 标题:真实 CSS 文字 + 鼠标 spotlight(JS 只 setProperty,无 RAF 物理)
 //   入场 / 流光 / hover 抬起全 CSS keyframe + animation-delay var(--i) 实现
@@ -884,7 +722,7 @@ const experience = [
         </div>
       </div>
       <div ref="megaEl" class="footer-mega" aria-hidden="true">
-        <span class="footer-mega-fallback">APOS</span>
+        <span class="footer-text">APOS</span>
       </div>
     </footer>
   </div>
@@ -1886,46 +1724,29 @@ a.contact-value:hover { color: var(--accent); }
   flex-wrap: wrap;
 }
 .dot-sep { color: var(--ink-3); }
+/* ===== Footer APOS — 大字 + 环境粒子流 + 滚动揭示 =====
+   设计:
+   - .footer-mega 容器无 contain/overflow:hidden,让粒子和光斑可越界
+   - .footer-text 真实 CSS 渐变文字(永远清晰),初态隐藏 → .in 触发 reveal
+   - .footer-ambient canvas 持续生成四周向中央汇聚的粒子
+   - 鼠标 spotlight 用 body 上 fixed 元素(JS 创建,inline style)
+   ============================================================ */
 .footer-mega {
   position: relative;
   width: 100%;
-  /* 用 aspect-ratio 给 canvas 提供尺寸,不依赖文字行高 */
   aspect-ratio: 4 / 1;
-  max-height: 360px;
-  min-height: 140px;
+  max-height: 380px;
+  min-height: 160px;
   margin: 0 auto -2vw;
   user-select: none;
   cursor: default;
   overflow: visible;
   isolation: isolate;
-  contain: layout paint;
+  /* 显式无 contain — 让 ambient canvas / 大字阴影可向外扩散 */
 }
-/* 鼠标辉光斑 — canvas 背后 radial-gradient 跟随鼠标 */
-.footer-mega::before {
-  content: "";
-  position: absolute;
-  left: var(--mx, 50%);
-  top: var(--my, 50%);
-  width: clamp(280px, 40vw, 600px);
-  height: clamp(280px, 40vw, 600px);
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    oklch(0.55 0.25 295 / 0.45) 0%,
-    oklch(0.65 0.20 220 / 0.22) 35%,
-    transparent 70%
-  );
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  opacity: 0;
-  filter: blur(48px);
-  transition: opacity 0.6s var(--ease-out);
-  z-index: 0;
-}
-.footer-mega:hover::before { opacity: 1; }
 
-/* SR-only fallback,prefers-reduced-motion 下显示真实 APOS 文字 */
-.footer-mega-fallback {
+/* 真实文字层 — 默认隐藏,IntersectionObserver 触发 .in 渐入 */
+.footer-text {
   position: absolute;
   inset: 0;
   display: flex;
@@ -1935,20 +1756,47 @@ a.contact-value:hover { color: var(--accent); }
   font-weight: 900;
   font-size: clamp(100px, 22vw, 320px);
   letter-spacing: -0.04em;
+  line-height: 1;
   background: linear-gradient(
     180deg,
-    oklch(0.50 0.25 295 / 0.85) 0%,
-    oklch(0.62 0.18 280 / 0.55) 40%,
-    oklch(0.78 0.10 295 / 0.25) 75%,
+    oklch(0.50 0.25 295 / 0.90) 0%,
+    oklch(0.58 0.22 280 / 0.65) 40%,
+    oklch(0.75 0.12 295 / 0.32) 75%,
     transparent 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  opacity: 0;  /* canvas 接管时隐藏 */
   pointer-events: none;
+  z-index: 3;
+
+  /* trae 风滚动揭示:从下偏 80px + scale 缩 + blur 模糊 → 清晰 */
+  opacity: 0;
+  transform: translateY(80px) scale(0.92);
+  filter: blur(14px);
+  transition:
+    opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.2s ease-out;
 }
-.footer-mega.static .footer-mega-fallback { opacity: 1; }
+.footer-mega.in .footer-text {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* 环境粒子 canvas(JS 创建,inline 也行,这里给个 fallback 样式) */
+.footer-ambient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 1.6s ease-out 0.3s;
+}
+.footer-mega.in .footer-ambient { opacity: 1; }
 
 /* ===== reveal ===== */
 .reveal-up { opacity: 0; transform: translateY(24px); transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out); }
