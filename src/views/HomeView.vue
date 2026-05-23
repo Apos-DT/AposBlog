@@ -247,7 +247,11 @@ function initFooterMega() {
     const rect = el.getBoundingClientRect()
     cssW = rect.width
     cssH = rect.height
-    if (cssW < 10 || cssH < 10) return
+    if (cssW < 10 || cssH < 10) {
+      // 容器尚未布局完成 — 下一帧再试
+      requestAnimationFrame(resize)
+      return
+    }
     dpr = Math.min(window.devicePixelRatio || 1, 2)
     for (const c of [textCanvas, ambientCanvas]) {
       c.width = Math.ceil(cssW * dpr)
@@ -408,7 +412,7 @@ function initFooterMega() {
         }
       })
     },
-    { threshold: 0.4 }
+    { threshold: 0.05 }  // 进视口即触发(footer 通常比视口小,40% 阈值会永远不达到)
   )
   obs.observe(el)
 
@@ -1907,7 +1911,8 @@ a.contact-value:hover { color: var(--accent); }
 }
 .footer-mega.static .footer-text { opacity: 1; }
 
-/* 文字粒子 canvas — 在上层(z:2),粒子拼出 APOS */
+/* 文字粒子 canvas — 在上层(z:2),粒子拼出 APOS
+   始终可见(opacity 1),粒子 alpha 由 JS intro 控制渐入 */
 .footer-text-canvas {
   position: absolute;
   inset: 0;
@@ -1925,22 +1930,6 @@ a.contact-value:hover { color: var(--accent); }
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  opacity: 0;
-  transition: opacity 1.6s ease-out 0.3s;
-}
-.footer-mega.in .footer-ambient,
-.footer-mega.in .footer-text-canvas {
-  opacity: 1;
-}
-.footer-text-canvas {
-  /* trae 风滚动揭示:粒子整体从下偏移渐入(每粒子内部 alpha 已乘 intro) */
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 1.4s var(--ease-out), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.footer-mega.in .footer-text-canvas {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* ===== reveal ===== */
