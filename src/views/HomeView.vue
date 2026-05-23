@@ -104,14 +104,17 @@ onMounted(() => {
 })
 
 // ============================================================
-// 底部大字交互(trae 风升级版,5 层叠加效果)
-//   1. 入场 — 滚动到底:stagger 浮入(CSS transition)
-//   2. 磁吸 — 鼠标移动:基于距离 smoothstep translateY 上浮
-//   3. 3D 透视 — perspective + rotateY/rotateX 立体翻转
-//   4. 缩放 — 靠近鼠标的字符 scale 略放大
-//   5. 待机呼吸 — 没鼠标时字符按 sin 波微微浮动
-//   6. 鼠标辉光 — radial-gradient 紫色光斑跟随鼠标,大字背后晕染
-//   全程单一 requestAnimationFrame loop,lerp 平滑过渡(无 transition 抢轨)
+// 底部大字交互(拟人化:躲避 + 害怕 + 逃跑)
+//   状态机:每个字符独立 3 态
+//     idle       — 待机,sin 波呼吸
+//     avoid      — 鼠标靠近 (≤ fearRadius),反方向偏移
+//     frightened — 鼠标触碰到字符 (≤ touchRadius),三段动画:
+//                  0-220ms  shake   高频随机震动 (惊吓)
+//                  220-1600ms escape easeOut 沿反向逃跑 ~240px
+//                  1600-2800ms return 慢慢回归原位
+//   触碰判定使用 home position(未被 transform 影响的原始坐标),
+//   不会出现"字符跑了就检测不到 → 又回来 → 又触发"死循环。
+//   home position 在初始 / scroll / resize 时重新测量。
 // ============================================================
 let megaCleanup = null
 
@@ -121,12 +124,12 @@ function initFooterMega() {
   const chars = Array.from(mega.querySelectorAll('.mega-char'))
   if (!chars.length) return
 
-  // ---- 初态:全部下移 50% + 透明,由 CSS transition 控制入场 ----
+  // 初态:全部下移 50% + 透明,由 CSS transition 控制入场
   chars.forEach((ch) => {
     ch.style.transform = 'translate3d(0, 50%, 0)'
   })
 
-  // 入场观察
+  // 入场
   let entered = false
   const obs = new IntersectionObserver(
     (entries) => {
@@ -139,7 +142,7 @@ function initFooterMega() {
               ch.classList.add('in')
             }, i * 90)
           })
-          // 入场动画完成后启动 tick(关掉 CSS transition,JS 完全接管)
+          // 入场结束后关 transition,JS tick 接管
           setTimeout(() => {
             chars.forEach((ch) => { ch.style.transition = 'none' })
             startTick()
@@ -152,63 +155,171 @@ function initFooterMega() {
   )
   obs.observe(mega)
 
-  // ---- 状态机 ----
+  // 状态
   let isHovering = false
   let mouseX = 0
   let mouseY = 0
   let breathT = 0
   let raf = 0
+  let homePositions = []
 
-  // 每个字符的当前插值状态(用于 lerp 过渡)
+  // 每个字符的运行时状态机
   const states = chars.map(() => ({
-    y: 0, scale: 1, rotY: 0, rotX: 0,
+    x: 0, y: 0, rot: 0, scale: 1,
+    mode: 'idle',              // 'idle' / 'avoid' / 'frightened'
+    frightenedAt: 0,
+    direction: { x: 0, y: 0 }, // 逃跑方向(归一化向量)
   }))
+
+  // 测量字符原始位置(无 transform 影响)
+  // 临时清 transform → 取 rect → 恢复
+  function cacheHome() {
+    const saved = chars.map((ch) => ch.style.transform)
+    chars.forEach((ch) => { ch.style.transform = 'none' })
+    // 强制 reflow 让 getBoundingClientRect 拿到新值
+    void mega.offsetHeight
+    const rect = mega.getBoundingClientRect()
+    homePositions = chars.map((ch) => {
+      const cr = ch.getBoundingClientRect()
+      return {
+        cx: cr.left + cr.width / 2 - rect.left,
+        cy: cr.top + cr.height / 2 - rect.top,
+        w: cr.width,
+        h: cr.height,
+      }
+    })
+    chars.forEach((ch, i) => { ch.style.transform = saved[i] })
+  }
 
   function startTick() {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
     const reducedTouch = matchMedia('(hover: none)').matches
-    const TARGET_LERP = 0.14
+
+    cacheHome()
+    // scroll / resize 节流后重新 cache
+    let cacheRaf = 0
+    function scheduleCache() {
+      cancelAnimationFrame(cacheRaf)
+      cacheRaf = requestAnimationFrame(cacheHome)
+    }
+    window.addEventListener('scroll', scheduleCache, { passive: true })
+    window.addEventListener('resize', scheduleCache)
+    megaCleanupExtras = () => {
+      cancelAnimationFrame(cacheRaf)
+      window.removeEventListener('scroll', scheduleCache)
+      window.removeEventListener('resize', scheduleCache)
+    }
+
+    const LERP = 0.18
 
     function tick() {
-      const rect = mega.getBoundingClientRect()
-      const maxDist = rect.width * 0.32
-
+      const now = performance.now()
       if (!isHovering) breathT += 0.014
 
       chars.forEach((ch, i) => {
-        let tY = 0, tScale = 1, tRotY = 0, tRotX = 0
+        const s = states[i]
+        const home = homePositions[i]
+        if (!home) return
 
-        if (isHovering && !reducedTouch) {
-          const cr = ch.getBoundingClientRect()
-          const cx = cr.left + cr.width / 2 - rect.left
-          const cy = cr.top + cr.height / 2 - rect.top
-          const dist = Math.abs(mouseX - cx)
-          const ratio = Math.max(0, 1 - dist / maxDist)
-          const eased = ratio * ratio * (3 - 2 * ratio)
+        // —— Frightened 状态机 ——
+        if (s.mode === 'frightened') {
+          const elapsed = now - s.frightenedAt
 
-          tY = -eased * 80                                              // 上浮
-          tScale = 1 + eased * 0.15                                     // 放大
-          tRotY = ((mouseX - cx) / Math.max(60, cr.width)) * eased * 18 // 左右倾斜(看着像在跟鼠标)
-          tRotX = ((cy - mouseY) / rect.height) * eased * 14            // 上下倾斜
+          if (elapsed < 220) {
+            // 震动阶段 — 高频随机抖动,不 lerp
+            const intensity = 16
+            const rx = (Math.random() - 0.5) * intensity * 2
+            const ry = (Math.random() - 0.5) * intensity * 2
+            const rr = (Math.random() - 0.5) * 28
+            s.x = rx
+            s.y = ry
+            s.rot = rr
+            s.scale = 0.92
+            ch.style.transform =
+              `translate3d(${rx.toFixed(1)}px, ${ry.toFixed(1)}px, 0) ` +
+              `rotate(${rr.toFixed(1)}deg) scale(0.92)`
+            raf = requestAnimationFrame(tick)
+            return
+          }
+
+          let tX = 0, tY = 0, tRot = 0, tScale = 1
+          if (elapsed < 1600) {
+            // 逃跑 easeOut
+            const t = (elapsed - 220) / 1380
+            const eased = 1 - Math.pow(1 - t, 3)
+            tX = s.direction.x * 240 * eased
+            tY = s.direction.y * 200 * eased
+            tRot = s.direction.x * 32 * eased
+            tScale = 1 - 0.18 * eased
+          } else if (elapsed < 2800) {
+            // 回归 easeIn
+            const t = (elapsed - 1600) / 1200
+            const eased = 1 - Math.pow(1 - t, 2)
+            tX = s.direction.x * 240 * (1 - eased)
+            tY = s.direction.y * 200 * (1 - eased)
+            tRot = s.direction.x * 32 * (1 - eased)
+            tScale = 1 - 0.18 * (1 - eased)
+          } else {
+            // 恢复 idle
+            s.mode = 'idle'
+            tX = 0; tY = 0; tRot = 0; tScale = 1
+          }
+
+          // lerp 平滑(逃跑/回归阶段)
+          s.x += (tX - s.x) * 0.3
+          s.y += (tY - s.y) * 0.3
+          s.rot += (tRot - s.rot) * 0.3
+          s.scale += (tScale - s.scale) * 0.3
         } else {
-          // 待机呼吸 — sin 波,每个字符偏移半个相位
-          tY = Math.sin(breathT + i * 0.6) * 6
-          // 微细旋转,生命感
-          tRotX = Math.sin(breathT * 0.7 + i * 0.4) * 2
+          // —— Idle / Avoid ——
+          let tX = 0, tY = 0, tRot = 0, tScale = 1
+
+          if (isHovering && !reducedTouch) {
+            const dx = home.cx - mouseX
+            const dy = home.cy - mouseY
+            const distance = Math.sqrt(dx * dx + dy * dy)
+            const touchRadius = Math.min(home.w, home.h) * 0.42
+            const fearRadius = 220
+
+            if (distance < touchRadius) {
+              // 触碰!进入 frightened
+              s.mode = 'frightened'
+              s.frightenedAt = now
+              const len = distance || 1
+              s.direction = { x: dx / len, y: dy / len }
+              raf = requestAnimationFrame(tick)
+              return
+            } else if (distance < fearRadius) {
+              // 躲避 — 沿反向偏移
+              const ratio = 1 - distance / fearRadius
+              const eased = ratio * ratio
+              const len = distance || 1
+              const norm = { x: dx / len, y: dy / len }
+              tX = norm.x * 75 * eased
+              tY = norm.y * 55 * eased
+              tRot = norm.x * 18 * eased
+              tScale = 1 - 0.05 * eased
+            } else {
+              // 远 — idle 呼吸
+              tY = Math.sin(breathT + i * 0.6) * 6
+              tRot = Math.sin(breathT * 0.7 + i * 0.4) * 1.5
+            }
+          } else {
+            // 完全 idle 呼吸
+            tY = Math.sin(breathT + i * 0.6) * 6
+            tRot = Math.sin(breathT * 0.7 + i * 0.4) * 1.5
+          }
+
+          s.x += (tX - s.x) * LERP
+          s.y += (tY - s.y) * LERP
+          s.rot += (tRot - s.rot) * LERP
+          s.scale += (tScale - s.scale) * LERP
         }
 
-        const s = states[i]
-        s.y     += (tY - s.y) * TARGET_LERP
-        s.scale += (tScale - s.scale) * TARGET_LERP
-        s.rotY  += (tRotY - s.rotY) * TARGET_LERP
-        s.rotX  += (tRotX - s.rotX) * TARGET_LERP
-
         ch.style.transform =
-          `translate3d(0, ${s.y.toFixed(2)}px, 0) ` +
-          `scale(${s.scale.toFixed(3)}) ` +
-          `rotateY(${s.rotY.toFixed(2)}deg) ` +
-          `rotateX(${s.rotX.toFixed(2)}deg)`
+          `translate3d(${s.x.toFixed(1)}px, ${s.y.toFixed(1)}px, 0) ` +
+          `rotate(${s.rot.toFixed(1)}deg) ` +
+          `scale(${s.scale.toFixed(3)})`
       })
 
       raf = requestAnimationFrame(tick)
@@ -216,7 +327,6 @@ function initFooterMega() {
     raf = requestAnimationFrame(tick)
   }
 
-  // ---- 事件绑定 ----
   function onEnter(e) {
     isHovering = true
     onMove(e)
@@ -225,7 +335,6 @@ function initFooterMega() {
     const rect = mega.getBoundingClientRect()
     mouseX = e.clientX - rect.left
     mouseY = e.clientY - rect.top
-    // CSS 变量驱动辉光斑跟随
     mega.style.setProperty('--mx', mouseX + 'px')
     mega.style.setProperty('--my', mouseY + 'px')
   }
@@ -242,11 +351,14 @@ function initFooterMega() {
   megaCleanup = () => {
     obs.disconnect()
     cancelAnimationFrame(raf)
+    if (megaCleanupExtras) megaCleanupExtras()
     mega.removeEventListener('mouseenter', onEnter)
     mega.removeEventListener('mousemove', onMove)
     mega.removeEventListener('mouseleave', onLeave)
   }
 }
+
+let megaCleanupExtras = null
 
 onBeforeUnmount(() => {
   if (megaCleanup) megaCleanup()
