@@ -134,6 +134,8 @@ function createParticleField(container, opts = {}) {
     enableGlow = true,
     introMs = 1800,
     introSpread = [180, 440],      // 入场起点距离 home 的 [min, max] (CSS px)
+    originMode = 'random',          // 'random' = 随机散开 / 'converge' = 从容器四周向中央汇聚
+    introGlowPeak = 0.0,           // 入场期间全粒子假"亮度"峰值(钟形,0=关)
     spring = 0.018,
     damping = 0.86,
     floatAmp = [0.08, 0.06],       // [x, y] 漂浮幅度
@@ -215,6 +217,13 @@ function createParticleField(container, opts = {}) {
 
     const [rMin, rRand] = [radiusRange[0], radiusRange[1] - radiusRange[0]]
     const [spreadMin, spreadRange] = [introSpread[0], introSpread[1] - introSpread[0]]
+
+    // 容器中心 + 对角线长度 — converge 模式从外围向中央汇聚
+    const cxDpr = (cssW / 2) * dpr
+    const cyDpr = (cssH / 2) * dpr
+    const diagDpr = Math.sqrt(cssW * cssW + cssH * cssH) * dpr
+    const spawnR = diagDpr * 0.6  // 容器外稍远
+
     const arr = []
     for (let y = 0; y < off.height; y += step) {
       for (let x = 0; x < off.width; x += step) {
@@ -222,11 +231,26 @@ function createParticleField(container, opts = {}) {
         if (a > 128) {
           const hx = (xOff + x) * dpr
           const hy = (yOff + y) * dpr
-          const angle = Math.random() * Math.PI * 2
-          const dist = (spreadMin + Math.random() * spreadRange) * dpr
+
+          let startX, startY
+          if (originMode === 'converge') {
+            // 从容器中心向外某随机角度发射,起点在容器边缘外
+            // → 视觉:粒子从四周向中央聚集成字
+            const angle = Math.random() * Math.PI * 2
+            const r = spawnR * (0.85 + Math.random() * 0.4)
+            startX = cxDpr + Math.cos(angle) * r
+            startY = cyDpr + Math.sin(angle) * r
+          } else {
+            // random: 各粒子从 home 附近随机方向散开
+            const angle = Math.random() * Math.PI * 2
+            const dist = (spreadMin + Math.random() * spreadRange) * dpr
+            startX = hx + Math.cos(angle) * dist
+            startY = hy + Math.sin(angle) * dist - 60 * dpr
+          }
+
           arr.push({
-            x: hx + Math.cos(angle) * dist,
-            y: hy + Math.sin(angle) * dist - 60 * dpr,
+            x: startX,
+            y: startY,
             hx, hy,
             vx: (Math.random() - 0.5) * 2,
             vy: (Math.random() - 0.5) * 2,
@@ -281,6 +305,12 @@ function createParticleField(container, opts = {}) {
     const fAmpX = floatAmp[0]
     const fAmpY = floatAmp[1]
 
+    // 入场全粒子高亮 — 钟形曲线,聚拢瞬间(intro≈0.7) 字体最亮
+    // 让"粒子从四周飞来→拼成发光字→光晕消散"看起来像点亮一盏灯
+    const introGlow = (introGlowPeak > 0 && intro < 1)
+      ? Math.sin(intro * Math.PI) * introGlowPeak
+      : 0
+
     for (let i = 0; i < particles.length; i++) {
       const p = particles[i]
 
@@ -320,16 +350,19 @@ function createParticleField(container, opts = {}) {
         movingAny = true
       }
 
-      const hue = baseHueCenter + p.hueShift + p.lit * 18
-      const sat = baseSat + p.lit * satBoost
-      const light = baseLight + p.lit * lightBoost
-      const alpha = (baseAlpha + p.lit * alphaBoost) * intro
-      const radius = p.r * (1 + p.lit * radiusBoost)
+      // 入场期间引入全粒子假亮度,与鼠标力场 lit 取大
+      const effLit = introGlow > p.lit ? introGlow : p.lit
 
-      if (enableGlow && p.lit > 0.18) {
-        ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.35).toFixed(3)})`
+      const hue = baseHueCenter + p.hueShift + effLit * 18
+      const sat = baseSat + effLit * satBoost
+      const light = baseLight + effLit * lightBoost
+      const alpha = (baseAlpha + effLit * alphaBoost) * intro
+      const radius = p.r * (1 + effLit * radiusBoost)
+
+      if (enableGlow && effLit > 0.15) {
+        ctx.fillStyle = `hsla(${hue.toFixed(0)}, ${sat.toFixed(0)}%, ${light.toFixed(0)}%, ${(alpha * 0.30).toFixed(3)})`
         ctx.beginPath()
-        ctx.arc(p.x, p.y, radius * 3.2, 0, Math.PI * 2)
+        ctx.arc(p.x, p.y, radius * 3.4, 0, Math.PI * 2)
         ctx.fill()
       }
 
@@ -450,7 +483,8 @@ function initFooterMega() {
 }
 
 function initHeroParticles() {
-  // hero 多行 + 高可视度:深紫高饱和 + 步长更小 + 关掉柔光晕(粒子多省一倍 fill)
+  // hero 多行 + 聚集入场 + 发光字:粒子从容器外围向中央汇聚成字,
+  // 聚拢瞬间(intro ≈ 0.7) 整体亮度峰值 → 看起来像点亮的灯字
   heroParticlesCleanup = createParticleField(heroTitleEl.value, {
     text: 'Building at\nthe Edge of\nManufacturing.',
     fontWeight: 800,
@@ -461,20 +495,21 @@ function initHeroParticles() {
     fitWidthRatio: 0.96,
     fitHeightRatio: 0.92,
     lineHeight: 1.04,
-    baseAlpha: 0.82,     // 高不透明,字形清晰
-    baseLight: 38,       // 深紫
-    lightBoost: 22,      // 鼠标过去高亮强
-    baseSat: 82,         // 高饱和
-    satBoost: 10,
+    baseAlpha: 0.82,
+    baseLight: 42,
+    lightBoost: 26,
+    baseSat: 84,
+    satBoost: 12,
     baseHueCenter: 278,
-    hueJitter: 22,
+    hueJitter: 24,
     radiusRange: [1.3, 2.4],
-    radiusBoost: 1.0,    // 推力放大温和(避免破坏字形)
-    enableGlow: false,   // 粒子多 -> 关晕省 fillCircle 一半
-    introSpread: [100, 260],
-    introMs: 1600,
-    spring: 0.022,       // 收拢更快
-    damping: 0.85,
+    radiusBoost: 1.0,
+    enableGlow: true,          // 开启柔光晕,发光感
+    originMode: 'converge',    // 从容器外围向中央汇聚
+    introGlowPeak: 0.85,       // 入场全粒子高亮峰值(钟形)
+    introMs: 2200,             // 入场时长拉到 2.2s 让聚集过程清晰
+    spring: 0.013,             // 弹簧更柔,粒子飞越路径更长
+    damping: 0.90,             // 减少震荡,飞行更稳
     floatAmp: [0.05, 0.04],
   })
 }
