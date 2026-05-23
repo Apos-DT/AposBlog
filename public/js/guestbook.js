@@ -240,7 +240,7 @@
       : ''
 
     var html =
-      '<article class="gb-item" data-id="' + escapeAttr(m.id) + '">' +
+      '<article class="gb-item" data-id="' + escapeAttr(m.id) + '" data-emoji="' + escapeAttr(m.emoji || '😊') + '">' +
         '<header class="gb-item-head">' +
           '<div class="gb-avatar"' + avatarStyle + '>' +
             avatarInner +
@@ -354,69 +354,268 @@
     })
   }
 
-  function drawEmojiChart() {
-    var canvas = document.getElementById('gb-emoji-chart')
-    if (!canvas) return
-    var ctx = canvas.getContext('2d')
-    var w = canvas.width, h = canvas.height
-    var cx = w / 2, cy = h / 2
-    var r = Math.min(w, h) / 2 - 22
-    ctx.clearRect(0, 0, w, h)
+  // ============ 情绪分布交互式环图 ============
+  // 状态:items / total / hoveredIdx / activeFilter,绘制/事件复用
+  var chartState = {
+    items: [],
+    total: 0,
+    hoveredIdx: -1,
+    activeFilter: null,
+    geom: { cx: 0, cy: 0, r: 0, rInner: 0 },
+  }
+  var CHART_COLORS = ['#7c3aed', '#0891b2', '#d97706', '#16a34a', '#e11d48', '#6366f1']
+  var chartEventsBound = false
 
+  function rebuildChartData() {
     var map = {}
     messages.forEach(function (m) {
       var e = m.emoji || '😊'
       map[e] = (map[e] || 0) + 1
     })
-    var items = Object.keys(map).map(function (k) { return [k, map[k]] })
+    chartState.items = Object.keys(map).map(function (k) { return [k, map[k]] })
       .sort(function (a, b) { return b[1] - a[1] }).slice(0, 6)
-    var total = items.reduce(function (s, x) { return s + x[1] }, 0)
+    chartState.total = chartState.items.reduce(function (s, x) { return s + x[1] }, 0)
+    // 当前过滤的 emoji 已不存在(被删光了) → 清除
+    if (chartState.activeFilter &&
+        !chartState.items.some(function (x) { return x[0] === chartState.activeFilter })) {
+      chartState.activeFilter = null
+      applyEmojiFilter()
+    }
+  }
 
-    if (total === 0) {
+  function drawEmojiChart() {
+    rebuildChartData()
+    redrawChart()
+    renderLegend()
+    bindChartEvents()
+    // 数据变化(新增/删除)后,把当前 filter 应用到新 item
+    if (chartState.activeFilter) applyEmojiFilter()
+  }
+
+  function redrawChart() {
+    var canvas = document.getElementById('gb-emoji-chart')
+    if (!canvas) return
+    var ctx = canvas.getContext('2d')
+    var w = canvas.width, h = canvas.height
+    var cx = w / 2, cy = h / 2
+    var r = Math.min(w, h) / 2 - 14
+    chartState.geom = { cx: cx, cy: cy, r: r, rInner: r * 0.55 }
+    ctx.clearRect(0, 0, w, h)
+
+    if (chartState.total === 0) {
       ctx.fillStyle = '#94a3b8'
-      ctx.font = '12px sans-serif'
+      ctx.font = '13px sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
-      ctx.fillText('暂无数据', cx, cy)
+      ctx.fillText('还没有留言', cx, cy)
       return
     }
 
-    var colors = ['#7c3aed', '#0891b2', '#d97706', '#16a34a', '#e11d48', '#6366f1']
+    // 扇区
     var start = -Math.PI / 2
-    items.forEach(function (item, i) {
-      var angle = (item[1] / total) * Math.PI * 2
+    chartState.items.forEach(function (item, i) {
+      var angle = (item[1] / chartState.total) * Math.PI * 2
+      var isHovered = i === chartState.hoveredIdx
+      var isDimmed = chartState.activeFilter && chartState.activeFilter !== item[0]
+      var sliceR = isHovered ? r + 6 : r
+
+      ctx.save()
+      if (isDimmed) ctx.globalAlpha = 0.25
       ctx.beginPath()
       ctx.moveTo(cx, cy)
-      ctx.arc(cx, cy, r, start, start + angle)
+      ctx.arc(cx, cy, sliceR, start, start + angle)
       ctx.closePath()
-      ctx.fillStyle = colors[i % colors.length]
+      ctx.fillStyle = CHART_COLORS[i % CHART_COLORS.length]
       ctx.fill()
 
-      // 边缘 emoji 标签
-      var mid = start + angle / 2
-      var lx = cx + Math.cos(mid) * (r + 14)
-      var ly = cy + Math.sin(mid) * (r + 14)
-      ctx.font = '15px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(item[0], lx, ly)
+      // hover 阴影描边
+      if (isHovered) {
+        ctx.strokeStyle = '#fff'
+        ctx.lineWidth = 2
+        ctx.stroke()
+      }
+      ctx.restore()
+
       start += angle
     })
 
     // 中心圆盖出 donut 风格
     ctx.beginPath()
-    ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2)
+    ctx.arc(cx, cy, chartState.geom.rInner, 0, Math.PI * 2)
     ctx.fillStyle = '#fefdfb'
     ctx.fill()
 
+    // 中心数字 / 标签 — 根据 hover/filter 状态显示不同信息
+    var centerNum, centerLabel
+    if (chartState.hoveredIdx !== -1) {
+      var hi = chartState.items[chartState.hoveredIdx]
+      centerNum = hi[0]  // emoji
+      centerLabel = hi[1] + ' 条 · ' + ((hi[1] / chartState.total) * 100).toFixed(1) + '%'
+    } else if (chartState.activeFilter) {
+      var fi = chartState.items.find(function (x) { return x[0] === chartState.activeFilter })
+      centerNum = fi[0]
+      centerLabel = '已筛选 · 点空白取消'
+    } else {
+      centerNum = chartState.total
+      centerLabel = '情绪分布'
+    }
+
     ctx.fillStyle = '#1e293b'
-    ctx.font = 'bold 22px Space Grotesk, sans-serif'
+    ctx.font = (typeof centerNum === 'string' && centerNum.length <= 2)
+      ? '28px sans-serif'
+      : 'bold 22px Space Grotesk, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(total, cx, cy - 4)
-    ctx.font = '11px JetBrains Mono, monospace'
+    ctx.fillText(String(centerNum), cx, cy - 5)
+    ctx.font = '10.5px JetBrains Mono, monospace'
     ctx.fillStyle = '#64748b'
-    ctx.fillText('情绪分布', cx, cy + 14)
+    ctx.fillText(centerLabel, cx, cy + 14)
+  }
+
+  function renderLegend() {
+    var $legend = $('#gb-chart-legend')
+    if (!$legend.length) return
+    $legend.empty()
+    if (chartState.total === 0) {
+      $legend.append('<div style="color:var(--ink-3);font-size:11px;text-align:center;padding:12px;">等第一条留言…</div>')
+      return
+    }
+    chartState.items.forEach(function (item, i) {
+      var emoji = item[0], count = item[1]
+      var pct = (count / chartState.total * 100).toFixed(1)
+      var color = CHART_COLORS[i % CHART_COLORS.length]
+      var isActive = chartState.activeFilter === emoji
+      var isDimmed = chartState.activeFilter && !isActive
+      var $row = $(
+        '<div class="legend-row' + (isActive ? ' active' : '') + (isDimmed ? ' dim' : '') + '" ' +
+        'data-emoji="' + escapeAttr(emoji) + '" data-idx="' + i + '">' +
+          '<span class="legend-dot" style="color:' + color + '"></span>' +
+          '<span class="legend-emoji">' + emoji + '</span>' +
+          '<span class="legend-count">' + count + '</span>' +
+          '<span class="legend-pct">' + pct + '%</span>' +
+        '</div>'
+      )
+      $legend.append($row)
+    })
+    if (chartState.activeFilter) {
+      $legend.append('<div class="legend-clear">✕ 清除筛选</div>')
+    }
+  }
+
+  function bindChartEvents() {
+    if (chartEventsBound) return
+    chartEventsBound = true
+    var $canvas = $('#gb-emoji-chart')
+    var $tooltip = $('#gb-chart-tooltip')
+
+    function hitTestSlice(mx, my) {
+      var g = chartState.geom
+      var dx = mx - g.cx, dy = my - g.cy
+      var dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist < g.rInner || dist > g.r + 8) return -1
+      var ang = Math.atan2(dy, dx) + Math.PI / 2  // 0=top,顺时针
+      if (ang < 0) ang += Math.PI * 2
+      var cumulative = 0
+      for (var i = 0; i < chartState.items.length; i++) {
+        var sectorAngle = chartState.items[i][1] / chartState.total * Math.PI * 2
+        if (ang < cumulative + sectorAngle) return i
+        cumulative += sectorAngle
+      }
+      return -1
+    }
+
+    $canvas.on('mousemove.gb', function (e) {
+      if (chartState.total === 0) return
+      var rect = this.getBoundingClientRect()
+      var sx = e.clientX - rect.left
+      var sy = e.clientY - rect.top
+      // 缩放因子(CSS 显示尺寸 vs canvas 内部尺寸)
+      var fx = this.width / rect.width
+      var fy = this.height / rect.height
+      var idx = hitTestSlice(sx * fx, sy * fy)
+      if (idx !== chartState.hoveredIdx) {
+        chartState.hoveredIdx = idx
+        redrawChart()
+      }
+      if (idx !== -1) {
+        var item = chartState.items[idx]
+        var pct = (item[1] / chartState.total * 100).toFixed(1)
+        $tooltip
+          .text(item[0] + '  ' + item[1] + ' 条 · ' + pct + '%')
+          .css({ left: sx + 'px', top: sy + 'px' })
+          .addClass('show')
+      } else {
+        $tooltip.removeClass('show')
+      }
+    })
+
+    $canvas.on('mouseleave.gb', function () {
+      if (chartState.hoveredIdx !== -1) {
+        chartState.hoveredIdx = -1
+        redrawChart()
+      }
+      $tooltip.removeClass('show')
+    })
+
+    $canvas.on('click.gb', function (e) {
+      var rect = this.getBoundingClientRect()
+      var fx = this.width / rect.width
+      var fy = this.height / rect.height
+      var idx = hitTestSlice((e.clientX - rect.left) * fx, (e.clientY - rect.top) * fy)
+      if (idx !== -1) {
+        toggleEmojiFilter(chartState.items[idx][0])
+      } else {
+        // 中心圆点击 → 清除筛选
+        if (chartState.activeFilter) {
+          chartState.activeFilter = null
+          applyEmojiFilter()
+          redrawChart()
+          renderLegend()
+        }
+      }
+    })
+
+    // legend 行 — hover 联动 + click 过滤
+    $('#gb-chart-legend')
+      .on('mouseenter.gb', '.legend-row', function () {
+        var idx = parseInt($(this).attr('data-idx'), 10)
+        if (idx !== chartState.hoveredIdx) {
+          chartState.hoveredIdx = idx
+          redrawChart()
+        }
+      })
+      .on('mouseleave.gb', '.legend-row', function () {
+        chartState.hoveredIdx = -1
+        redrawChart()
+      })
+      .on('click.gb', '.legend-row', function () {
+        toggleEmojiFilter($(this).attr('data-emoji'))
+      })
+      .on('click.gb', '.legend-clear', function () {
+        chartState.activeFilter = null
+        applyEmojiFilter()
+        redrawChart()
+        renderLegend()
+      })
+  }
+
+  function toggleEmojiFilter(emoji) {
+    chartState.activeFilter = (chartState.activeFilter === emoji) ? null : emoji
+    applyEmojiFilter()
+    redrawChart()
+    renderLegend()
+  }
+
+  function applyEmojiFilter() {
+    var filter = chartState.activeFilter
+    $('.gb-item').each(function () {
+      var $i = $(this)
+      if (!filter || $i.attr('data-emoji') === filter) {
+        $i.removeClass('gb-filtered-out')
+      } else {
+        $i.addClass('gb-filtered-out')
+      }
+    })
   }
 
   // ============================================================

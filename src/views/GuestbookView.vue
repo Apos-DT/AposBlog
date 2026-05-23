@@ -160,7 +160,11 @@ function loadScript(src, bust = false) {
         </div>
       </div>
       <div class="gb-stats-chart">
-        <canvas id="gb-emoji-chart" width="180" height="180"></canvas>
+        <div class="gb-chart-wrap">
+          <canvas id="gb-emoji-chart" width="200" height="200"></canvas>
+          <div id="gb-chart-tooltip" class="gb-chart-tooltip" role="tooltip"></div>
+        </div>
+        <div id="gb-chart-legend" class="gb-chart-legend"></div>
       </div>
     </article>
 
@@ -555,10 +559,116 @@ function loadScript(src, bust = false) {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.gb-chart-wrap {
+  position: relative;
+  display: inline-block;
 }
 .gb-stats-chart canvas {
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 180px;
+  cursor: pointer;
+  display: block;
+}
+/* tooltip 跟随鼠标 */
+.gb-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: oklch(0.18 0.02 280 / 0.92);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -100%) translateY(-8px);
+  transition: opacity 0.15s var(--ease-out);
+  z-index: 10;
+  box-shadow: 0 4px 14px oklch(0 0 0 / 0.18);
+}
+.gb-chart-tooltip.show { opacity: 1; }
+.gb-chart-tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: oklch(0.18 0.02 280 / 0.92);
+}
+/* legend */
+.gb-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.gb-chart-legend .legend-row {
+  display: grid;
+  grid-template-columns: 12px 22px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: background 0.18s, color 0.18s, transform 0.18s var(--ease-out);
+}
+.gb-chart-legend .legend-row:hover {
+  background: oklch(0.94 0.02 280 / 0.5);
+  transform: translateX(2px);
+}
+.gb-chart-legend .legend-row.active {
+  background: oklch(0.92 0.06 295 / 0.4);
+  color: var(--ink);
+  font-weight: 600;
+}
+.gb-chart-legend .legend-row.dim {
+  opacity: 0.35;
+}
+.gb-chart-legend .legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: currentColor;
+}
+.gb-chart-legend .legend-emoji {
+  font-size: 16px;
+  text-align: center;
+}
+.gb-chart-legend .legend-count {
+  color: var(--ink);
+  font-weight: 600;
+}
+.gb-chart-legend .legend-pct {
+  color: var(--ink-3);
+  font-size: 11px;
+}
+.gb-chart-legend .legend-clear {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--accent);
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.gb-chart-legend .legend-clear:hover {
+  background: var(--accent);
+  color: #fff;
+}
+/* 过滤掉的留言项 */
+.gb-item.gb-filtered-out {
+  display: none;
 }
 
 /* ===== 表单 ===== */
