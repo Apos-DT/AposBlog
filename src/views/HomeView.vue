@@ -1085,14 +1085,17 @@ const experience = [
 }
 
 /* italic 字 —— 暖琥珀色,有自己的流光循环
-   serif italic 字符向右下倾斜,e/y/g 等的尾部超出字符 advance 框,
-   需 padding-right 释放右侧 + 微调 padding-bottom 兜底 descender */
+   Fraunces variable serif 的 italic 字形(e/y/g)有显著的右下卷尾,
+   超出字符 advance box。background-clip:text 只裁到 padding-box,
+   所以用 padding 把可绘制区域撑大,确保字尾被完整 paint。
+   margin-right 重置为 0,改用 padding-right 充当与下一 word 的间距。 */
 .hero-title .word.italic {
   font-family: var(--font-serif);
   font-style: italic;
   font-weight: 400;
-  padding-right: 0.08em;
-  padding-bottom: 0.05em;
+  /* padding 顺序:上 右 下 左 — 顶部 cap 余 / 右侧大量缓冲 / 底部 descender / 左侧不动 */
+  padding: 0.06em 0.22em 0.14em 0.04em;
+  margin-right: 0;
   background-image: linear-gradient(
     100deg,
     var(--accent-warm) 0%,
