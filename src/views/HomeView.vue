@@ -7,12 +7,25 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
+import { useNotesStore } from '@/stores/notes'
+import { useTagsStore } from '@/stores/tags'
 import { useSettingsStore } from '@/stores/settings'
 
 import IconBase from '@/components/IconBase.vue'
 
 const posts = usePostsStore()
+const notesStore = useNotesStore()
+const tagsStore = useTagsStore()
 const settings = useSettingsStore()
+
+// hero 顶部装饰用编辑期号 — 月份生成
+const issueLabel = computed(() => {
+  const d = new Date()
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+  const issueNo = String((d.getFullYear() - 2024) * 12 + d.getMonth() + 1).padStart(2, '0')
+  return `ISSUE ${issueNo} · ${months[d.getMonth()]} ${d.getFullYear()}`
+})
+const latestPost = computed(() => posts.sorted[0] || null)
 
 const heroEl = ref(null)
 const heroTitleEl = ref(null)
@@ -579,13 +592,18 @@ const experience = [
 
 <template>
   <div class="home-page">
-    <!-- HERO -->
+    <!-- HERO — 编辑/杂志风 巨型标题 + 实时 metadata strip -->
     <section ref="heroEl" class="hero" id="hero">
-      <div class="hero-meta">
-        <span class="dot"></span>
-        <span>WRITING · BUILDING · THINKING — Since 2024</span>
+      <!-- 报刊感顶部 strip:期号 / tagline / 系统时间 -->
+      <div class="hero-eyebrow">
+        <span class="eyebrow-issue">{{ issueLabel }}</span>
+        <span class="eyebrow-line"></span>
+        <span class="eyebrow-tag">WRITING · BUILDING · THINKING</span>
+        <span class="eyebrow-line eyebrow-line-flex"></span>
+        <span class="eyebrow-since">SINCE 2024</span>
       </div>
 
+      <!-- 巨型标题 — 多行编辑感断行 -->
       <h1 ref="heroTitleEl" class="hero-title">
         <span class="line">
           <span class="word" style="--i: 0">Building</span>
@@ -608,6 +626,54 @@ const experience = [
         </RouterLink>
         <RouterLink class="btn btn-ghost" to="/guestbook">
           <span>留下脚印</span>
+        </RouterLink>
+        <RouterLink class="btn btn-ghost" to="/portfolio">
+          <span>作品集</span>
+        </RouterLink>
+      </div>
+
+      <!-- 实时 metadata strip:NOW / 统计 / 最新一篇 -->
+      <div class="hero-strip">
+        <div class="strip-cell strip-now">
+          <span class="dot live"></span>
+          <div class="strip-text">
+            <div class="strip-label">CURRENTLY</div>
+            <div class="strip-value">Odoo ERP · 工业机器视觉</div>
+          </div>
+        </div>
+
+        <div class="strip-divider"></div>
+
+        <div class="strip-cell">
+          <div class="strip-num">{{ posts.posts.length }}</div>
+          <div class="strip-label">POSTS</div>
+        </div>
+
+        <div class="strip-divider"></div>
+
+        <div class="strip-cell">
+          <div class="strip-num">{{ notesStore.stats.total }}</div>
+          <div class="strip-label">NOTES</div>
+        </div>
+
+        <div class="strip-divider"></div>
+
+        <div class="strip-cell">
+          <div class="strip-num">{{ tagsStore.all.length }}</div>
+          <div class="strip-label">TAGS</div>
+        </div>
+
+        <div class="strip-divider"></div>
+
+        <RouterLink
+          v-if="latestPost"
+          class="strip-cell strip-latest"
+          :to="`/posts/${latestPost.slug}`"
+        >
+          <div class="strip-text">
+            <div class="strip-label">LATEST POST →</div>
+            <div class="strip-value strip-latest-title">{{ latestPost.title }}</div>
+          </div>
         </RouterLink>
       </div>
 
@@ -832,22 +898,21 @@ const experience = [
   padding: 0 clamp(24px, 4vw, 64px);
 }
 
-/* ===== HERO — 紧凑布局,确保第一屏完整可见 ===== */
+/* ===== HERO — 编辑/杂志风,巨型字 + 实时 metadata strip 占满首屏 ===== */
 .hero {
   position: relative;
   min-height: calc(100svh - var(--nav-h));
-  padding: clamp(32px, 5vh, 56px) 0 clamp(24px, 4vh, 40px);
+  padding: clamp(40px, 8vh, 80px) 0 clamp(32px, 5vh, 56px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
 }
-/* 全宽 spotlight — 突破 home-page 的 max-width 约束,
+/* 全宽双色光晕 — 突破 home-page 的 max-width 约束,
    背景延伸到 viewport 两侧,消除"内容边界感" */
 .hero::before {
   content: "";
   position: absolute;
-  /* 用负 margin + 100vw 突破父级 max-width,延伸到 viewport 边缘 */
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -855,31 +920,49 @@ const experience = [
   height: 100%;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 60% 50% at 25% 30%, oklch(0.50 0.22 295 / 0.10), transparent 60%),
-    radial-gradient(ellipse 50% 50% at 80% 70%, oklch(0.55 0.18 220 / 0.08), transparent 60%);
+    radial-gradient(ellipse 55% 45% at 20% 25%, oklch(0.50 0.22 295 / 0.12), transparent 60%),
+    radial-gradient(ellipse 45% 45% at 85% 75%, oklch(0.60 0.18 220 / 0.10), transparent 60%);
   z-index: -1;
 }
-.hero-meta {
-  display: inline-flex;
+
+/* ===== 顶部编辑期号条 — 报刊感分隔线 + ISSUE 标签 ===== */
+.hero-eyebrow {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(12px, 1.5vw, 20px);
+  margin-bottom: clamp(20px, 4vh, 40px);
   font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-3);
-  margin-bottom: clamp(14px, 2vh, 22px);
 }
-.hero-meta .dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px var(--accent);
-  animation: hero-pulse 2.4s ease-in-out infinite;
+.eyebrow-issue {
+  color: var(--accent);
+  font-weight: 600;
 }
-@keyframes hero-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
+.eyebrow-tag {
+  white-space: nowrap;
+}
+.eyebrow-line {
+  width: clamp(24px, 4vw, 60px);
+  height: 1px;
+  background: var(--line);
+}
+.eyebrow-line-flex {
+  flex: 1;
+  max-width: 240px;
+}
+.eyebrow-since {
+  color: var(--ink-3);
+}
+
+@media (max-width: 720px) {
+  .hero-eyebrow {
+    flex-wrap: wrap;
+    font-size: 10px;
+  }
+  .eyebrow-line-flex { display: none; }
 }
 
 /* ===== Hero 标题 — 真实 CSS 文字 + 流光填充 + 鼠标 spotlight =====
@@ -892,13 +975,18 @@ const experience = [
 .hero-title {
   position: relative;
   font-family: var(--font-display);
-  font-size: clamp(40px, 7vw, 96px);
+  /* 巨型字 — 从 96px 拉到 160px,占满第一屏视觉 */
+  font-size: clamp(56px, 12vw, 168px);
   font-weight: 700;
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-  margin: 0 0 clamp(18px, 2.5vh, 26px);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  margin: 0 0 clamp(28px, 4vh, 48px);
   color: var(--ink);
   isolation: isolate;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* 跟随鼠标的 radial spotlight,mix-blend lighten 在浅底变明亮 */
@@ -1045,15 +1133,15 @@ const experience = [
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: clamp(28px, 4vh, 48px);
+  margin-bottom: clamp(32px, 5vh, 56px);
 }
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 11px 22px;
+  padding: 12px 24px;
   border-radius: 999px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   transition: transform 0.3s var(--ease-out), background 0.3s, color 0.3s, border-color 0.3s;
   border: 1px solid transparent;
@@ -1062,6 +1150,134 @@ const experience = [
 .btn-primary:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
 .btn-ghost:hover { border-color: var(--ink); transform: translateY(-2px); }
+
+/* ===== Hero 底部实时 metadata strip — Linear/Vercel 风信息条 ===== */
+.hero-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: clamp(24px, 3.5vh, 40px);
+  padding: clamp(16px, 1.6vh, 22px) clamp(20px, 2vw, 28px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg,
+    oklch(0.97 0.005 280 / 0.4),
+    oklch(0.97 0.005 280 / 0.15));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  flex-wrap: wrap;
+  /* 入场:从下方渐入 */
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-strip-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+}
+@keyframes hero-strip-in {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.strip-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px clamp(16px, 1.8vw, 28px);
+  min-height: 48px;
+  color: var(--ink-2);
+  transition: color 0.3s;
+}
+.strip-cell.strip-now {
+  flex: 0 0 auto;
+}
+.strip-cell.strip-latest {
+  flex: 1 1 0;
+  min-width: 180px;
+  padding-right: 6px;
+  transition: transform 0.3s var(--ease-out), color 0.3s;
+}
+.strip-cell.strip-latest:hover {
+  color: var(--accent);
+  transform: translateX(4px);
+}
+.strip-cell.strip-latest:hover .strip-label { color: var(--accent); }
+
+.strip-divider {
+  width: 1px;
+  background: var(--line-soft);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.strip-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.strip-num {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.strip-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.strip-value {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.strip-latest-title {
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.strip-cell .dot.live {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--success, oklch(0.65 0.18 145));
+  box-shadow: 0 0 12px var(--success, oklch(0.65 0.18 145));
+  animation: strip-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes strip-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+@media (max-width: 900px) {
+  .hero-strip {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 16px;
+  }
+  .strip-cell {
+    padding: 12px 8px;
+    min-height: 0;
+  }
+  .strip-divider {
+    width: 100%;
+    height: 1px;
+  }
+  .strip-latest { padding-right: 8px; }
+}
 
 .hero-scroll {
   display: inline-flex;
