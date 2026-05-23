@@ -38,29 +38,22 @@ function submitSearch() {
  *   - 鼠标 hover 主项时子菜单展开
  */
 const mainNav = [
-  { to: '/', label: '首页' },
-  {
-    to: '/library',
-    label: '写作',
-    hasChildren: true,
-    children: [
-      { to: '/library', label: '文章库',   desc: '已发表的全部博文与外部收藏' },
-      { to: '/notes',   label: '笔记',     desc: 'Karpathy 风长文笔记' },
-      { to: '/graph',   label: '知识图谱', desc: '笔记 + 标签 + 文章的关系网' },
-      { to: '/stats',   label: '阅读统计', desc: '阅读 / 笔记 / 标签 4 张图' },
-    ],
-  },
+  { to: '/',          label: '首页' },
+  { to: '/library',   label: '文章库' },
+  { to: '/notes',     label: '笔记' },
+  { to: '/graph',     label: '知识图谱' },
   { to: '/portfolio', label: '作品集' },
-  { to: '/chat',      label: 'AI 对话' },
   { to: '/guestbook', label: '留言板' },
+  { to: '/chat',      label: 'AI' },
   {
     to: '/settings',
     label: '工具',
     hasChildren: true,
     children: [
-      { to: '/dashboard', label: '仪表板', desc: '阅读与笔记总览' },
-      { to: '/tags',      label: '标签',   desc: '笔记标签管理' },
-      { to: '/settings',  label: '设置',   desc: '主题 / AI / 数据备份' },
+      { to: '/dashboard', label: '仪表板',   desc: '阅读与笔记总览' },
+      { to: '/tags',      label: '标签',     desc: '笔记标签管理' },
+      { to: '/stats',     label: '阅读统计', desc: '阅读 / 笔记 / 标签 4 张图' },
+      { to: '/settings',  label: '设置',     desc: '主题 / AI / 数据备份' },
     ],
   },
 ]
