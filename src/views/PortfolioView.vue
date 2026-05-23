@@ -5,11 +5,42 @@
  * 招聘者可直接浏览,也可去 AI 对话页问"赵祥生做过什么"
  */
 import { RouterLink } from 'vue-router'
+import { ref } from 'vue'
 import portfolio from '@/data/portfolio.json'
 import IconBase from '@/components/IconBase.vue'
 
 const p = portfolio
 const BASE = import.meta.env.BASE_URL
+const SITE_URL = 'https://apos-dt.github.io/AposBlog/'
+const AVATAR_URL = SITE_URL + 'avatar.jpg'
+
+// 友链复制代码片段
+const friendSnippets = {
+  markdown: `[APOS · 赵祥生](${SITE_URL}) — 制造业前线的工程笔记博客
+![avatar](${AVATAR_URL})`,
+  html: `<a href="${SITE_URL}" target="_blank" rel="noopener">
+  <img src="${AVATAR_URL}" alt="APOS · 赵祥生" width="80" height="80" style="border-radius:50%">
+  <span>APOS · 赵祥生</span>
+</a>`,
+  json: `{
+  "name": "APOS · 赵祥生",
+  "url": "${SITE_URL}",
+  "avatar": "${AVATAR_URL}",
+  "description": "制造业前线的工程笔记博客 + Karpathy 风知识库"
+}`,
+}
+
+const copiedKey = ref('')
+
+async function copySnippet(key) {
+  try {
+    await navigator.clipboard.writeText(friendSnippets[key])
+    copiedKey.value = key
+    setTimeout(() => (copiedKey.value = ''), 1500)
+  } catch {
+    copiedKey.value = 'fail'
+  }
+}
 
 // 用 anchor 在页内跳转
 function scrollTo(id) {
@@ -224,6 +255,77 @@ function scrollTo(id) {
           <span class="po-contact-label">留言板</span>
           <strong>留下访客脚印</strong>
         </RouterLink>
+      </div>
+    </section>
+
+    <!-- 友情链接 — 提供给别人引用本站的代码片段 -->
+    <section class="po-section po-friendlink">
+      <header class="po-section-head">
+        <span class="po-no">07 / Friend Link</span>
+        <h2>友情链接</h2>
+        <p>如果想在你的博客挂上我的友链,可以直接复制下方代码。也可以用 <code>/info.json</code> 接口拿到全部元数据。</p>
+      </header>
+
+      <!-- 友链卡预览 -->
+      <article class="po-fl-card">
+        <img class="po-fl-avatar" :src="AVATAR_URL" alt="APOS 头像" />
+        <div class="po-fl-meta">
+          <strong>APOS · 赵祥生</strong>
+          <span>{{ SITE_URL }}</span>
+          <p>制造业前线的工程笔记博客 + Karpathy 风知识库</p>
+        </div>
+      </article>
+
+      <!-- 资源 endpoint -->
+      <div class="po-fl-endpoints">
+        <a :href="AVATAR_URL" target="_blank" rel="noopener" class="po-fl-ep">
+          <span class="po-fl-ep-label">头像 JPG · 200×200</span>
+          <code>{{ AVATAR_URL }}</code>
+        </a>
+        <a :href="`${SITE_URL}avatar.svg`" target="_blank" rel="noopener" class="po-fl-ep">
+          <span class="po-fl-ep-label">头像 SVG · 圆形</span>
+          <code>{{ SITE_URL }}avatar.svg</code>
+        </a>
+        <a :href="`${SITE_URL}info.json`" target="_blank" rel="noopener" class="po-fl-ep">
+          <span class="po-fl-ep-label">元数据 JSON</span>
+          <code>{{ SITE_URL }}info.json</code>
+        </a>
+      </div>
+
+      <!-- 代码片段三种 -->
+      <div class="po-fl-snippets">
+        <div class="po-fl-snippet">
+          <header>
+            <span>Markdown</span>
+            <button type="button" class="po-fl-copy" @click="copySnippet('markdown')">
+              <span v-if="copiedKey === 'markdown'">✓ 已复制</span>
+              <span v-else>复制</span>
+            </button>
+          </header>
+          <pre><code>{{ friendSnippets.markdown }}</code></pre>
+        </div>
+
+        <div class="po-fl-snippet">
+          <header>
+            <span>HTML</span>
+            <button type="button" class="po-fl-copy" @click="copySnippet('html')">
+              <span v-if="copiedKey === 'html'">✓ 已复制</span>
+              <span v-else>复制</span>
+            </button>
+          </header>
+          <pre><code>{{ friendSnippets.html }}</code></pre>
+        </div>
+
+        <div class="po-fl-snippet">
+          <header>
+            <span>JSON(给友链系统填项时用)</span>
+            <button type="button" class="po-fl-copy" @click="copySnippet('json')">
+              <span v-if="copiedKey === 'json'">✓ 已复制</span>
+              <span v-else>复制</span>
+            </button>
+          </header>
+          <pre><code>{{ friendSnippets.json }}</code></pre>
+        </div>
       </div>
     </section>
   </section>
@@ -686,5 +788,148 @@ function scrollTo(id) {
   font-weight: 600;
   font-size: 15px;
   color: var(--ink);
+}
+
+/* ===== Friend Link ===== */
+.po-friendlink .po-section-head code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line-soft);
+  color: var(--accent);
+}
+.po-fl-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, oklch(0.94 0.04 295 / 0.35), oklch(0.96 0.04 220 / 0.25));
+  box-shadow: var(--shadow-card);
+}
+.po-fl-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--line), 0 6px 14px -6px oklch(0.50 0.22 295 / 0.30);
+  flex-shrink: 0;
+}
+.po-fl-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.po-fl-meta strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--ink);
+}
+.po-fl-meta span {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent);
+}
+.po-fl-meta p {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.po-fl-endpoints {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 10px;
+}
+.po-fl-ep {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-soft);
+  background: var(--bg);
+  color: inherit;
+  transition: border-color 0.3s, transform 0.3s var(--ease-out);
+}
+.po-fl-ep:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.po-fl-ep-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.po-fl-ep code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.po-fl-snippets {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.po-fl-snippet {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--bg-deep);
+  overflow: hidden;
+}
+.po-fl-snippet header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.po-fl-snippet pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink);
+  background: transparent;
+}
+.po-fl-snippet pre code {
+  font-family: inherit;
+  color: inherit;
+  background: transparent;
+  padding: 0;
+  white-space: pre;
+}
+.po-fl-copy {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+.po-fl-copy:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: oklch(0.94 0.04 295 / 0.4);
 }
 </style>

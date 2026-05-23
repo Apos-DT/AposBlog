@@ -1,0 +1,42 @@
+{
+  "name": "APOS · 赵祥生",
+  "alias": "Apos",
+  "description": "Engineering Notes from a Manufacturing Frontline — 制造业前线的工程笔记博客 + Karpathy 风知识库",
+  "url": "https://apos-dt.github.io/AposBlog/",
+  "avatar": "https://apos-dt.github.io/AposBlog/avatar.jpg",
+  "avatarSvg": "https://apos-dt.github.io/AposBlog/avatar.svg",
+  "avatarSizes": {
+    "200": "https://apos-dt.github.io/AposBlog/avatar.jpg",
+    "256": "https://apos-dt.github.io/AposBlog/favicon.svg",
+    "full": "https://apos-dt.github.io/AposBlog/hoshinoai.jpg"
+  },
+  "author": {
+    "name": "赵祥生",
+    "alias": "Apos",
+    "location": "青岛",
+    "email": "2411447661@qq.com",
+    "github": "https://github.com/Apos-DT"
+  },
+  "topics": [
+    "Odoo ERP",
+    "工业机器视觉",
+    "Spring Boot + Vue3",
+    "Python 数据采集与分析",
+    "Karpathy 风笔记法",
+    "知识图谱"
+  ],
+  "links": {
+    "home":      "https://apos-dt.github.io/AposBlog/",
+    "portfolio": "https://apos-dt.github.io/AposBlog/#/portfolio",
+    "library":   "https://apos-dt.github.io/AposBlog/#/library",
+    "notes":     "https://apos-dt.github.io/AposBlog/#/notes",
+    "graph":     "https://apos-dt.github.io/AposBlog/#/graph",
+    "guestbook": "https://apos-dt.github.io/AposBlog/#/guestbook",
+    "chat":      "https://apos-dt.github.io/AposBlog/#/chat"
+  },
+  "feed": {
+    "manifest": "https://apos-dt.github.io/AposBlog/content/manifest.json"
+  },
+  "license": "MIT",
+  "version": 1
+}
