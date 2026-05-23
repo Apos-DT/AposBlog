@@ -1165,6 +1165,48 @@ const experience = [
   .strip-latest { padding-right: 8px; }
 }
 
+/* ===== 手机端整体调整 ===== */
+@media (max-width: 600px) {
+  .home-page {
+    padding: 0 16px;
+  }
+  .hero {
+    padding: 14px 0 14px;
+    /* 手机端 hero 不强求 100vh,避免巨型字撑过头 */
+    min-height: auto;
+  }
+  .hero-title {
+    font-size: clamp(38px, 11vw, 72px);
+    margin-bottom: 18px;
+  }
+  /* 手机端 hero word 入场幅度小点,blur 也轻 */
+  .hero-title .word {
+    transform: translateY(40%) scale(0.97);
+    filter: blur(6px);
+  }
+  .hero-actions {
+    margin-bottom: 16px;
+  }
+  .btn {
+    padding: 10px 16px;
+    font-size: 12.5px;
+  }
+  .strip-num { font-size: 18px; }
+  .strip-label { font-size: 9px; }
+  .strip-value { font-size: 11px; }
+  .strip-latest-title { font-size: 12px; }
+}
+/* 超窄屏 — iPhone SE 等 */
+@media (max-width: 380px) {
+  .hero-title {
+    font-size: clamp(34px, 13vw, 60px);
+    line-height: 1.0;
+  }
+  .hero-eyebrow {
+    font-size: 9.5px;
+  }
+}
+
 .hero-scroll {
   display: inline-flex;
   align-items: center;

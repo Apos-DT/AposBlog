@@ -373,6 +373,8 @@ function isActive(item) {
     gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
+    /* 避免被 brand/actions 挤死,给 flex 一个最小宽度 */
+    min-width: 0;
   }
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-link {
@@ -383,5 +385,17 @@ function isActive(item) {
   /* 移动端禁用 hover 子菜单(改为直接跳父项) */
   .nav-submenu { display: none; }
   .nav-caret { display: none; }
+  /* brand 文字保留(只显小字),不显示就缺品牌识别 */
+  .brand { font-size: 13px; gap: 6px; }
+  .nav-icon-btn { width: 32px; height: 32px; }
+  .nav-actions { gap: 2px; }
+  .app-main-wide { padding-top: var(--nav-h); }
+}
+/* 超窄屏:brand 隐藏文字仅留 mark */
+@media (max-width: 420px) {
+  .brand-text { display: none; }
+  .nav-link { padding: 8px 8px; font-size: 12.5px; }
+  .nav-search-overlay { padding: 12px 16px; }
+  .nav-search-form { height: 44px; padding: 0 12px; }
 }
 </style>

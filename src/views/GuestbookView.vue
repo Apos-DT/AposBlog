@@ -526,6 +526,29 @@ function loadScript(src, bust = false) {
 }
 @media (max-width: 720px) {
   .gb-stats-card { grid-template-columns: 1fr; }
+  .gb-stats-chart {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .gb-stats-chart canvas {
+    width: 160px;
+    height: 160px;
+  }
+  .gb-chart-legend {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 8px;
+  }
+  .gb-chart-legend .legend-clear {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 420px) {
+  .gb-stats-numbers { gap: 8px; }
+  .gb-stat-num { font-size: 22px; }
+  .gb-chart-legend { grid-template-columns: 1fr; }
 }
 .gb-stats-numbers {
   display: grid;
