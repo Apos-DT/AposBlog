@@ -902,7 +902,8 @@ const experience = [
 .hero {
   position: relative;
   min-height: calc(100svh - var(--nav-h));
-  padding: clamp(40px, 8vh, 80px) 0 clamp(32px, 5vh, 56px);
+  /* 上下 padding 收紧 — 100% 缩放下完整可见 */
+  padding: clamp(20px, 3.5vh, 44px) 0 clamp(16px, 2.5vh, 30px);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -929,10 +930,10 @@ const experience = [
 .hero-eyebrow {
   display: flex;
   align-items: center;
-  gap: clamp(12px, 1.5vw, 20px);
-  margin-bottom: clamp(20px, 4vh, 40px);
+  gap: clamp(10px, 1.4vw, 18px);
+  margin-bottom: clamp(14px, 2.2vh, 22px);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -975,12 +976,12 @@ const experience = [
 .hero-title {
   position: relative;
   font-family: var(--font-display);
-  /* 巨型字 — 从 96px 拉到 160px,占满第一屏视觉 */
-  font-size: clamp(56px, 12vw, 168px);
+  /* 巨型字但克制 — 1080p 100% 缩放下三行 ~340px 高,完整可见 */
+  font-size: clamp(46px, 8.5vw, 120px);
   font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-  margin: 0 0 clamp(28px, 4vh, 48px);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  margin: 0 0 clamp(20px, 2.8vh, 32px);
   color: var(--ink);
   isolation: isolate;
   flex: 1;
@@ -1131,17 +1132,17 @@ const experience = [
 
 .hero-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: clamp(32px, 5vh, 56px);
+  margin-bottom: clamp(20px, 3vh, 32px);
 }
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
+  gap: 8px;
+  padding: 10px 20px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   transition: transform 0.3s var(--ease-out), background 0.3s, color 0.3s, border-color 0.3s;
   border: 1px solid transparent;
@@ -1156,8 +1157,8 @@ const experience = [
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin-bottom: clamp(24px, 3.5vh, 40px);
-  padding: clamp(16px, 1.6vh, 22px) clamp(20px, 2vw, 28px);
+  margin-bottom: clamp(14px, 2vh, 24px);
+  padding: clamp(8px, 1vh, 14px) clamp(16px, 1.6vw, 22px);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   background: linear-gradient(180deg,
@@ -1167,7 +1168,6 @@ const experience = [
   -webkit-backdrop-filter: blur(8px);
   font-family: var(--font-mono);
   flex-wrap: wrap;
-  /* 入场:从下方渐入 */
   opacity: 0;
   transform: translateY(20px);
   animation: hero-strip-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
@@ -1179,9 +1179,9 @@ const experience = [
 .strip-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 6px clamp(16px, 1.8vw, 28px);
-  min-height: 48px;
+  gap: 10px;
+  padding: 4px clamp(12px, 1.4vw, 22px);
+  min-height: 38px;
   color: var(--ink-2);
   transition: color 0.3s;
 }
@@ -1216,7 +1216,7 @@ const experience = [
 
 .strip-num {
   font-family: var(--font-display);
-  font-size: clamp(22px, 2.2vw, 30px);
+  font-size: clamp(18px, 1.6vw, 22px);
   font-weight: 600;
   color: var(--ink);
   line-height: 1;
@@ -1224,7 +1224,7 @@ const experience = [
 }
 
 .strip-label {
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-3);
@@ -1234,14 +1234,14 @@ const experience = [
 
 .strip-value {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--ink);
   font-weight: 500;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 .strip-latest-title {
   font-family: var(--font-display);
-  font-size: 13.5px;
+  font-size: 12.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1282,15 +1282,15 @@ const experience = [
 .hero-scroll {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.2em;
   color: var(--ink-3);
   text-transform: uppercase;
 }
 .scroll-line {
-  width: 60px;
+  width: 50px;
   height: 1px;
   background: var(--ink-3);
   position: relative;
