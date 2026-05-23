@@ -104,11 +104,14 @@ onMounted(() => {
 })
 
 // ============================================================
-// 底部大字交互(参考 trae.ai footer)
-//   1. 滚动到底:每个字符 stagger 从下浮入
-//   2. 鼠标移动:基于鼠标 X 距离做 magnetic translateY,近的浮起多,远的不动
-//   3. 鼠标移出:平滑回正
-//   4. 支持 reduced-motion
+// 底部大字交互(trae 风升级版,5 层叠加效果)
+//   1. 入场 — 滚动到底:stagger 浮入(CSS transition)
+//   2. 磁吸 — 鼠标移动:基于距离 smoothstep translateY 上浮
+//   3. 3D 透视 — perspective + rotateY/rotateX 立体翻转
+//   4. 缩放 — 靠近鼠标的字符 scale 略放大
+//   5. 待机呼吸 — 没鼠标时字符按 sin 波微微浮动
+//   6. 鼠标辉光 — radial-gradient 紫色光斑跟随鼠标,大字背后晕染
+//   全程单一 requestAnimationFrame loop,lerp 平滑过渡(无 transition 抢轨)
 // ============================================================
 let megaCleanup = null
 
@@ -118,23 +121,29 @@ function initFooterMega() {
   const chars = Array.from(mega.querySelectorAll('.mega-char'))
   if (!chars.length) return
 
-  // 初态:全部下移 50% + 透明
+  // ---- 初态:全部下移 50% + 透明,由 CSS transition 控制入场 ----
   chars.forEach((ch) => {
-    ch.style.transform = 'translateY(50%)'
-    ch.dataset.baseY = '0'
+    ch.style.transform = 'translate3d(0, 50%, 0)'
   })
 
-  // 滚动到底触发 stagger 浮入
+  // 入场观察
+  let entered = false
   const obs = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => {
-        if (e.isIntersecting) {
+        if (e.isIntersecting && !entered) {
+          entered = true
           chars.forEach((ch, i) => {
             setTimeout(() => {
-              ch.style.transform = 'translateY(0)'
+              ch.style.transform = 'translate3d(0, 0, 0)'
               ch.classList.add('in')
             }, i * 90)
           })
+          // 入场动画完成后启动 tick(关掉 CSS transition,JS 完全接管)
+          setTimeout(() => {
+            chars.forEach((ch) => { ch.style.transition = 'none' })
+            startTick()
+          }, chars.length * 90 + 700)
           obs.unobserve(e.target)
         }
       })
@@ -143,36 +152,85 @@ function initFooterMega() {
   )
   obs.observe(mega)
 
-  // 磁吸 — 鼠标移动驱动
+  // ---- 状态机 ----
+  let isHovering = false
+  let mouseX = 0
+  let mouseY = 0
+  let breathT = 0
   let raf = 0
-  let entered = false
-  function onMove(e) {
-    if (!entered) return
-    cancelAnimationFrame(raf)
-    raf = requestAnimationFrame(() => {
+
+  // 每个字符的当前插值状态(用于 lerp 过渡)
+  const states = chars.map(() => ({
+    y: 0, scale: 1, rotY: 0, rotX: 0,
+  }))
+
+  function startTick() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const reducedTouch = matchMedia('(hover: none)').matches
+    const TARGET_LERP = 0.14
+
+    function tick() {
       const rect = mega.getBoundingClientRect()
-      const mx = e.clientX - rect.left
-      const charsW = chars.map((ch) => {
-        const cr = ch.getBoundingClientRect()
-        return cr.left + cr.width / 2 - rect.left
-      })
-      // 影响半径 — 30% 容器宽度
-      const maxDist = rect.width * 0.30
+      const maxDist = rect.width * 0.32
+
+      if (!isHovering) breathT += 0.014
+
       chars.forEach((ch, i) => {
-        const dist = Math.abs(mx - charsW[i])
-        const ratio = Math.max(0, 1 - dist / maxDist)
-        // 缓动函数让靠近时上升更快
-        const eased = ratio * ratio * (3 - 2 * ratio)
-        const ty = -eased * 60
-        ch.style.transform = `translateY(${ty}px)`
+        let tY = 0, tScale = 1, tRotY = 0, tRotX = 0
+
+        if (isHovering && !reducedTouch) {
+          const cr = ch.getBoundingClientRect()
+          const cx = cr.left + cr.width / 2 - rect.left
+          const cy = cr.top + cr.height / 2 - rect.top
+          const dist = Math.abs(mouseX - cx)
+          const ratio = Math.max(0, 1 - dist / maxDist)
+          const eased = ratio * ratio * (3 - 2 * ratio)
+
+          tY = -eased * 80                                              // 上浮
+          tScale = 1 + eased * 0.15                                     // 放大
+          tRotY = ((mouseX - cx) / Math.max(60, cr.width)) * eased * 18 // 左右倾斜(看着像在跟鼠标)
+          tRotX = ((cy - mouseY) / rect.height) * eased * 14            // 上下倾斜
+        } else {
+          // 待机呼吸 — sin 波,每个字符偏移半个相位
+          tY = Math.sin(breathT + i * 0.6) * 6
+          // 微细旋转,生命感
+          tRotX = Math.sin(breathT * 0.7 + i * 0.4) * 2
+        }
+
+        const s = states[i]
+        s.y     += (tY - s.y) * TARGET_LERP
+        s.scale += (tScale - s.scale) * TARGET_LERP
+        s.rotY  += (tRotY - s.rotY) * TARGET_LERP
+        s.rotX  += (tRotX - s.rotX) * TARGET_LERP
+
+        ch.style.transform =
+          `translate3d(0, ${s.y.toFixed(2)}px, 0) ` +
+          `scale(${s.scale.toFixed(3)}) ` +
+          `rotateY(${s.rotY.toFixed(2)}deg) ` +
+          `rotateX(${s.rotX.toFixed(2)}deg)`
       })
-    })
+
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
   }
-  function onEnter() { entered = true }
+
+  // ---- 事件绑定 ----
+  function onEnter(e) {
+    isHovering = true
+    onMove(e)
+  }
+  function onMove(e) {
+    const rect = mega.getBoundingClientRect()
+    mouseX = e.clientX - rect.left
+    mouseY = e.clientY - rect.top
+    // CSS 变量驱动辉光斑跟随
+    mega.style.setProperty('--mx', mouseX + 'px')
+    mega.style.setProperty('--my', mouseY + 'px')
+  }
   function onLeave() {
-    entered = false
-    cancelAnimationFrame(raf)
-    chars.forEach((ch) => { ch.style.transform = 'translateY(0)' })
+    isHovering = false
   }
 
   if (!matchMedia('(hover: none)').matches) {
@@ -1183,6 +1241,7 @@ a.contact-value:hover { color: var(--accent); }
 }
 .dot-sep { color: var(--ink-3); }
 .footer-mega {
+  position: relative;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(100px, 22vw, 320px);
@@ -1191,26 +1250,60 @@ a.contact-value:hover { color: var(--accent); }
   text-align: center;
   margin: 0 auto -0.18em;
   user-select: none;
-  /* 容器自身需要接收鼠标事件做磁吸,默认就 auto */
   cursor: default;
-  /* 内部 char 浮动溢出不裁切 */
   overflow: visible;
+  /* 3D 透视 — 让字符 rotateY/X 有立体感 */
+  perspective: 900px;
+  transform-style: preserve-3d;
+  isolation: isolate;
 }
+/* 鼠标辉光斑 — 大字背后 radial-gradient 跟随鼠标 */
+.footer-mega::before {
+  content: "";
+  position: absolute;
+  left: var(--mx, 50%);
+  top: var(--my, 50%);
+  width: clamp(280px, 40vw, 560px);
+  height: clamp(280px, 40vw, 560px);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.55 0.25 295 / 0.40) 0%,
+    oklch(0.65 0.20 220 / 0.20) 35%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  filter: blur(40px);
+  transition: opacity 0.5s var(--ease-out);
+  z-index: -1;
+}
+.footer-mega:hover::before { opacity: 1; }
+
 .mega-char {
   display: inline-block;
-  /* 渐变 mask 着色 — 每个字符独立 background-clip(因为 inline-block 子元素不继承父 background-clip)*/
-  background: linear-gradient(180deg, oklch(0.55 0.20 295 / 0.65) 0%, oklch(0.78 0.10 295 / 0.40) 50%, transparent 80%);
+  position: relative;
+  transform-origin: center bottom;
+  transform-style: preserve-3d;
+  /* 渐变 mask 着色 — 加深色彩与饱和度,让悬停时颜色更跳 */
+  background: linear-gradient(
+    180deg,
+    oklch(0.50 0.25 295 / 0.85) 0%,
+    oklch(0.62 0.18 280 / 0.65) 40%,
+    oklch(0.78 0.10 295 / 0.35) 75%,
+    transparent 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  /* 初始下移 50% + 透明,等 IntersectionObserver 触发 stagger 浮入 */
   opacity: 0;
-  /* transform 由 JS 直接控制(initFooterMega 设置),只过渡平滑 */
+  /* 初态用 transition 配合入场,JS tick 启动后会把 transition 关掉(JS 直接每帧设值,无需 transition)*/
   transition: transform 0.6s var(--ease-out), opacity 0.9s var(--ease-out);
   will-change: transform;
+  z-index: 1;
 }
 .mega-char.in { opacity: 1; }
-/* 字符之间留一点呼吸,字间距用 margin 补,letter-spacing 父级已设负值 */
 .mega-char + .mega-char { margin-left: 0.01em; }
 
 /* ===== reveal ===== */
