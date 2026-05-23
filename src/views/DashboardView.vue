@@ -122,9 +122,9 @@ function fmtDate(iso) {
         <div v-else class="ui-empty">
           <span class="icon"><IconBase name="book" :size="20" /></span>
           <h3>还没有阅读记录</h3>
-          <p>到文章库点一篇开始读吧。</p>
+          <p>到文章列表点一篇开始读吧。</p>
           <RouterLink to="/library" class="ui-btn ui-btn-primary">
-            去文章库 <IconBase name="arrow-right" :size="14" />
+            去文章 <IconBase name="arrow-right" :size="14" />
           </RouterLink>
         </div>
       </section>
@@ -187,7 +187,7 @@ function fmtDate(iso) {
         </RouterLink>
         <RouterLink to="/library" class="quick-card">
           <IconBase name="library" :size="22" />
-          <strong>浏览文章库</strong>
+          <strong>浏览文章</strong>
           <span>找一篇值得读的</span>
         </RouterLink>
         <RouterLink to="/tags" class="quick-card">

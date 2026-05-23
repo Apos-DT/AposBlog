@@ -66,9 +66,9 @@ function doClear() {
 }
 
 function resetPostsToInitial() {
-  if (!confirm('恢复文章库到初始 4 篇博客文章,你添加的自定义文章会被清除。确定?')) return
+  if (!confirm('恢复文章列表到初始 4 篇博客文章,你添加的自定义文章会被清除。确定?')) return
   posts.resetToInitial()
-  settings.pushToast('success', '文章库已恢复初始')
+  settings.pushToast('success', '文章列表已恢复初始')
 }
 
 const storageSize = () => {
@@ -179,7 +179,7 @@ const storageSize = () => {
 
         <button class="ui-btn ui-btn-ghost" @click="resetPostsToInitial">
           <IconBase name="library" :size="14" />
-          <span>恢复初始文章库</span>
+          <span>恢复初始文章</span>
         </button>
 
         <button class="ui-btn ui-btn-danger" @click="doClear">

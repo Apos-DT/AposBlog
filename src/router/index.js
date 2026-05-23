@@ -33,7 +33,7 @@ const routes = [
     path: '/library',
     name: 'library',
     component: () => import('@/views/LibraryView.vue'),
-    meta: { title: '文章库', icon: 'library', layout: 'app' },
+    meta: { title: '文章', icon: 'library', layout: 'app' },
   },
   // /library/:slug 重定向到 /post/:slug — 文章阅读统一一个视图
   {
@@ -50,7 +50,7 @@ const routes = [
     path: '/notes',
     name: 'notes',
     component: () => import('@/views/NotesView.vue'),
-    meta: { title: '笔记', icon: 'notes', layout: 'app' },
+    meta: { title: '知识库', icon: 'notes', layout: 'app' },
   },
   {
     path: '/notes/:id',

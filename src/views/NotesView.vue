@@ -56,8 +56,8 @@ function fmtDate(iso) {
     <header class="ui-section-head">
       <div class="left">
         <span class="no">03 / Notes</span>
-        <h2>笔记</h2>
-        <p>共 {{ notes.stats.total }} 条 · 置顶 {{ notes.stats.pinned }} · 关联文章 {{ notes.stats.withArticle }}</p>
+        <h2>知识库</h2>
+        <p>共 {{ notes.stats.total }} 条笔记 · 置顶 {{ notes.stats.pinned }} · 关联文章 {{ notes.stats.withArticle }}</p>
       </div>
       <button class="ui-btn ui-btn-accent" @click="createNew">
         <IconBase name="plus" :size="14" />

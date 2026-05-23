@@ -85,7 +85,7 @@ function submitAdd() {
       date: new Date().toISOString().slice(0, 10),
     })
     showAdd.value = false
-    settings.pushToast('success', '已加入文章库')
+    settings.pushToast('success', '已加入文章列表')
   } catch (e) {
     addErr.value = e.message
   }
@@ -99,7 +99,7 @@ function removeCustom(slug, title) {
     return
   }
   posts.remove(slug)
-  settings.pushToast('success', '已从文章库移除')
+  settings.pushToast('success', '已从文章列表移除')
 }
 
 function toggleCollect(slug, e) {
@@ -126,7 +126,7 @@ function getStatusLabel(slug) {
     <header class="ui-section-head">
       <div class="left">
         <span class="no">02 / Library</span>
-        <h2>文章库</h2>
+        <h2>文章</h2>
         <p>共 {{ posts.posts.length }} 篇 · {{ filtered.length }} 篇符合当前筛选 ·
           已读 {{ reads.stats.done }} 收藏 {{ reads.stats.collected }}</p>
       </div>

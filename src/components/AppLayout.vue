@@ -39,8 +39,8 @@ function submitSearch() {
  */
 const mainNav = [
   { to: '/',          label: '首页' },
-  { to: '/library',   label: '文章库' },
-  { to: '/notes',     label: '笔记' },
+  { to: '/library',   label: '文章' },
+  { to: '/notes',     label: '知识库' },
   { to: '/graph',     label: '知识图谱' },
   { to: '/portfolio', label: '作品集' },
   { to: '/guestbook', label: '留言板' },
@@ -50,9 +50,9 @@ const mainNav = [
     label: '工具',
     hasChildren: true,
     children: [
-      { to: '/dashboard', label: '仪表板',   desc: '阅读与笔记总览' },
-      { to: '/tags',      label: '标签',     desc: '笔记标签管理' },
-      { to: '/stats',     label: '阅读统计', desc: '阅读 / 笔记 / 标签 4 张图' },
+      { to: '/dashboard', label: '仪表板',   desc: '阅读与知识库总览' },
+      { to: '/tags',      label: '标签',     desc: '知识库标签管理' },
+      { to: '/stats',     label: '阅读统计', desc: '阅读 / 知识库 / 标签 4 张图' },
       { to: '/settings',  label: '设置',     desc: '主题 / AI / 数据备份' },
     ],
   },
@@ -152,7 +152,7 @@ function isActive(item) {
           ref="searchInputEl"
           v-model="search"
           type="search"
-          placeholder="搜索文章 / 标签 / 关键字… 回车跳转文章库"
+          placeholder="搜索文章 / 标签 / 关键字… 回车跳转文章列表"
           aria-label="搜索"
           @keydown.escape="closeSearch"
         />
