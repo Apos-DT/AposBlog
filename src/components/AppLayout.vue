@@ -217,14 +217,17 @@ function isActive(item) {
 .nav-links {
   display: flex;
   flex: 1;
+  flex-wrap: nowrap;           /* 不换行 */
   justify-content: center;
   gap: 4px;
+  min-width: 0;                 /* 允许内容溢出,让 overflow-x 生效 */
 }
 .nav-item {
   position: relative;
   /* hover 缓冲区,确保鼠标可以从 nav-link 平滑过渡到 submenu */
   padding-bottom: 4px;
   margin-bottom: -4px;
+  flex-shrink: 0;               /* 不被父级 flex 压扁 */
 }
 
 .nav-link {
@@ -236,8 +239,11 @@ function isActive(item) {
   font-size: 13.5px;
   color: var(--ink-2);
   letter-spacing: 0.01em;
+  white-space: nowrap;          /* 中文不单字换行 */
+  flex-shrink: 0;
   transition: color 0.3s, background 0.3s;
 }
+.nav-link > span { white-space: nowrap; }
 .nav-link:hover {
   color: var(--ink);
   background: oklch(0.94 0.008 80 / 0.7);
@@ -389,17 +395,21 @@ function isActive(item) {
 
 @media (max-width: 720px) {
   .nav-links {
-    gap: 0;
+    gap: 2px;
+    /* 改 center → flex-start,溢出时从左开始可滚 */
+    justify-content: flex-start;
     overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: none;
-    /* 避免被 brand/actions 挤死,给 flex 一个最小宽度 */
-    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    /* mask 边缘渐隐,提示有更多内容可滚 */
+    mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
   }
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-link {
-    padding: 8px 10px;
+    padding: 7px 10px;
     font-size: 13px;
-    flex-shrink: 0;
   }
   /* 移动端禁用 hover 子菜单(改为直接跳父项) */
   .nav-submenu { display: none; }
@@ -410,10 +420,13 @@ function isActive(item) {
   .nav-actions { gap: 2px; }
   .app-main-wide { padding-top: var(--nav-h); }
 }
-/* 超窄屏:brand 隐藏文字仅留 mark */
-@media (max-width: 420px) {
+/* 中小屏:brand 文字隐藏(导航更多项目优先) */
+@media (max-width: 540px) {
   .brand-text { display: none; }
-  .nav-link { padding: 8px 8px; font-size: 12.5px; }
+}
+/* 超窄屏:nav-link 极紧凑 */
+@media (max-width: 420px) {
+  .nav-link { padding: 7px 8px; font-size: 12.5px; }
   .nav-search-overlay { padding: 12px 16px; }
   .nav-search-form { height: 44px; padding: 0 12px; }
 }
