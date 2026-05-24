@@ -281,7 +281,7 @@ function loadScript(src, bust = false) {
      需要自己约束最大宽度,否则在大屏上会被拉得过宽 */
   max-width: min(1080px, calc(100% - 32px));
   margin: 24px auto 0;
-  padding: 0 clamp(20px, 4vw, 48px);
+  padding: 0 clamp(20px, 4vw, 48px); /* 与全局 view padding-x 公式严格一致 */
 }
 
 .gb-section-head {

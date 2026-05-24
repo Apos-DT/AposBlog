@@ -245,7 +245,9 @@
 .view-portfolio {
   max-width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
-  padding: clamp(20px, 4vw, 32px) clamp(16px, 4vw, 56px) clamp(40px, 8vw, 80px);
+  /* horizontal padding 与所有 view 严格一致(home/post/guestbook 都 clamp(20px, 4vw, 48px)),
+     消除切页面时左右内边距差异导致的'内容向右移'感 */
+  padding: clamp(20px, 4vw, 32px) clamp(20px, 4vw, 48px) clamp(40px, 8vw, 80px);
   position: relative;
   z-index: 2;
 }

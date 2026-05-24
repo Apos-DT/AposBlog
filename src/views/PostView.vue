@@ -383,7 +383,7 @@ function fmtDate(d) {
   gap: clamp(24px, 3vw, 48px);
   max-width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 30px clamp(24px, 4vw, 56px) 80px;
+  padding: 30px clamp(20px, 4vw, 48px) 80px;
 }
 
 .post-toc, .post-tools {
