@@ -857,8 +857,8 @@ const experience = [
   /* 巨型字但克制 — 1080p 100% 缩放下三行 ~360px 高,完整可见 */
   font-size: clamp(46px, 8.5vw, 120px);
   font-weight: 700;
-  /* line-height 1.0 — 让 italic serif 的 e/g 等下伸尾不被截 */
-  line-height: 1.0;
+  /* line-height 1.1 — 释放 descender 空间(g/y/p 的下伸尾不被裁) */
+  line-height: 1.1;
   letter-spacing: -0.04em;
   margin: 0 0 clamp(20px, 2.8vh, 32px);
   color: var(--ink);
@@ -902,6 +902,10 @@ const experience = [
   display: inline-block;
   position: relative;
   margin-right: 0.18em;
+  /* descender 保护:padding-bottom 把 background-clip:text 的 paint box 撑大,
+     让 Space Grotesk 的 g/y/p 等下伸尾不被裁 */
+  padding-bottom: 0.06em;
+  overflow: visible;
   /* 流光填充:深墨色背景上有一道高光带,缓慢扫过 */
   background-image: linear-gradient(
     100deg,
