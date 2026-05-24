@@ -169,75 +169,74 @@ onBeforeUnmount(() => {
      - 列表 item(post-card/note-card/gb-item/tag 等): 轻量版,无 backdrop-filter
        避免大量并排元素堆叠 backdrop-filter 导致性能爆炸 */
 
-/* —— 容器级卡片:完整液态玻璃 —— */
+/* —— 容器级卡片:完整液态玻璃 ——
+   仅真正的"卡片块",不包括布局/列表容器。
+   .po-section / .gb-replies / .contact-form 是 flex 容器不是卡片,
+   全局覆盖会让它们在浅底背景上叠加白光形成色块,已剔除 */
 .dash-block,
 .set-card,
 .gb-card,
 .gb-publish,
-.gb-stats-card,
-.gb-replies,
-.po-section,
-.contact-form,
-.about-card {
+.gb-stats-card {
   position: relative !important;
   background:
-    linear-gradient(180deg, oklch(1 0 0 / 0.55), oklch(1 0 0 / 0.04) 38%, oklch(1 0 0 / 0) 65%),
-    linear-gradient(135deg, transparent 22%, oklch(0.95 0.05 290 / 0.07) 50%, transparent 78%),
-    oklch(0.99 0.005 280 / 0.40) !important;
-  backdrop-filter: blur(18px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+    /* 顶部 specular 减弱 0.55 → 0.32 避免在浅底叠加显白 */
+    linear-gradient(180deg, oklch(1 0 0 / 0.32), oklch(1 0 0 / 0.02) 38%, oklch(1 0 0 / 0) 65%),
+    linear-gradient(135deg, transparent 25%, oklch(0.95 0.05 290 / 0.04) 50%, transparent 75%),
+    /* base 与全局 bg 色相一致,降低饱和度避免染色 */
+    oklch(0.985 0.003 80 / 0.25) !important;
+  backdrop-filter: blur(16px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
   border: none !important;
   box-shadow:
-    0 8px 26px -10px oklch(0.30 0.10 280 / 0.12),
-    inset 0 1px 0 oklch(1 0 0 / 0.55),
-    inset 0 -1px 0 oklch(0 0 0 / 0.03),
-    0 0 0 1px oklch(1 0 0 / 0.32) !important;
+    0 6px 22px -10px oklch(0.30 0.08 280 / 0.10),
+    inset 0 1px 0 oklch(1 0 0 / 0.40),
+    inset 0 -1px 0 oklch(0 0 0 / 0.02),
+    0 0 0 1px oklch(1 0 0 / 0.20) !important;
   isolation: isolate;
   transition:
     transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
     background 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-/* 顶部弧形 specular */
+/* 顶部弧形 specular — 强度减弱,更隐形 */
 .dash-block::before,
 .set-card::before,
 .gb-card::before,
 .gb-publish::before,
-.gb-stats-card::before,
-.po-section::before,
-.contact-form::before {
+.gb-stats-card::before {
   content: "";
   position: absolute;
   top: 1px;
-  left: 10%;
-  right: 10%;
-  height: 50%;
+  left: 12%;
+  right: 12%;
+  height: 40%;
   pointer-events: none;
   background: radial-gradient(
     ellipse at 50% 0%,
-    oklch(1 0 0 / 0.28),
-    oklch(1 0 0 / 0.04) 50%,
+    oklch(1 0 0 / 0.18),
+    oklch(1 0 0 / 0.02) 50%,
     transparent 80%
   );
   border-radius: inherit;
-  opacity: 0.7;
+  opacity: 0.6;
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   z-index: -1;
 }
 .dash-block:hover,
 .set-card:hover,
 .gb-card:hover,
-.gb-stats-card:hover,
-.po-section:hover {
+.gb-stats-card:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 16px 36px -10px oklch(0.30 0.10 280 / 0.20),
-    inset 0 1px 0 oklch(1 0 0 / 0.65),
-    inset 0 -1px 0 oklch(0 0 0 / 0.04),
-    0 0 0 1px oklch(1 0 0 / 0.42) !important;
+    0 14px 32px -10px oklch(0.30 0.10 280 / 0.16),
+    inset 0 1px 0 oklch(1 0 0 / 0.55),
+    inset 0 -1px 0 oklch(0 0 0 / 0.03),
+    0 0 0 1px oklch(1 0 0 / 0.32) !important;
 }
 
-/* —— 列表 item:轻量液态玻璃(无 backdrop-filter,性能友好) —— */
+/* —— 列表 item:轻量液态玻璃(无 backdrop-filter,性能友好) ——
+   color 与全局背景 oklch(0.985 0.003 80) 色相一致,避免染色 */
 .post-card,
 .note-card,
 .gb-item,
@@ -257,13 +256,13 @@ onBeforeUnmount(() => {
 .stack-card,
 .archive-item {
   background:
-    linear-gradient(180deg, oklch(1 0 0 / 0.50), oklch(0.97 0.005 280 / 0.30)),
-    oklch(0.99 0.005 280 / 0.55) !important;
+    linear-gradient(180deg, oklch(1 0 0 / 0.32), oklch(0.985 0.003 80 / 0.18)),
+    oklch(0.985 0.003 80 / 0.55) !important;
   border: none !important;
   box-shadow:
-    0 4px 14px -6px oklch(0.30 0.10 280 / 0.08),
-    inset 0 1px 0 oklch(1 0 0 / 0.55),
-    0 0 0 1px oklch(0.86 0.01 280 / 0.45) !important;
+    0 3px 12px -6px oklch(0.30 0.08 280 / 0.06),
+    inset 0 1px 0 oklch(1 0 0 / 0.40),
+    0 0 0 1px oklch(0.86 0.008 80 / 0.32) !important;
   transition:
     transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -282,8 +281,8 @@ onBeforeUnmount(() => {
 .tool-tile:hover {
   transform: translateY(-3px) !important;
   box-shadow:
-    0 14px 28px -8px oklch(0.30 0.10 280 / 0.18),
-    inset 0 1px 0 oklch(1 0 0 / 0.70),
-    0 0 0 1px oklch(0.55 0.20 295 / 0.35) !important;
+    0 12px 24px -8px oklch(0.30 0.10 280 / 0.15),
+    inset 0 1px 0 oklch(1 0 0 / 0.55),
+    0 0 0 1px oklch(0.55 0.20 295 / 0.32) !important;
 }
 </style>
