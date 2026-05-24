@@ -146,17 +146,32 @@ function loadScript(src, bust = false) {
     <!-- ============ 统计 + 表情情绪 Canvas ============ -->
     <article class="gb-stats-card gb-fade-in">
       <div class="gb-stats-numbers">
-        <div class="gb-stat">
-          <span class="gb-stat-num" id="gb-stat-total">0</span>
-          <span class="gb-stat-label">条留言</span>
+        <div class="gb-stat gb-stat--posts">
+          <span class="gb-stat-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+          </span>
+          <div class="gb-stat-text">
+            <span class="gb-stat-num" id="gb-stat-total">0</span>
+            <span class="gb-stat-label">留言</span>
+          </div>
         </div>
-        <div class="gb-stat">
-          <span class="gb-stat-num" id="gb-stat-likes">0</span>
-          <span class="gb-stat-label">总点赞</span>
+        <div class="gb-stat gb-stat--likes">
+          <span class="gb-stat-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </span>
+          <div class="gb-stat-text">
+            <span class="gb-stat-num" id="gb-stat-likes">0</span>
+            <span class="gb-stat-label">点赞</span>
+          </div>
         </div>
-        <div class="gb-stat">
-          <span class="gb-stat-num" id="gb-stat-replies">0</span>
-          <span class="gb-stat-label">条回复</span>
+        <div class="gb-stat gb-stat--replies">
+          <span class="gb-stat-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/></svg>
+          </span>
+          <div class="gb-stat-text">
+            <span class="gb-stat-num" id="gb-stat-replies">0</span>
+            <span class="gb-stat-label">回复</span>
+          </div>
         </div>
       </div>
       <div class="gb-stats-chart">
@@ -519,18 +534,17 @@ function loadScript(src, bust = false) {
   color: var(--ink);
 }
 
-/* ===== 统计区 ===== */
+/* ===== 统计区 — 紧凑布局 + 三色 stat 卡 + chart 平衡 ===== */
 .gb-stats-card {
   display: grid;
-  grid-template-columns: 1fr 180px;
-  gap: 18px;
-  padding: 22px 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  gap: 24px;
+  padding: 18px 22px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--line-soft);
-  background: linear-gradient(135deg, oklch(0.94 0.04 295 / 0.5), oklch(0.97 0.04 220 / 0.4));
+  /* 背景由 App.vue 全局液态玻璃覆盖,这里不重复 */
 }
 @media (max-width: 720px) {
-  .gb-stats-card { grid-template-columns: 1fr; }
+  .gb-stats-card { grid-template-columns: 1fr; gap: 16px; padding: 14px 16px; }
   .gb-stats-chart {
     flex-direction: column;
     gap: 12px;
@@ -551,52 +565,111 @@ function loadScript(src, bust = false) {
   }
 }
 @media (max-width: 420px) {
-  .gb-stats-numbers { gap: 8px; }
-  .gb-stat-num { font-size: 22px; }
+  .gb-stats-numbers { gap: 6px; }
+  .gb-stat { padding: 8px 12px; }
+  .gb-stat-num { font-size: 20px; }
   .gb-chart-legend { grid-template-columns: 1fr; }
 }
+
+/* 三个数字 stat 纵向排列,紧凑 */
 .gb-stats-numbers {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  align-content: center;
-}
-.gb-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-  border-radius: var(--radius);
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
+  gap: 8px;
+  align-self: stretch;
+  justify-content: center;
+}
+
+/* 单条 stat: icon | num+label,水平紧凑 */
+.gb-stat {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--stat-bg-from), var(--stat-bg-to));
+  border: 1px solid var(--stat-border);
+  transition: transform 0.3s var(--ease-out),
+              border-color 0.3s,
+              box-shadow 0.3s;
+}
+.gb-stat:hover {
+  transform: translateX(3px);
+  border-color: var(--stat-accent);
+  box-shadow: 0 6px 18px -6px var(--stat-accent);
+}
+
+.gb-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--stat-accent);
+  color: #fff;
+  box-shadow: 0 4px 12px -4px var(--stat-accent),
+              inset 0 1px 0 oklch(1 0 0 / 0.3);
+}
+
+.gb-stat-text {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
 }
 .gb-stat-num {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(22px, 3vw, 32px);
+  font-size: 24px;
   color: var(--ink);
+  line-height: 1;
 }
 .gb-stat-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   color: var(--ink-3);
   text-transform: uppercase;
 }
+
+/* —— 三色 stat 主题 —— */
+.gb-stat--posts {
+  --stat-accent: oklch(0.55 0.22 295);
+  --stat-bg-from: oklch(0.94 0.05 295 / 0.45);
+  --stat-bg-to: oklch(0.97 0.03 280 / 0.25);
+  --stat-border: oklch(0.55 0.22 295 / 0.22);
+}
+.gb-stat--likes {
+  --stat-accent: oklch(0.62 0.20 25);
+  --stat-bg-from: oklch(0.94 0.05 25 / 0.42);
+  --stat-bg-to: oklch(0.97 0.03 40 / 0.25);
+  --stat-border: oklch(0.62 0.20 25 / 0.22);
+}
+.gb-stat--replies {
+  --stat-accent: oklch(0.55 0.18 230);
+  --stat-bg-from: oklch(0.94 0.05 230 / 0.42);
+  --stat-bg-to: oklch(0.97 0.03 250 / 0.25);
+  --stat-border: oklch(0.55 0.18 230 / 0.22);
+}
+
+/* —— 图表区 —— */
 .gb-stats-chart {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 18px;
+  flex-wrap: nowrap;
 }
 .gb-chart-wrap {
   position: relative;
   display: inline-block;
+  flex-shrink: 0;
 }
 .gb-stats-chart canvas {
-  width: 180px;
-  height: 180px;
+  width: 170px;
+  height: 170px;
   cursor: pointer;
   display: block;
 }
@@ -628,21 +701,23 @@ function loadScript(src, bust = false) {
   height: 8px;
   background: oklch(0.18 0.02 280 / 0.92);
 }
-/* legend */
+/* legend — 紧凑两列 grid,行高 + padding 收紧 */
 .gb-chart-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 160px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 6px;
+  align-content: center;
+  min-width: 0;
+  flex: 1;
   font-family: var(--font-mono);
   font-size: 12px;
 }
 .gb-chart-legend .legend-row {
   display: grid;
-  grid-template-columns: 12px 22px 1fr auto;
+  grid-template-columns: 10px 18px auto 1fr;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
+  gap: 6px;
+  padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
   color: var(--ink-2);
@@ -657,6 +732,8 @@ function loadScript(src, bust = false) {
   color: var(--ink);
   font-weight: 600;
 }
+/* clear 按钮跨越两列 */
+.gb-chart-legend .legend-clear { grid-column: 1 / -1; }
 .gb-chart-legend .legend-row.dim {
   opacity: 0.35;
 }
