@@ -412,38 +412,46 @@ function isActive(item) {
 
 @media (max-width: 720px) {
   .nav-links {
-    gap: 2px;
-    /* 改 center → flex-start,溢出时从左开始可滚 */
+    gap: 4px;
     justify-content: flex-start;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    padding: 6px 0;
     /* mask 边缘渐隐,提示有更多内容可滚 */
-    mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 12px), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
   }
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-link {
-    padding: 7px 10px;
+    padding: 8px 12px;
     font-size: 13px;
+    /* 显式保证最小高度让上下呼吸 */
+    min-height: 36px;
+    line-height: 1.2;
   }
-  /* 移动端禁用 hover 子菜单(改为直接跳父项) */
+  .nav-link > span {
+    display: inline-block;
+    /* 显式 nowrap + 不允许字间 break */
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+  /* 移动端禁用 hover 子菜单 */
   .nav-submenu { display: none; }
   .nav-caret { display: none; }
-  /* brand 文字保留(只显小字),不显示就缺品牌识别 */
   .brand { font-size: 13px; gap: 6px; }
-  .nav-icon-btn { width: 32px; height: 32px; }
+  .nav-icon-btn { width: 36px; height: 36px; }
   .nav-actions { gap: 2px; }
   .app-main-wide { padding-top: var(--nav-h); }
 }
-/* 中小屏:brand 文字隐藏(导航更多项目优先) */
+/* 中小屏:brand 文字隐藏 */
 @media (max-width: 540px) {
   .brand-text { display: none; }
 }
-/* 超窄屏:nav-link 极紧凑 */
+/* 超窄屏 */
 @media (max-width: 420px) {
-  .nav-link { padding: 7px 8px; font-size: 12.5px; }
+  .nav-link { padding: 8px 10px; font-size: 12.5px; }
   .nav-search-overlay { padding: 12px 16px; }
   .nav-search-form { height: 44px; padding: 0 12px; }
 }
