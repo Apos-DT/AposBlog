@@ -279,7 +279,7 @@ function loadScript(src, bust = false) {
   gap: 16px;
   /* 留言板从知识库三栏(自动受 .app-main min-width:0 约束)挪到 blog 全宽布局,
      需要自己约束最大宽度,否则在大屏上会被拉得过宽 */
-  max-width: min(1080px, 96vw);
+  max-width: min(1080px, calc(100% - 32px));
   margin: 24px auto 0;
   padding: 0 clamp(20px, 4vw, 48px);
 }

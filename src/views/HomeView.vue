@@ -771,7 +771,7 @@ const experience = [
 <style scoped>
 .home-page {
   /* trae 风:容器加宽,左右更接近 viewport,边界不明显 */
-  max-width: min(1440px, 98vw);
+  max-width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
   padding: 0 clamp(24px, 4vw, 64px);
 }

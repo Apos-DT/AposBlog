@@ -254,16 +254,16 @@
 .view-settings,
 .view-chat,
 .view-portfolio {
-  max-width: min(1320px, 98vw);
+  max-width: min(1320px, calc(100% - 32px));
   margin: 0 auto;
   padding: clamp(20px, 4vw, 32px) clamp(16px, 4vw, 56px) clamp(40px, 8vw, 80px);
   position: relative;
   z-index: 2;
 }
 
-/* GraphView 的图谱画布更宽更舒展 */
+/* GraphView 图谱画布稍宽,但仍用同样的居中公式避免切页位移 */
 .view-graph {
-  max-width: min(1480px, 98vw);
+  max-width: min(1480px, calc(100% - 32px));
 }
 
 /* ===== 主布局 grid(已废弃,保留兼容,改为单列) ===== */
