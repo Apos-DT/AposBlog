@@ -73,18 +73,20 @@ function submitSearch() {
  *   - root 直接是 RouterLink + 可选 children 子菜单
  *   - 鼠标 hover 主项时子菜单展开
  */
+// mobileHide:手机端(<= 720px)隐藏该项,精简到核心 5 项让悬浮岛能容下
 const mainNav = [
   { to: '/',          label: '首页' },
   { to: '/library',   label: '文章' },
   { to: '/notes',     label: '知识库' },
-  { to: '/graph',     label: '知识图谱' },
+  { to: '/graph',     label: '知识图谱', mobileHide: true },
   { to: '/portfolio', label: '作品集' },
-  { to: '/guestbook', label: '留言板' },
+  { to: '/guestbook', label: '留言板', mobileHide: true },
   { to: '/chat',      label: 'AI' },
   {
     to: '/settings',
     label: '工具',
     hasChildren: true,
+    mobileHide: true,
     children: [
       { to: '/dashboard', label: '仪表板',   desc: '阅读与知识库总览' },
       { to: '/tags',      label: '标签',     desc: '知识库标签管理' },
@@ -119,7 +121,7 @@ function isActive(item) {
         v-for="m in mainNav"
         :key="m.label"
         class="nav-item"
-        :class="{ 'has-children': m.hasChildren }"
+        :class="{ 'has-children': m.hasChildren, 'nav-item-mobile-hide': m.mobileHide }"
       >
         <RouterLink
           :to="m.to"
@@ -410,20 +412,19 @@ function isActive(item) {
   z-index: 2;
 }
 
+/* 手机端隐藏次要 nav 项,核心 5 项让悬浮岛能容下 */
+@media (max-width: 720px) {
+  .nav-item-mobile-hide { display: none !important; }
+}
+
 @media (max-width: 720px) {
   .nav-links {
     gap: 4px;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    justify-content: center;  /* 精简到 5 项后改回居中 */
     padding: 6px 0;
-    /* mask 边缘渐隐,提示有更多内容可滚 */
-    mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    /* 5 项不再需要 overflow scroll,但留 nowrap 防止意外换行 */
+    flex-wrap: nowrap;
   }
-  .nav-links::-webkit-scrollbar { display: none; }
   .nav-link {
     padding: 8px 12px;
     font-size: 13px;

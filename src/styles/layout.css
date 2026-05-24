@@ -62,25 +62,14 @@
   animation: none !important;
 }
 
-/* ===== 手机端:禁用悬浮岛收缩 =====
-   悬浮岛把可用宽度再减 24px,7-8 个中文菜单挤压渲染异常(字号 squeezing/竖排观感)。
-   手机端 nav 强制贴顶全宽,只保留液态玻璃视觉(blur + 高光),取消几何收缩。 */
+/* 手机端悬浮岛 — 5 项精简导航(.nav-item-mobile-hide 隐藏次要项)
+   悬浮岛保留,但内嵌幅度缩小,避免可用宽度太挤 */
 @media (max-width: 720px) {
   .app-nav.is-lifted {
-    top: 0;
-    width: 100vw;
-    height: var(--nav-h);
-    border-radius: 0;
-    border-bottom: 1px solid oklch(1 0 0 / 0.4);
-    /* 阴影减弱(不浮起,只是底部分界) */
-    box-shadow:
-      0 2px 12px -4px oklch(0.28 0.10 280 / 0.10),
-      inset 0 1px 0 oklch(1 0 0 / 0.5),
-      inset 0 -1px 0 oklch(0 0 0 / 0.03);
+    /* 手机端悬浮岛 inset 减小到 8px,给 nav 更多空间 */
+    width: calc(100vw - 16px);
+    /* 阴影 / 曲面高光 / sweep 保留(液态玻璃感) */
   }
-  /* 悬浮态特有的曲面高光也禁用,免得在全宽态下视觉怪异 */
-  .app-nav.is-lifted::before { opacity: 0; }
-  .app-nav.is-lifted::after { opacity: 0; animation: none; }
 }
 
 /* 悬浮态 — width 收缩 + 圆角 + 浮起阴影
