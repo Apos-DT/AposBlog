@@ -4,96 +4,142 @@
  * < 1100px 单列降级
  */
 
-/* ===== 顶部 Nav — iOS 26 liquid glass 风,滚动收缩为悬浮岛 =====
-   默认: 全宽贴顶,细底边
-   .is-lifted (scrollY > 30): 左右内嵌,大圆角,悬浮阴影,specular 高光带
-   过渡: 0.9s cubic-bezier(0.16, 1, 0.3, 1) expo.out,几何 + 视觉同步柔化 */
+/* ===== 顶部 Nav — iOS 26 liquid glass,滚动收缩为悬浮岛 =====
+   关键修复:始终用 left:50% + translateX(-50%) 居中,改 width 来实现内嵌,
+   这样几何过渡是平滑可插值的,不会跳变。
+   过渡: 1s cubic-bezier(0.16, 1, 0.3, 1) expo.out,所有属性统一时长曲线 */
 .app-nav {
   position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
+  /* 始终居中定位 — 关键:不在两态间切换 left/right/transform */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
   height: var(--nav-h);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--gutter);
-  /* 液态玻璃多层:base 透明度低,backdrop-blur 大,让背景明显透出 */
+
+  /* 液态玻璃多层:
+     1. 顶部 specular 锐光带 — 像玻璃顶弧面的强反光
+     2. 对角线柔光 — 模拟环境光斜照
+     3. base 极透明,backdrop blur 大,让背景内容透过来 */
   background:
-    linear-gradient(180deg, oklch(1 0 0 / 0.40), oklch(1 0 0 / 0) 35%),
-    oklch(0.99 0.003 280 / 0.32);
-  backdrop-filter: blur(26px) saturate(190%);
-  -webkit-backdrop-filter: blur(26px) saturate(190%);
-  border-bottom: 1px solid oklch(1 0 0 / 0.4);
-  /* 微弱内阴影模拟玻璃边缘折射 */
-  box-shadow:
-    inset 0 1px 0 oklch(1 0 0 / 0.30),
-    inset 0 -1px 0 oklch(0 0 0 / 0.025);
+    linear-gradient(180deg, oklch(1 0 0 / 0.52) 0%, oklch(1 0 0 / 0) 40%),
+    linear-gradient(135deg, transparent 30%, oklch(0.95 0.05 290 / 0.05) 50%, transparent 70%),
+    oklch(0.99 0.005 280 / 0.18);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.04);
+
+  border-bottom: 1px solid oklch(1 0 0 / 0.35);
   border-radius: 0;
-  margin: 0;
-  /* 所有变化用同一条柔化曲线 + 时长,避免不同属性时长不一致带来的"跳" */
+  /* inset 边光:顶部白光 + 底部微暗,模拟玻璃边缘折射 */
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.45),
+    inset 0 -1px 1px oklch(0 0 0 / 0.03);
+
+  /* 所有几何 / 视觉属性用同一时长 + 曲线,严格同步动画 */
   transition:
-    margin 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    border-radius 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.7s ease,
-    height 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    top 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    max-width 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    backdrop-filter 0.7s ease,
-    -webkit-backdrop-filter 0.7s ease;
-  will-change: margin, border-radius, box-shadow, top, max-width;
+    width 1s cubic-bezier(0.16, 1, 0.3, 1),
+    height 1s cubic-bezier(0.16, 1, 0.3, 1),
+    top 1s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 1s cubic-bezier(0.16, 1, 0.3, 1),
+    background 1s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 1s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 1s cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 1s cubic-bezier(0.16, 1, 0.3, 1),
+    -webkit-backdrop-filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: width, top, border-radius;
 }
 
-/* 悬浮态 — 左右内嵌 + 大圆角 + 强阴影 + 更厚玻璃 */
+/* 悬浮态 — width 收缩 + 圆角 + 浮起阴影
+   左右距离自然由 width < 100vw 实现,无需 margin / left / transform 改变 */
 .app-nav.is-lifted {
   top: 12px;
-  margin: 0 clamp(12px, 2.4vw, 28px);
-  max-width: min(1280px, calc(100% - 24px));
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  height: calc(var(--nav-h) - 8px);
+  width: min(1280px, calc(100vw - 24px));
+  height: calc(var(--nav-h) - 6px);
   border-radius: 999px;
   border-bottom-color: transparent;
+
   background:
-    /* 顶部 specular 高光带 — liquid glass 的灵魂 */
-    linear-gradient(180deg, oklch(1 0 0 / 0.55), oklch(1 0 0 / 0.04) 42%, oklch(1 0 0 / 0) 65%),
-    /* 底部弧光反射(紫调) */
-    linear-gradient(0deg, oklch(0.97 0.04 280 / 0.14), transparent 40%),
-    /* base 极透明:0.32 → 25(强 backdrop-blur 补可读性) */
-    oklch(0.99 0.003 280 / 0.25);
-  backdrop-filter: blur(36px) saturate(230%);
-  -webkit-backdrop-filter: blur(36px) saturate(230%);
+    /* 顶部 specular 光带更强 — 悬浮态像有光直射玻璃面 */
+    linear-gradient(180deg, oklch(1 0 0 / 0.65) 0%, oklch(1 0 0 / 0.04) 45%, oklch(1 0 0 / 0) 65%),
+    /* 对角线柔光更明显 */
+    linear-gradient(135deg, transparent 22%, oklch(0.95 0.06 290 / 0.10) 50%, transparent 78%),
+    /* 底部紫调弧光反射 */
+    linear-gradient(0deg, oklch(0.96 0.05 280 / 0.10), transparent 38%),
+    oklch(0.99 0.005 280 / 0.14);
+  backdrop-filter: blur(40px) saturate(230%) brightness(1.08);
+  -webkit-backdrop-filter: blur(40px) saturate(230%) brightness(1.08);
+
   box-shadow:
-    /* 主投影 */
-    0 18px 50px -10px oklch(0.30 0.10 280 / 0.20),
-    0 6px 18px -3px oklch(0.30 0.10 280 / 0.10),
-    /* 内边光:顶部白光 + 底部微反射 */
-    inset 0 1px 0 oklch(1 0 0 / 0.55),
-    inset 0 -1px 0 oklch(0 0 0 / 0.04),
-    /* 1px 边框模拟玻璃边缘 */
-    0 0 0 1px oklch(1 0 0 / 0.35);
+    /* 外投影:主投 + 近影 */
+    0 22px 56px -12px oklch(0.28 0.10 280 / 0.22),
+    0 8px 22px -4px oklch(0.28 0.10 280 / 0.10),
+    /* 内边光:顶部强白光 + 底部微暗反射 */
+    inset 0 1px 0 oklch(1 0 0 / 0.65),
+    inset 0 -1px 1px oklch(0 0 0 / 0.05),
+    /* 1px 玻璃边 */
+    0 0 0 1px oklch(1 0 0 / 0.42);
 }
 
-/* 顶部 specular sweep — 半透明白色 highlight 假装"玻璃顶面反射" */
+/* ::before 顶部高光弧 — 仅悬浮态可见,模拟玻璃顶面曲率反光
+   这是和"毛玻璃"的关键区别:有形状感的 highlight 而不只是均匀模糊 */
 .app-nav::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 1px;
+  left: 8%;
+  right: 8%;
   height: 50%;
   pointer-events: none;
-  background: linear-gradient(180deg, oklch(1 0 0 / 0.4), transparent);
-  border-radius: inherit;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    oklch(1 0 0 / 0.45),
+    oklch(1 0 0 / 0.08) 40%,
+    transparent 70%
+  );
+  border-radius: 999px;
   opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: -1;
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
 }
 .app-nav.is-lifted::before { opacity: 1; }
+
+/* ::after 缓慢移动的 specular sweep — 让玻璃"活起来"
+   60s 一周期,微弱不刺眼,只在悬浮态可见 */
+.app-nav::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 30%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(1 0 0 / 0.10) 50%,
+    transparent
+  );
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+.app-nav.is-lifted::after {
+  opacity: 1;
+  animation: nav-sweep 9s linear infinite;
+}
+@keyframes nav-sweep {
+  0%, 100% { left: -30%; }
+  50% { left: 100%; }
+}
+
+/* 确保 nav 内容在伪元素之上 */
+.app-nav > * { position: relative; z-index: 1; }
 
 .app-nav .brand {
   display: inline-flex;
