@@ -363,8 +363,20 @@
     activeFilter: null,
     geom: { cx: 0, cy: 0, r: 0, rInner: 0 },
   }
-  var CHART_COLORS = ['#7c3aed', '#0891b2', '#d97706', '#16a34a', '#e11d48', '#6366f1']
+  // 与站点紫蓝主题协调的 oklch 调色板:
+  // 6 色色相均匀分布,亮度/饱和度统一,视觉和谐
+  var CHART_COLORS = [
+    'oklch(0.62 0.22 295)', // 紫(品牌主色)
+    'oklch(0.62 0.18 230)', // 蓝
+    'oklch(0.66 0.18 60)',  // 暖橙
+    'oklch(0.62 0.18 160)', // 青绿
+    'oklch(0.62 0.20 20)',  // 暖红
+    'oklch(0.62 0.18 320)', // 粉紫
+  ]
   var chartEventsBound = false
+  var chartDpr = 1
+  var chartCssW = 0
+  var chartCssH = 0
 
   function rebuildChartData() {
     var map = {}
@@ -392,19 +404,44 @@
     if (chartState.activeFilter) applyEmojiFilter()
   }
 
+  // 按 DPR 缩放 canvas 实际像素,避免高分屏文字模糊
+  function ensureCanvasDpr(canvas) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2)
+    var rect = canvas.getBoundingClientRect()
+    var cssW = rect.width || parseFloat(getComputedStyle(canvas).width) || 170
+    var cssH = rect.height || parseFloat(getComputedStyle(canvas).height) || 170
+    var targetW = Math.round(cssW * dpr)
+    var targetH = Math.round(cssH * dpr)
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW
+      canvas.height = targetH
+    }
+    chartDpr = dpr
+    chartCssW = cssW
+    chartCssH = cssH
+  }
+
   function redrawChart() {
     var canvas = document.getElementById('gb-emoji-chart')
     if (!canvas) return
+    ensureCanvasDpr(canvas)
     var ctx = canvas.getContext('2d')
-    var w = canvas.width, h = canvas.height
+    var w = chartCssW
+    var h = chartCssH
     var cx = w / 2, cy = h / 2
     var r = Math.min(w, h) / 2 - 14
     chartState.geom = { cx: cx, cy: cy, r: r, rInner: r * 0.55 }
+    // 重置变换并按 DPR 缩放(所有后续坐标用 CSS 像素即可,自动 ×DPR 渲染)
+    ctx.setTransform(chartDpr, 0, 0, chartDpr, 0, 0)
     ctx.clearRect(0, 0, w, h)
 
+    // 字体栈与全站一致
+    var fontDisplay = '"Space Grotesk", "Inter", system-ui, -apple-system, sans-serif'
+    var fontMono = '"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace'
+
     if (chartState.total === 0) {
-      ctx.fillStyle = '#94a3b8'
-      ctx.font = '13px sans-serif'
+      ctx.fillStyle = 'oklch(0.65 0.02 280)'
+      ctx.font = '500 13px ' + fontDisplay
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText('还没有留言', cx, cy)
@@ -420,7 +457,7 @@
       var sliceR = isHovered ? r + 6 : r
 
       ctx.save()
-      if (isDimmed) ctx.globalAlpha = 0.25
+      if (isDimmed) ctx.globalAlpha = 0.22
       ctx.beginPath()
       ctx.moveTo(cx, cy)
       ctx.arc(cx, cy, sliceR, start, start + angle)
@@ -428,10 +465,10 @@
       ctx.fillStyle = CHART_COLORS[i % CHART_COLORS.length]
       ctx.fill()
 
-      // hover 阴影描边
+      // hover 白色细描边
       if (isHovered) {
-        ctx.strokeStyle = '#fff'
-        ctx.lineWidth = 2
+        ctx.strokeStyle = 'oklch(0.99 0.005 80 / 0.95)'
+        ctx.lineWidth = 1.5
         ctx.stroke()
       }
       ctx.restore()
@@ -439,11 +476,15 @@
       start += angle
     })
 
-    // 中心圆盖出 donut 风格
+    // 中心圆盖出 donut 风格(与全站背景同色)
     ctx.beginPath()
     ctx.arc(cx, cy, chartState.geom.rInner, 0, Math.PI * 2)
-    ctx.fillStyle = '#fefdfb'
+    ctx.fillStyle = 'oklch(0.985 0.003 80)'
     ctx.fill()
+    // 中心圆 1px 内边光(玻璃感)
+    ctx.strokeStyle = 'oklch(1 0 0 / 0.6)'
+    ctx.lineWidth = 1
+    ctx.stroke()
 
     // 中心数字 / 标签 — 根据 hover/filter 状态显示不同信息
     var centerNum, centerLabel
@@ -460,15 +501,18 @@
       centerLabel = '情绪分布'
     }
 
-    ctx.fillStyle = '#1e293b'
-    ctx.font = (typeof centerNum === 'string' && centerNum.length <= 2)
-      ? '28px sans-serif'
-      : 'bold 22px Space Grotesk, sans-serif'
+    // emoji(2 字符以内)用更大字号,纯数字用 display 字体
+    var isEmoji = typeof centerNum === 'string' && centerNum.length <= 2
+    ctx.fillStyle = 'oklch(0.20 0.02 280)'
+    ctx.font = isEmoji
+      ? '28px ' + fontDisplay
+      : '600 22px ' + fontDisplay
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(String(centerNum), cx, cy - 5)
-    ctx.font = '10.5px JetBrains Mono, monospace'
-    ctx.fillStyle = '#64748b'
+    ctx.fillText(String(centerNum), cx, cy - 6)
+    // 副标用 mono 字体 + 0.5 letter spacing 视觉效果(通过空格模拟)
+    ctx.font = '500 11px ' + fontMono
+    ctx.fillStyle = 'oklch(0.50 0.02 280)'
     ctx.fillText(centerLabel, cx, cy + 14)
   }
 
@@ -527,12 +571,10 @@
     $canvas.on('mousemove.gb', function (e) {
       if (chartState.total === 0) return
       var rect = this.getBoundingClientRect()
+      // DPR 之后所有几何都用 CSS 像素,无需乘 fx/fy
       var sx = e.clientX - rect.left
       var sy = e.clientY - rect.top
-      // 缩放因子(CSS 显示尺寸 vs canvas 内部尺寸)
-      var fx = this.width / rect.width
-      var fy = this.height / rect.height
-      var idx = hitTestSlice(sx * fx, sy * fy)
+      var idx = hitTestSlice(sx, sy)
       if (idx !== chartState.hoveredIdx) {
         chartState.hoveredIdx = idx
         redrawChart()
@@ -559,9 +601,7 @@
 
     $canvas.on('click.gb', function (e) {
       var rect = this.getBoundingClientRect()
-      var fx = this.width / rect.width
-      var fy = this.height / rect.height
-      var idx = hitTestSlice((e.clientX - rect.left) * fx, (e.clientY - rect.top) * fy)
+      var idx = hitTestSlice(e.clientX - rect.left, e.clientY - rect.top)
       if (idx !== -1) {
         toggleEmojiFilter(chartState.items[idx][0])
       } else {

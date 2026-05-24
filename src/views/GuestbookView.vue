@@ -537,10 +537,12 @@ function loadScript(src, bust = false) {
 /* ===== 统计区 — 紧凑布局 + 三色 stat 卡 + chart 平衡 ===== */
 .gb-stats-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
-  gap: 24px;
+  /* 改 minmax 让 chart 列在内容多时收缩,避免溢出右边界 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: 20px;
   padding: 18px 22px;
   border-radius: var(--radius-lg);
+  overflow: hidden;
   /* 背景由 App.vue 全局液态玻璃覆盖,这里不重复 */
 }
 @media (max-width: 720px) {
@@ -658,9 +660,11 @@ function loadScript(src, bust = false) {
 .gb-stats-chart {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 18px;
+  justify-content: flex-start;
+  gap: 14px;
   flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
 }
 .gb-chart-wrap {
   position: relative;
@@ -668,8 +672,8 @@ function loadScript(src, bust = false) {
   flex-shrink: 0;
 }
 .gb-stats-chart canvas {
-  width: 170px;
-  height: 170px;
+  width: 160px;
+  height: 160px;
   cursor: pointer;
   display: block;
 }
@@ -701,12 +705,12 @@ function loadScript(src, bust = false) {
   height: 8px;
   background: oklch(0.18 0.02 280 / 0.92);
 }
-/* legend — 紧凑两列 grid,行高 + padding 收紧 */
+/* legend — 单列紧凑 flex,行高 + padding 收紧 */
 .gb-chart-legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3px 6px;
-  align-content: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-self: center;
   min-width: 0;
   flex: 1;
   font-family: var(--font-mono);
@@ -714,13 +718,14 @@ function loadScript(src, bust = false) {
 }
 .gb-chart-legend .legend-row {
   display: grid;
-  grid-template-columns: 10px 18px auto 1fr;
+  grid-template-columns: 10px 18px 1fr auto;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 4px 8px;
   border-radius: 6px;
   cursor: pointer;
   color: var(--ink-2);
+  min-width: 0;
   transition: background 0.18s, color 0.18s, transform 0.18s var(--ease-out);
 }
 .gb-chart-legend .legend-row:hover {
@@ -728,12 +733,10 @@ function loadScript(src, bust = false) {
   transform: translateX(2px);
 }
 .gb-chart-legend .legend-row.active {
-  background: oklch(0.92 0.06 295 / 0.4);
+  background: oklch(0.92 0.06 295 / 0.45);
   color: var(--ink);
   font-weight: 600;
 }
-/* clear 按钮跨越两列 */
-.gb-chart-legend .legend-clear { grid-column: 1 / -1; }
 .gb-chart-legend .legend-row.dim {
   opacity: 0.35;
 }
