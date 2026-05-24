@@ -1009,7 +1009,17 @@
     if (u) {
       $('.gb-auth-anon').hide()
       var $user = $('.gb-auth-user').show().css('display', 'grid')
-      $user.find('.gb-auth-avatar').attr('src', u.avatarUrl || ($('html').data('basePath') || '/') + 'hoshinoai.jpg')
+      // 头像 URL 优先用 user 自己的(GitHub avatar_url),失败兜底到本站头像
+      // 用 baseURL meta 拿不到时直接用 GitHub 默认 identicon
+      var fallbackAvatar = (document.querySelector('base')?.href || '/') + 'hoshinoai.jpg'
+      var avatarSrc = u.avatarUrl || fallbackAvatar
+      $user.find('.gb-auth-avatar')
+        .attr('src', avatarSrc)
+        .off('error.gbAvatar')
+        .on('error.gbAvatar', function () {
+          // 头像加载失败 → 兜底
+          if (this.src !== fallbackAvatar) this.src = fallbackAvatar
+        })
       $user.find('.gb-auth-name').text(u.displayName || u.username)
       $user.find('.gb-auth-source').text(
         u.type === 'github' ? '@' + u.username + ' · 通过 GitHub 登录' :
@@ -1051,9 +1061,18 @@
     // GitHub 登录提交
     $('#gb-form-github').on('submit.gb', function (e) {
       e.preventDefault()
+      e.stopPropagation()
       var fd = new FormData(this)
       var username = (fd.get('username') || '').trim()
-      if (!username) return
+      if (!username) {
+        toast('warning', '请输入 GitHub 用户名')
+        return
+      }
+      // 校验 GitHub 用户名格式(alphanumeric + 单破折号,1-39 字符)
+      if (!/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/.test(username)) {
+        toast('warning', 'GitHub 用户名格式不对')
+        return
+      }
       doGithubLogin(username)
     })
 
@@ -1100,22 +1119,37 @@
   }
 
   function doGithubLogin(username) {
-    var $btn = $('#gb-form-github button[type="submit"]').prop('disabled', true).text('查询中...')
-    fetch('https://api.github.com/users/' + encodeURIComponent(username))
+    var $btn = $('#gb-form-github button[type="submit"]')
+    // 保存原始 button HTML(含 <span>登录</span>),避免 .text() 破坏内部结构
+    var originalHtml = $btn.html()
+    $btn.prop('disabled', true).html('<span>查询中...</span>')
+
+    // 8s timeout 防止 fetch 卡死
+    var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null
+    var timer = setTimeout(function () {
+      if (controller) controller.abort()
+    }, 8000)
+
+    fetch('https://api.github.com/users/' + encodeURIComponent(username), {
+      headers: { 'Accept': 'application/vnd.github+json' },
+      signal: controller ? controller.signal : undefined,
+    })
       .then(function (res) {
         if (!res.ok) {
           if (res.status === 404) throw new Error('找不到 GitHub 用户:' + username)
-          if (res.status === 403) throw new Error('GitHub API 调用次数超限,请稍后再试')
-          throw new Error('GitHub 接口请求失败 (' + res.status + ')')
+          if (res.status === 403) throw new Error('GitHub API 调用次数超限,过一小时再试')
+          if (res.status === 422) throw new Error('用户名格式无效')
+          throw new Error('GitHub 接口异常 (HTTP ' + res.status + ')')
         }
         return res.json()
       })
       .then(function (u) {
+        if (!u || !u.login) throw new Error('GitHub 返回数据异常,请重试')
         var current = {
           type: 'github',
           username: u.login,
           displayName: u.name || u.login,
-          avatarUrl: u.avatar_url,
+          avatarUrl: u.avatar_url || '',
           bio: u.bio || '',
           loggedAt: new Date().toISOString(),
         }
@@ -1123,13 +1157,20 @@
         refreshAuthBar()
         toast('success', '欢迎,' + current.displayName)
         closeAuthModal()
-        $('#gb-form-github')[0].reset()
+        // form 可能已被 unmount(用户切换页面),安全访问
+        var formEl = document.getElementById('gb-form-github')
+        if (formEl) formEl.reset()
       })
       .catch(function (err) {
-        toast('error', err.message || '登录失败')
+        var msg = err && err.message ? err.message : '登录失败'
+        if (err && err.name === 'AbortError') msg = 'GitHub 接口超时,请检查网络'
+        console.error('[Guestbook] GitHub 登录失败:', err)
+        toast('error', msg)
       })
       .finally(function () {
-        $btn.prop('disabled', false).text('登录')
+        clearTimeout(timer)
+        // 恢复 button 原 HTML(保留 <span> 结构),避免直接 text 破坏
+        if ($btn.length) $btn.prop('disabled', false).html(originalHtml)
       })
   }
 
