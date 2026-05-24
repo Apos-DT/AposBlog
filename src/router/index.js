@@ -108,9 +108,10 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
   scrollBehavior(to, from, saved) {
+    // instant 跳转避免与 nav lifted 过渡叠加抖动
     if (saved) return saved
-    if (to.hash) return { el: to.hash, behavior: 'smooth' }
-    return { top: 0, behavior: 'smooth' }
+    if (to.hash) return { el: to.hash }
+    return { top: 0 }
   },
 })
 

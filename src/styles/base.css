@@ -3,6 +3,11 @@
  */
 * { box-sizing: border-box; }
 
+html {
+  /* 始终保留滚动条 gutter,避免页面切换时 scrollbar 出现/消失导致整体宽度抖动 */
+  scrollbar-gutter: stable;
+}
+
 html, body {
   margin: 0;
   padding: 0;

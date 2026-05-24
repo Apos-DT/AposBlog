@@ -4,7 +4,7 @@
  *  - 顶部 nav fixed 常驻,5 个主项 + 2 个有 hover 子菜单
  *  - 主体全宽,各 view 自己控制 max-width
  */
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import AppToastStack from './AppToastStack.vue'
@@ -19,6 +19,8 @@ const searchInputEl = ref(null)
 
 // nav 滚动收缩为悬浮岛 — iOS 26 liquid glass 风格
 const lifted = ref(false)
+// 临时禁用 transition,避免路由切换瞬间 lifted 重置触发 1s 抖动过渡
+const navNoTransition = ref(false)
 let rafId = 0
 function onScroll() {
   if (rafId) return
@@ -34,6 +36,21 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
   cancelAnimationFrame(rafId)
+})
+
+// 路由切换:同步重置 lifted + 临时禁用 transition,避免抖动
+watch(() => route.fullPath, async () => {
+  navNoTransition.value = true
+  lifted.value = false
+  // 等一帧 + 一次 nextTick,让浏览器应用 no-transition 类后再恢复
+  await nextTick()
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      navNoTransition.value = false
+      // 切换完成后用新 scrollY 重新判定 lifted(用户路由后立刻向下滚的边界场景)
+      onScroll()
+    })
+  })
 })
 
 function openSearch() {
@@ -91,7 +108,7 @@ function isActive(item) {
 </script>
 
 <template>
-  <header class="app-nav" :class="{ 'is-lifted': lifted }">
+  <header class="app-nav" :class="{ 'is-lifted': lifted, 'no-transition': navNoTransition }">
     <RouterLink to="/" class="brand" aria-label="APOS 首页">
       <span class="brand-mark"></span>
       <span class="brand-text">APOS</span>

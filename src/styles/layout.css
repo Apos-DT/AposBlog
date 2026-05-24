@@ -54,6 +54,14 @@
   will-change: width, top, border-radius;
 }
 
+/* 路由切换瞬间禁用 transition,避免 lifted→默认 1s 过渡叠加滚动产生抖动 */
+.app-nav.no-transition,
+.app-nav.no-transition::before,
+.app-nav.no-transition::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 /* 悬浮态 — width 收缩 + 圆角 + 浮起阴影
    左右距离自然由 width < 100vw 实现,无需 margin / left / transform 改变 */
 .app-nav.is-lifted {
