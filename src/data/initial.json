@@ -1,6 +1,16 @@
 {
   "posts": [
     {
+      "slug": "vue-spa-page-transition-jitter-debugging",
+      "title": "切页面右移?7 个假设定位 Vue transition + Lenis 平滑滚动的复合 bug",
+      "excerpt": "用户反馈\"切换任何页面后内容向右移动微小距离\"。从 scrollbar 修到 max-width 修到 padding 修到 router behavior,改了 6 处仍抖。直到一句\"只有 /tags 不抖\"两分钟定位到真因——Vue <transition> 的 translateY 加 Lenis 平滑滚动叠加。这篇完整复盘 7 个假设、为什么前 6 个都没解决,以及 5 条 debug 原则。",
+      "tag": "Web",
+      "date": "2026-05-24",
+      "readTime": 9,
+      "external": false,
+      "url": "../../post.html?slug=vue-spa-page-transition-jitter-debugging"
+    },
+    {
       "slug": "odoo-erp-manufacturing-customization",
       "title": "在 Odoo 里做制造业 ERP 二开:销采产存质财全链路笔记",
       "excerpt": "从客户手工 Excel 跑产线,到 Odoo 把销售-采购-库存-生产-质检-财务跑通。这篇拆开几个月里的关键二开决策与踩坑。",
@@ -46,6 +56,7 @@
     { "id": "t-vision",    "name": "Vision",     "color": "oklch(0.80 0.17 220)" },
     { "id": "t-fullstack", "name": "Fullstack",  "color": "oklch(0.84 0.15 60)" },
     { "id": "t-data",      "name": "Data",       "color": "oklch(0.80 0.17 160)" },
+    { "id": "t-web",       "name": "Web",        "color": "oklch(0.78 0.16 260)" },
     { "id": "t-study",     "name": "学习",        "color": "oklch(0.77 0.18 320)" },
     { "id": "t-think",     "name": "思考",        "color": "oklch(0.80 0.15 30)" },
     { "id": "t-cheat",     "name": "速查",        "color": "oklch(0.76 0.17 180)" }
