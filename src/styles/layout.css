@@ -4,21 +4,91 @@
  * < 1100px 单列降级
  */
 
-/* ===== 顶部 Nav ===== */
+/* ===== 顶部 Nav — iOS 26 liquid glass 风,滚动收缩为悬浮岛 =====
+   默认: 全宽贴顶,细底边
+   .is-lifted (scrollY > 30): 左右内嵌,大圆角,悬浮阴影,specular 高光带
+   过渡: 0.55s cubic-bezier expo,所有几何 + 视觉同步动画 */
 .app-nav {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: var(--nav-h);
   z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--gutter);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  background: oklch(0.985 0.003 80 / 0.78);
-  border-bottom: 1px solid var(--line-soft);
+  /* 液态玻璃多层:base 半透明 + saturate + 顶部 specular 高光 */
+  background:
+    linear-gradient(180deg, oklch(1 0 0 / 0.55), oklch(1 0 0 / 0) 32%),
+    oklch(0.985 0.005 280 / 0.62);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid oklch(1 0 0 / 0.5);
+  /* 微弱内阴影模拟玻璃边缘折射 */
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.35),
+    inset 0 -1px 0 oklch(0 0 0 / 0.03);
+  border-radius: 0;
+  margin: 0;
+  transition:
+    margin 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    border-radius 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.4s ease,
+    box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease,
+    height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: margin, border-radius, box-shadow;
 }
+
+/* 悬浮态 — 左右内嵌 + 大圆角 + 强阴影 + 更厚玻璃 */
+.app-nav.is-lifted {
+  top: 10px;
+  margin: 0 clamp(12px, 2.4vw, 28px);
+  /* clamp 内嵌:大屏稍宽,中屏更内嵌让"岛"明显 */
+  max-width: min(1280px, calc(100% - 24px));
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  height: calc(var(--nav-h) - 8px);
+  border-radius: 999px;
+  border-bottom-color: transparent;
+  background:
+    /* 顶部 specular 高光带 — liquid glass 的灵魂 */
+    linear-gradient(180deg, oklch(1 0 0 / 0.7), oklch(1 0 0 / 0.05) 40%, oklch(1 0 0 / 0) 60%),
+    /* 底部弧光反射 */
+    linear-gradient(0deg, oklch(0.97 0.02 280 / 0.18), transparent 35%),
+    oklch(0.985 0.005 280 / 0.55);
+  backdrop-filter: blur(28px) saturate(220%);
+  -webkit-backdrop-filter: blur(28px) saturate(220%);
+  box-shadow:
+    /* 主投影 */
+    0 12px 40px -8px oklch(0.30 0.10 280 / 0.18),
+    0 4px 16px -2px oklch(0.30 0.10 280 / 0.10),
+    /* 内边光:顶部白光 + 底部反射 */
+    inset 0 1px 0 oklch(1 0 0 / 0.6),
+    inset 0 -1px 0 oklch(0 0 0 / 0.05),
+    /* 1px 边框模拟玻璃边缘 */
+    0 0 0 1px oklch(1 0 0 / 0.4);
+}
+
+/* 顶部 specular sweep — 半透明白色 highlight 假装"玻璃顶面反射" */
+.app-nav::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  pointer-events: none;
+  background: linear-gradient(180deg, oklch(1 0 0 / 0.4), transparent);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: -1;
+}
+.app-nav.is-lifted::before { opacity: 1; }
 
 .app-nav .brand {
   display: inline-flex;

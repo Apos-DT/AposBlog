@@ -4,7 +4,7 @@
  *  - 顶部 nav fixed 常驻,5 个主项 + 2 个有 hover 子菜单
  *  - 主体全宽,各 view 自己控制 max-width
  */
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import AppToastStack from './AppToastStack.vue'
@@ -16,6 +16,25 @@ const router = useRouter()
 const search = ref('')
 const searchOpen = ref(false)
 const searchInputEl = ref(null)
+
+// nav 滚动收缩为悬浮岛 — iOS 26 liquid glass 风格
+const lifted = ref(false)
+let rafId = 0
+function onScroll() {
+  if (rafId) return
+  rafId = requestAnimationFrame(() => {
+    lifted.value = window.scrollY > 30
+    rafId = 0
+  })
+}
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onScroll()
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  cancelAnimationFrame(rafId)
+})
 
 function openSearch() {
   searchOpen.value = true
@@ -72,7 +91,7 @@ function isActive(item) {
 </script>
 
 <template>
-  <header class="app-nav">
+  <header class="app-nav" :class="{ 'is-lifted': lifted }">
     <RouterLink to="/" class="brand" aria-label="APOS 首页">
       <span class="brand-mark"></span>
       <span class="brand-text">APOS</span>
