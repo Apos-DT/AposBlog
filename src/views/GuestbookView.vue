@@ -396,7 +396,11 @@ function loadScript(src, bust = false) {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: gb-modal-fade-in 0.2s var(--ease-out);
+  /* 覆盖全局 stagger:opacity 0 base + animation-delay 都要清零
+     forwards 让 animation 结束后保持 opacity 1,避免回退闪退 */
+  opacity: 1 !important;
+  animation: gb-modal-fade-in 0.2s var(--ease-out) forwards !important;
+  animation-delay: 0s !important;
 }
 @keyframes gb-modal-fade-in {
   from { opacity: 0; }
@@ -411,7 +415,8 @@ function loadScript(src, bust = false) {
   border: 1px solid var(--line);
   background: var(--bg);
   box-shadow: var(--shadow-lift);
-  animation: gb-modal-pop-in 0.3s var(--ease-out);
+  opacity: 1 !important;
+  animation: gb-modal-pop-in 0.3s var(--ease-out) forwards;
 }
 @keyframes gb-modal-pop-in {
   from { transform: scale(0.96); opacity: 0; }

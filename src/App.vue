@@ -93,19 +93,21 @@ onBeforeUnmount(() => {
    page transition 0.5s 渐显的同时,内部 section/header/block 错峰 fade-in,
    制造"内容一层一层浮现"的层次感。
    只用 opacity,绝不引入 transform/位移,保证零 layout shift。 */
-.home-page > *,
-.post-page > *,
-.view-gb > *,
-.view-dashboard > *,
-.view-library > *,
-.view-notes > *,
-.view-note-edit > *,
-.view-tags > *,
-.view-graph > *,
-.view-stats > *,
-.view-settings > *,
-.view-chat > *,
-.view-portfolio > * {
+/* stagger 排除 modal/popup 类元素(它们由 JS 控制显隐 + 自己的 animation,
+   不能被全局 opacity:0 + animation 覆盖,否则关弹窗时会出现"闪退") */
+.home-page > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.post-page > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-gb > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-dashboard > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-library > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-notes > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-note-edit > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-tags > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-graph > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-stats > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-settings > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-chat > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]),
+.view-portfolio > *:not(.gb-modal-mask):not(.modal):not([role="dialog"]):not([id$="modal"]) {
   opacity: 0;
   animation: view-child-fade-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
