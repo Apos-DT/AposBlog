@@ -279,9 +279,6 @@ function buildOption() {
         },
         roam: true,
         draggable: true,
-        /* focusNodeAdjacency 已移除 — 鼠标 hover 不再让邻接节点全部高亮,
-           避免拖动期间鼠标飞过其他节点导致一片节点闪烁。
-           保留 emphasis.focus: 'self' 让 hover 只影响当前节点。 */
         autoCurveness: true,
         zoom: 1,
         cursor: 'pointer',
@@ -303,19 +300,26 @@ function buildOption() {
           },
         },
         labelLayout: { hideOverlap: true },
+        /* Obsidian 风邻接高亮:
+           hover/click 节点 → 该节点 + 直接邻接节点和边保持完整 opacity,
+           非邻接节点和边变暗(opacity 0.15),产生强对比"焦点视角"。
+           拖动期间通过 emphasis.disabled 动态切换关闭,避免鼠标飞过其他节点闪烁。 */
         emphasis: {
-          focus: 'self',            // hover 只影响当前节点,不带动邻接
-          scale: 1.08,               // 微放大,克制
+          focus: 'adjacency',
+          scale: 1.15,
           itemStyle: {
             borderColor: '#fff',
-            borderWidth: 1.5,
+            borderWidth: 2,
+            shadowBlur: 12,
+            shadowColor: 'rgba(124, 58, 237, 0.5)',
           },
-          label: { fontWeight: 600, color: '#fff' },
+          lineStyle: { width: 2.5, opacity: 1, color: 'oklch(0.50 0.22 295)' },
+          label: { fontWeight: 700, color: '#1e293b', fontSize: 12 },
         },
-        // 拖动期间隐藏 emphasis,避免鼠标飞过节点产生闪烁
         blur: {
-          itemStyle: { opacity: 1 },
-          lineStyle: { opacity: 1 },
+          itemStyle: { opacity: 0.18 },
+          lineStyle: { opacity: 0.06 },
+          label: { opacity: 0.25 },
         },
         lineStyle: { curveness: 0.1 },
         nodes,
@@ -357,30 +361,50 @@ function init() {
   })
 
   chart.on('mouseover', (e) => {
-    if (isDragging) return            // 拖动期间不响应 hover,避免误触发邻节点高亮
     if (e.dataType === 'node') hoverNode.value = e.data
   })
   chart.on('mouseout', () => {
-    if (isDragging) return
     hoverNode.value = null
   })
 
-  // 拖动节点:开始时禁用 emphasis,结束时恢复 — 彻底消除拖动闪烁
+  // 拖动期间动态禁用 emphasis,避免鼠标飞过其他节点触发邻接高亮闪烁
+  // 拖动结束立即恢复,鼠标在哪个节点上就触发该节点的邻接高亮(自然)
+  function setEmphasisDisabled(disabled) {
+    if (!chart) return
+    chart.setOption({
+      series: [{ emphasis: { disabled } }],
+    }, { lazyUpdate: false, silent: true })
+  }
+
+  // ECharts force layout 节点拖动事件
+  chart.on('dragstart', () => {
+    isDragging = true
+    setEmphasisDisabled(true)
+  })
+  chart.on('dragend', () => {
+    isDragging = false
+    setEmphasisDisabled(false)
+  })
+
+  // 兜底:ZRender 底层事件,某些情况下 dragstart 不触发(快速点击拖动)
   chart.getZr().on('mousedown', (e) => {
-    // ECharts dragstart 事件不稳定,用底层 mousedown 检测
+    if (isDragging) return
     if (e.target && e.target.dataIndex !== undefined && e.target.type === 'circle') {
       isDragging = true
-      chart.dispatchAction({ type: 'downplay' })
+      setEmphasisDisabled(true)
     }
   })
   chart.getZr().on('mouseup', () => {
     if (isDragging) {
       isDragging = false
+      setEmphasisDisabled(false)
     }
   })
-  // 兜底:鼠标离开 canvas 也算 drag 结束
   chart.getZr().on('globalout', () => {
-    if (isDragging) isDragging = false
+    if (isDragging) {
+      isDragging = false
+      setEmphasisDisabled(false)
+    }
   })
 }
 
