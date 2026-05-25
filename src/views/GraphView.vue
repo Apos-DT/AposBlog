@@ -279,7 +279,9 @@ function buildOption() {
         },
         roam: true,
         draggable: true,
-        focusNodeAdjacency: true,
+        /* focusNodeAdjacency 已移除 — 鼠标 hover 不再让邻接节点全部高亮,
+           避免拖动期间鼠标飞过其他节点导致一片节点闪烁。
+           保留 emphasis.focus: 'self' 让 hover 只影响当前节点。 */
         autoCurveness: true,
         zoom: 1,
         cursor: 'pointer',
@@ -302,9 +304,18 @@ function buildOption() {
         },
         labelLayout: { hideOverlap: true },
         emphasis: {
-          focus: 'adjacency',
-          lineStyle: { width: 2.2, opacity: 1 },
+          focus: 'self',            // hover 只影响当前节点,不带动邻接
+          scale: 1.08,               // 微放大,克制
+          itemStyle: {
+            borderColor: '#fff',
+            borderWidth: 1.5,
+          },
           label: { fontWeight: 600, color: '#fff' },
+        },
+        // 拖动期间隐藏 emphasis,避免鼠标飞过节点产生闪烁
+        blur: {
+          itemStyle: { opacity: 1 },
+          lineStyle: { opacity: 1 },
         },
         lineStyle: { curveness: 0.1 },
         nodes,
@@ -346,12 +357,34 @@ function init() {
   })
 
   chart.on('mouseover', (e) => {
+    if (isDragging) return            // 拖动期间不响应 hover,避免误触发邻节点高亮
     if (e.dataType === 'node') hoverNode.value = e.data
   })
   chart.on('mouseout', () => {
+    if (isDragging) return
     hoverNode.value = null
   })
+
+  // 拖动节点:开始时禁用 emphasis,结束时恢复 — 彻底消除拖动闪烁
+  chart.getZr().on('mousedown', (e) => {
+    // ECharts dragstart 事件不稳定,用底层 mousedown 检测
+    if (e.target && e.target.dataIndex !== undefined && e.target.type === 'circle') {
+      isDragging = true
+      chart.dispatchAction({ type: 'downplay' })
+    }
+  })
+  chart.getZr().on('mouseup', () => {
+    if (isDragging) {
+      isDragging = false
+    }
+  })
+  // 兜底:鼠标离开 canvas 也算 drag 结束
+  chart.getZr().on('globalout', () => {
+    if (isDragging) isDragging = false
+  })
 }
+
+let isDragging = false
 
 function refresh() {
   if (chart) chart.setOption(buildOption(), { notMerge: false })
