@@ -212,7 +212,7 @@ function fmtDate(d) {
     <!-- 主体三栏 -->
     <div v-else class="post-grid">
       <!-- 左 TOC -->
-      <aside class="post-toc">
+      <aside class="post-toc" data-lenis-prevent>
         <div class="ptc-inner">
           <span class="ptc-label">CONTENTS</span>
           <nav v-if="tocItems.length" class="ptc-nav">
@@ -275,7 +275,7 @@ function fmtDate(d) {
       </article>
 
       <!-- 右 工具 -->
-      <aside class="post-tools">
+      <aside class="post-tools" data-lenis-prevent>
         <div class="ptt-inner">
           <!-- 进度环 -->
           <div class="rp-card">

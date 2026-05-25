@@ -210,7 +210,7 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
           <span>会话历史</span>
           <span class="cl-count">{{ chat.conversations.length }}</span>
         </div>
-        <ul v-if="chat.conversations.length">
+        <ul v-if="chat.conversations.length" data-lenis-prevent>
           <li
             v-for="c in chat.sorted"
             :key="c.id"
@@ -238,7 +238,7 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
 
       <!-- 中间:消息流 -->
       <div class="messages-pane">
-        <div ref="messagesEl" class="messages">
+        <div ref="messagesEl" class="messages" data-lenis-prevent>
           <div v-if="!chat.current || !chat.current.messages.length" class="msg-empty">
             <div class="me-icon">
               <svg width="46" height="46" viewBox="0 0 24 24" fill="none">

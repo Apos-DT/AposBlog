@@ -77,7 +77,7 @@ function loadScript(src, bust = false) {
 
     <!-- ============ 登录 modal (由 JS 控制显隐) ============ -->
     <div id="gb-auth-modal" class="gb-modal-mask" style="display: none">
-      <div class="gb-modal" @click.stop>
+      <div class="gb-modal" @click.stop data-lenis-prevent>
         <header class="gb-modal-head">
           <div class="gb-modal-tabs">
             <button type="button" class="gb-modal-tab active" data-tab="github">GitHub</button>

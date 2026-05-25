@@ -430,11 +430,13 @@ const overview = computed(() => {
       <div class="ov-card"><span>孤儿节点</span><strong>{{ overview.orphans }}</strong></div>
     </section>
 
-    <!-- 主区:图 + 控制面板 -->
+    <!-- 主区:图 + 控制面板
+         data-lenis-prevent:让 Lenis 不拦截这两个区域的 wheel/scroll,
+         避免鼠标在图谱上滚轮触发整页滚动,以及在控制面板内滚动触发整页滚动 -->
     <section class="graph-stage">
-      <div ref="chartEl" class="graph-canvas"></div>
+      <div ref="chartEl" class="graph-canvas" data-lenis-prevent></div>
 
-      <aside class="graph-controls">
+      <aside class="graph-controls" data-lenis-prevent>
         <h3 class="gc-title">控制</h3>
 
         <div class="gc-block">

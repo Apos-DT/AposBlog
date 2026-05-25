@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
             <IconBase name="search" :size="11" />
             <span>笔记标题补全 · 「{{ completionState.query }}」</span>
           </div>
-          <ul>
+          <ul data-lenis-prevent>
             <li
               v-for="(c, i) in completionState.candidates"
               :key="c.id"
