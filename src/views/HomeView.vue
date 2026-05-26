@@ -331,20 +331,60 @@ function initFooterMega() {
   )
   obs.observe(el)
 
+  // 创建 body 上 fixed spotlight — 跳出 footer-mega 边界,光晕完全无界
+  const spotlight = document.createElement('div')
+  spotlight.setAttribute('aria-hidden', 'true')
+  spotlight.style.cssText = `
+    position: fixed;
+    pointer-events: none;
+    width: 70vmin;
+    height: 70vmin;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.58 0.27 295 / 0.45),
+      oklch(0.65 0.22 220 / 0.22) 35%,
+      transparent 72%
+    );
+    filter: blur(72px);
+    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translate3d(-9999px, -9999px, 0);
+    will-change: transform, opacity;
+  `
+  document.body.appendChild(spotlight)
+
+  let spotRaf = 0
+  let spotPending = false
+  let spotCX = 0
+  let spotCY = 0
+  function flushSpotlight() {
+    spotlight.style.transform = `translate3d(${spotCX}px, ${spotCY}px, 0) translate(-50%, -50%)`
+    spotPending = false
+  }
+
   function onMove(e) {
     const rect = el.getBoundingClientRect()
     mouse.x = e.clientX - rect.left
     mouse.y = e.clientY - rect.top
     mouse.active = true
-    el.style.setProperty('--mx', mouse.x + 'px')
-    el.style.setProperty('--my', mouse.y + 'px')
     ensureRunning()
+    // 同步 fixed spotlight 到 viewport 坐标(不依赖 footer-mega 边界)
+    spotCX = e.clientX
+    spotCY = e.clientY
+    spotlight.style.opacity = '1'
+    if (!spotPending) {
+      spotPending = true
+      spotRaf = requestAnimationFrame(flushSpotlight)
+    }
   }
   function onLeave() {
     mouse.active = false
     mouse.x = -9999
     mouse.y = -9999
     ensureRunning()
+    spotlight.style.opacity = '0'
   }
   el.addEventListener('mousemove', onMove)
   el.addEventListener('mouseleave', onLeave)
@@ -365,10 +405,12 @@ function initFooterMega() {
     obs.disconnect()
     cancelAnimationFrame(raf)
     cancelAnimationFrame(resizeRaf)
+    cancelAnimationFrame(spotRaf)
     window.removeEventListener('resize', onResize)
     el.removeEventListener('mousemove', onMove)
     el.removeEventListener('mouseleave', onLeave)
     if (canvas.parentNode) canvas.parentNode.removeChild(canvas)
+    if (spotlight.parentNode) spotlight.parentNode.removeChild(spotlight)
   }
 }
 
@@ -1824,29 +1866,10 @@ a.contact-value:hover { color: var(--accent); }
   isolation: isolate;
 }
 
-/* 鼠标光斑 — 容器内 ::before 跟随鼠标 */
-.footer-mega::before {
-  content: "";
-  position: absolute;
-  left: var(--mx, 50%);
-  top: var(--my, 50%);
-  width: clamp(280px, 40vw, 600px);
-  height: clamp(280px, 40vw, 600px);
-  border-radius: 50%;
-  background: radial-gradient(
-    closest-side,
-    oklch(0.58 0.27 295 / 0.45),
-    oklch(0.65 0.22 220 / 0.22) 35%,
-    transparent 70%
-  );
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  opacity: 0;
-  filter: blur(48px);
-  transition: opacity 0.5s var(--ease-out);
-  z-index: 0;
-}
-.footer-mega:hover::before { opacity: 1; }
+/* 鼠标光斑改为 body 上 fixed div(JS 创建,内联样式)
+   原 ::before 容器内伪元素被 .footer-mega 边界 / 父级 max-width / body
+   overflow-x:hidden 综合裁切,鼠标靠近左右边界时光晕显示不完整。
+   fixed div 跟踪 viewport 坐标,完全脱离容器,无界感。 */
 
 /* 粒子 canvas */
 .footer-canvas {
