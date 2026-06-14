@@ -37,11 +37,11 @@ export const api = {
   put: (p, b, o) => req('PUT', p, b, o),
   del: (p, o) => req('DELETE', p, undefined, o),
   // AI 流式：直接返回 Response 供调用方读取 SSE 流
-  chatStream: (messages, signal) =>
+  chatStream: (messages, knowledge, signal) =>
     fetch(BASE + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, knowledge }),
       signal,
     }),
   adminToken,

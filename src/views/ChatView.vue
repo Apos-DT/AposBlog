@@ -183,7 +183,7 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
       <div class="left">
         <span class="no">AI · DeepSeek</span>
         <h2>AI 对话</h2>
-        <p v-if="chat.hasKey">和你的工程问题、灵感、笔记起草过过一遍 —— 基于 <strong>{{ chat.model }}</strong>。</p>
+        <p v-if="chat.hasKey">问我赵祥生的经历 / 项目 / 技能，或博客里的文章与知识库笔记 —— 我会实时基于站点内容回答。</p>
         <p v-else style="color: var(--error)">
           <IconBase name="close" :size="13" />
           需要先在
@@ -245,14 +245,12 @@ const sentinelTime = computed(() => new Date().toLocaleTimeString())
                 <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" stroke-width="1.6"/>
               </svg>
             </div>
-            <h3>开始一段对话</h3>
-            <p>
-              {{ chat.hasKey ? '从下面输入框开始一段对话' : '前往设置完成 API 配置' }}
-            </p>
-            <div v-if="chat.hasKey" class="me-suggest">
-              <button @click="input = '请用一句话总结 Karpathy 笔记法的核心'">Karpathy 笔记法一句话总结</button>
-              <button @click="input = '帮我把这段 Odoo 二开思路梳理成 checklist'">Odoo 二开思路 → checklist</button>
-              <button @click="input = '帮我审视这篇博客的工程逻辑'">审视博客工程逻辑</button>
+            <h3>问点什么</h3>
+            <p>关于赵祥生的经历、项目、技能，或这个博客里的文章与知识库笔记，都可以问我</p>
+            <div class="me-suggest">
+              <button @click="input = '赵祥生做过哪些项目？'">他做过哪些项目？</button>
+              <button @click="input = '他擅长什么技术栈？'">他擅长什么技术？</button>
+              <button @click="input = '博客里有哪些文章，分别讲了什么？'">博客里有哪些文章？</button>
             </div>
           </div>
 

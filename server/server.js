@@ -130,6 +130,31 @@ function buildSystemPrompt() {
 }
 const SYSTEM_PROMPT = buildSystemPrompt();
 
+// 动态对话 system：简历 + 后端文章(DB 实时查，新增自动包含) + 前端传来的知识库笔记
+function buildChatSystem(knowledge) {
+  let sys = SYSTEM_PROMPT;
+  try {
+    const posts = db.prepare('SELECT title,excerpt,tag,content FROM posts ORDER BY date DESC LIMIT 40').all();
+    if (posts.length) {
+      sys += '\n\n【本站博客文章】（可基于这些内容回答读者关于博客主题 / 某篇文章的问题，并推荐相关文章标题）';
+      for (const p of posts) {
+        const body = (p.content || '').replace(/\s+/g, ' ').trim().slice(0, 600);
+        sys += `\n- 《${p.title}》${p.tag ? '[' + p.tag + ']' : ''} ${p.excerpt || ''}${body ? '\n  正文摘要：' + body : ''}`;
+      }
+    }
+  } catch (e) { /* DB 查询失败不致命 */ }
+  if (Array.isArray(knowledge) && knowledge.length) {
+    sys += '\n\n【本站知识库笔记】（站长的学习笔记，可基于这些回答相关知识问题）';
+    for (const n of knowledge.slice(0, 30)) {
+      const title = (n && n.title ? String(n.title) : '').slice(0, 80);
+      const content = (n && n.content ? String(n.content) : '').replace(/\s+/g, ' ').trim().slice(0, 400);
+      if (title || content) sys += `\n- 《${title}》${content}`;
+    }
+  }
+  sys += '\n\n补充：除了简历，你还能看到本站的博客文章与知识库笔记。读者问到博客主题、某篇文章、笔记里的知识时，请基于上面的内容回答并可推荐相关文章；这些资料没覆盖到的不要编造。';
+  return sys;
+}
+
 // ---------- 限流（内存）----------
 const aiHits = new Map();
 function aiAllow(ip) {
@@ -185,7 +210,8 @@ app.post('/api/chat', async (req, res) => {
     .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
     .slice(-12)
     .map((m) => ({ role: m.role, content: m.content }));
-  const payload = { model: MODEL, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...history], stream: true, temperature: 0.7 };
+  const sys = buildChatSystem(req.body && req.body.knowledge);
+  const payload = { model: MODEL, messages: [{ role: 'system', content: sys }, ...history], stream: true, temperature: 0.7 };
 
   let upstream;
   try {

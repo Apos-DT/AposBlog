@@ -5,6 +5,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { api } from '@/utils/api'
+import { useNotesStore } from './notes'
 
 function genId() {
   return 'c-' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4)
@@ -72,7 +73,13 @@ export const useChatStore = defineStore('chat', () => {
     try {
       // 只发 user/assistant 历史，system prompt 由后端注入
       const payload = conv.messages.slice(0, -1).map((m) => ({ role: m.role, content: m.content }))
-      const res = await api.chatStream(payload, controller.signal)
+      // 把本地知识库笔记摘要一并带给后端，让 AI 能引用站点知识库（去 frontmatter + 截断）
+      const notesStore = useNotesStore()
+      const knowledge = (notesStore.notes || []).slice(0, 40).map((n) => ({
+        title: n.title || '',
+        content: (n.content || '').replace(/^---[\s\S]*?---\n?/, '').slice(0, 500),
+      }))
+      const res = await api.chatStream(payload, knowledge, controller.signal)
       if (!res.ok) {
         let detail = `HTTP ${res.status}`
         try {

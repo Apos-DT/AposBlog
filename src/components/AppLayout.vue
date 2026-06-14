@@ -80,6 +80,7 @@ const mainNav = [
   { to: '/notes',     label: '知识库' },
   { to: '/graph',     label: '知识图谱', mobileHide: true },
   { to: '/portfolio', label: '作品集' },
+  { to: 'https://worldcup.zhaoxiangsheng.top', label: '足球预测', external: true },
   { to: '/guestbook', label: '留言板', mobileHide: true },
   { to: '/chat',      label: 'AI' },
   {
@@ -123,12 +124,27 @@ function isActive(item) {
         class="nav-item"
         :class="{ 'has-children': m.hasChildren, 'nav-item-mobile-hide': m.mobileHide }"
       >
-        <RouterLink
-          :to="m.to"
+        <component
+          :is="m.external ? 'a' : RouterLink"
+          :to="m.external ? undefined : m.to"
+          :href="m.external ? m.to : undefined"
+          :target="m.external ? '_blank' : undefined"
+          :rel="m.external ? 'noopener' : undefined"
           class="nav-link"
           :class="{ 'is-active': isActive(m) }"
         >
           <span>{{ m.label }}</span>
+          <svg
+            v-if="m.external"
+            class="nav-ext"
+            width="9"
+            height="9"
+            viewBox="0 0 12 12"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M4 3.5h4.5V8M8.5 3.5L3.5 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           <svg
             v-if="m.hasChildren"
             class="nav-caret"
@@ -140,7 +156,7 @@ function isActive(item) {
           >
             <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-        </RouterLink>
+        </component>
 
         <!-- 子菜单 -->
         <div v-if="m.hasChildren" class="nav-submenu" role="menu">
@@ -456,4 +472,11 @@ function isActive(item) {
   .nav-search-overlay { padding: 12px 16px; }
   .nav-search-form { height: 44px; padding: 0 12px; }
 }
+.nav-ext {
+  margin-left: 4px;
+  opacity: .4;
+  flex-shrink: 0;
+  transition: opacity .2s;
+}
+.nav-link:hover .nav-ext { opacity: .85; }
 </style>
