@@ -10,8 +10,8 @@
     <meta property="og:title" content="APOS · 赵祥生" />
     <meta property="og:description" content="制造业前线的工程笔记博客 + Karpathy 风知识库" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://apos-dt.github.io/AposBlog/" />
-    <meta property="og:image" content="https://apos-dt.github.io/AposBlog/avatar.jpg" />
+    <meta property="og:url" content="https://zhaoxiangsheng.top/" />
+    <meta property="og:image" content="https://zhaoxiangsheng.top/avatar.jpg" />
     <meta property="og:image:width" content="200" />
     <meta property="og:image:height" content="200" />
     <meta property="og:site_name" content="APOS · 赵祥生" />
@@ -20,11 +20,11 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="APOS · 赵祥生" />
     <meta name="twitter:description" content="制造业前线的工程笔记博客 + Karpathy 风知识库" />
-    <meta name="twitter:image" content="https://apos-dt.github.io/AposBlog/avatar.jpg" />
+    <meta name="twitter:image" content="https://zhaoxiangsheng.top/avatar.jpg" />
 
     <!-- 友链工具常用约定 -->
     <meta name="author" content="赵祥生 (Apos)" />
-    <meta name="avatar" content="https://apos-dt.github.io/AposBlog/avatar.jpg" />
+    <meta name="avatar" content="https://zhaoxiangsheng.top/avatar.jpg" />
     <link rel="me" href="https://github.com/Apos-DT" />
 
     <!-- JSON-LD 结构化数据(搜索引擎与高级友链工具读取) -->
@@ -34,15 +34,15 @@
         "@type": "WebSite",
         "name": "APOS · 赵祥生",
         "alternateName": "Apos Blog",
-        "url": "https://apos-dt.github.io/AposBlog/",
-        "image": "https://apos-dt.github.io/AposBlog/avatar.jpg",
+        "url": "https://zhaoxiangsheng.top/",
+        "image": "https://zhaoxiangsheng.top/avatar.jpg",
         "description": "制造业前线的工程笔记博客 + Karpathy 风知识库",
         "author": {
           "@type": "Person",
           "name": "赵祥生",
           "alternateName": "Apos",
-          "image": "https://apos-dt.github.io/AposBlog/avatar.jpg",
-          "url": "https://apos-dt.github.io/AposBlog/#/portfolio",
+          "image": "https://zhaoxiangsheng.top/avatar.jpg",
+          "url": "https://zhaoxiangsheng.top/#/portfolio",
           "sameAs": [
             "https://github.com/Apos-DT"
           ]
@@ -52,22 +52,31 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- 字体异步加载，不阻塞首屏渲染（body 有 PingFang/system 回退）-->
     <link
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" /></noscript>
 
     <!-- 网页 favicon — SVG 优先 (圆形裁剪),jpg 留作老浏览器 fallback -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/jpeg" href="/hoshinoai.jpg" />
-    <link rel="apple-touch-icon" href="/hoshinoai.jpg" />
+    <link rel="icon" type="image/jpeg" href="/avatar.jpg" />
+    <link rel="apple-touch-icon" href="/avatar.jpg" />
     <link rel="shortcut icon" href="/favicon.svg" />
-    <script type="module" crossorigin src="/assets/index-CzRO1wS3.js"></script>
+    <script type="module" crossorigin src="/assets/index-DaG8_4h0.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vue-DuDYKpJ_.js">
     <link rel="modulepreload" crossorigin href="/assets/lenis-BEW9yqGz.js">
     <link rel="stylesheet" crossorigin href="/assets/index-q1qoGPFA.css">
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fbfaf8">
+        <div style="width:38px;height:38px;border:3px solid #e6e3f0;border-top-color:#7c3aed;border-radius:50%;animation:aposspin .8s linear infinite"></div>
+      </div>
+    </div>
+    <style>@keyframes aposspin{to{transform:rotate(360deg)}}</style>
   </body>
 </html>

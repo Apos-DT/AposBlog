@@ -33,24 +33,20 @@ onMounted(() => {
   }
   tick()
 
-  const enter = () => document.body.classList.add('cursor-hover')
-  const leave = () => document.body.classList.remove('cursor-hover')
-  const bind = () => {
-    document.querySelectorAll('a, button, .ui-card, .post-card, [data-cursor="link"]').forEach((el) => {
-      el.addEventListener('mouseenter', enter)
-      el.addEventListener('mouseleave', leave)
-    })
-  }
-  bind()
-  // 监听 DOM 变化(路由切换后重新绑定)
-  const mo = new MutationObserver(() => bind())
-  mo.observe(document.body, { childList: true, subtree: true })
+  // 事件委托：document 上挂一对监听，closest 判定可交互元素
+  // （取代逐元素绑定 + MutationObserver 全量重绑，避免 AI 流式输出时 DOM 高频变动导致监听堆积/卡顿）
+  const SEL = 'a, button, .ui-card, .post-card, [data-cursor="link"]'
+  const over = (e) => { if (e.target.closest && e.target.closest(SEL)) document.body.classList.add('cursor-hover') }
+  const out = (e) => { if (e.target.closest && e.target.closest(SEL)) document.body.classList.remove('cursor-hover') }
+  document.addEventListener('mouseover', over, { passive: true })
+  document.addEventListener('mouseout', out, { passive: true })
 
   cleanup = () => {
     cancelAnimationFrame(raf)
     window.removeEventListener('mousemove', onMove)
-    mo.disconnect()
-    leave()
+    document.removeEventListener('mouseover', over)
+    document.removeEventListener('mouseout', out)
+    document.body.classList.remove('cursor-hover')
   }
 })
 

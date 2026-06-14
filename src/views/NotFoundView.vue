@@ -10,7 +10,7 @@ import IconBase from '@/components/IconBase.vue'
     <p>这个路由可能拼错了,或者还没有实现。</p>
     <RouterLink to="/" class="ui-btn ui-btn-primary">
       <IconBase name="arrow-left" :size="14" />
-      <span>回到仪表板</span>
+      <span>回到首页</span>
     </RouterLink>
   </section>
 </template>

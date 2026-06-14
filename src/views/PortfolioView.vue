@@ -11,7 +11,7 @@ import IconBase from '@/components/IconBase.vue'
 
 const p = portfolio
 const BASE = import.meta.env.BASE_URL
-const SITE_URL = 'https://apos-dt.github.io/AposBlog/'
+const SITE_URL = 'https://zhaoxiangsheng.top/'
 const AVATAR_URL = SITE_URL + 'avatar.jpg'
 
 // 友链复制代码片段

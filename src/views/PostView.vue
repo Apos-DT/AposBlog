@@ -40,6 +40,20 @@ const articleEl = ref(null)
 
 const copyState = ref('idle')
 
+// 动态写入文章页 SEO/分享 meta（每篇文章分享/收录用自己的标题摘要，而非站点默认）
+function setMeta(p) {
+  const desc = (p.excerpt || p.title || '').slice(0, 120)
+  const url = location.origin + '/#/post/' + p.slug
+  document.title = `${p.title} · APOS`
+  const set = (sel, val) => { const el = document.head.querySelector(sel); if (el) el.setAttribute('content', val) }
+  set('meta[name="description"]', desc)
+  set('meta[property="og:title"]', p.title)
+  set('meta[property="og:description"]', desc)
+  set('meta[property="og:url"]', url)
+  set('meta[name="twitter:title"]', p.title)
+  set('meta[name="twitter:description"]', desc)
+}
+
 // ===== 加载文章（经后端 API，含正文）=====
 async function loadPost(s) {
   if (!s) return
@@ -51,6 +65,7 @@ async function loadPost(s) {
     const data = await posts.fetchPost(s)
     post.value = data
     mdSource.value = data.content || ''
+    setMeta(data)
     // 渲染后从 DOM 提取 TOC
     nextTick(() => {
       extractTOC()

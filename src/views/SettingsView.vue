@@ -224,7 +224,7 @@ const storageSize = () => {
         <dt>技术栈</dt><dd>Vue 3 · Vue Router 4 · Pinia · Vite 6 · ECharts</dd>
         <dt>数据存储</dt><dd>文章 / 留言：服务器 · 笔记 / 标签：浏览器本地</dd>
         <dt>源码</dt><dd><a href="https://github.com/Apos-DT/AposBlog" target="_blank" rel="noopener">github.com/Apos-DT/AposBlog</a></dd>
-        <dt>博客主站</dt><dd><a href="../../" target="_blank">apos-dt.github.io/AposBlog/</a></dd>
+        <dt>博客主站</dt><dd><a href="../../" target="_blank">zhaoxiangsheng.top/</a></dd>
       </dl>
     </article>
   </section>

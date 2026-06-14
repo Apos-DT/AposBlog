@@ -565,7 +565,7 @@ const experience = [
         <div class="strip-divider"></div>
 
         <div class="strip-cell">
-          <div class="strip-num">{{ posts.posts.length }}</div>
+          <div class="strip-num">{{ posts.loaded ? posts.posts.length : '—' }}</div>
           <div class="strip-label">POSTS</div>
         </div>
 
@@ -588,7 +588,7 @@ const experience = [
         <RouterLink
           v-if="latestPost"
           class="strip-cell strip-latest"
-          :to="`/posts/${latestPost.slug}`"
+          :to="`/post/${latestPost.slug}`"
         >
           <div class="strip-text">
             <div class="strip-label">LATEST POST →</div>
@@ -764,8 +764,8 @@ const experience = [
                 <label class="ui-field">
                   <span class="ui-field-label">字数限额</span>
                   <div class="bar-row">
-                    <meter class="ui-meter" min="0" max="300" low="200" high="280" optimum="100" :value="messageBytes"></meter>
-                    <span class="bar-value">{{ messageBytes }} / 300</span>
+                    <meter class="ui-meter" min="0" max="300" low="200" high="280" optimum="100" :value="contactForm.message.length"></meter>
+                    <span class="bar-value">{{ contactForm.message.length }} / 300</span>
                   </div>
                 </label>
               </div>

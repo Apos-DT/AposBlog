@@ -2,13 +2,13 @@
   "name": "APOS · 赵祥生",
   "alias": "Apos",
   "description": "Engineering Notes from a Manufacturing Frontline — 制造业前线的工程笔记博客 + Karpathy 风知识库",
-  "url": "https://apos-dt.github.io/AposBlog/",
-  "avatar": "https://apos-dt.github.io/AposBlog/avatar.jpg",
-  "avatarSvg": "https://apos-dt.github.io/AposBlog/avatar.svg",
+  "url": "https://zhaoxiangsheng.top/",
+  "avatar": "https://zhaoxiangsheng.top/avatar.jpg",
+  "avatarSvg": "https://zhaoxiangsheng.top/avatar.svg",
   "avatarSizes": {
-    "200": "https://apos-dt.github.io/AposBlog/avatar.jpg",
-    "256": "https://apos-dt.github.io/AposBlog/favicon.svg",
-    "full": "https://apos-dt.github.io/AposBlog/hoshinoai.jpg"
+    "200": "https://zhaoxiangsheng.top/avatar.jpg",
+    "256": "https://zhaoxiangsheng.top/favicon.svg",
+    "full": "https://zhaoxiangsheng.top/hoshinoai.jpg"
   },
   "author": {
     "name": "赵祥生",
@@ -26,16 +26,16 @@
     "知识图谱"
   ],
   "links": {
-    "home":      "https://apos-dt.github.io/AposBlog/",
-    "portfolio": "https://apos-dt.github.io/AposBlog/#/portfolio",
-    "library":   "https://apos-dt.github.io/AposBlog/#/library",
-    "notes":     "https://apos-dt.github.io/AposBlog/#/notes",
-    "graph":     "https://apos-dt.github.io/AposBlog/#/graph",
-    "guestbook": "https://apos-dt.github.io/AposBlog/#/guestbook",
-    "chat":      "https://apos-dt.github.io/AposBlog/#/chat"
+    "home":      "https://zhaoxiangsheng.top/",
+    "portfolio": "https://zhaoxiangsheng.top/#/portfolio",
+    "library":   "https://zhaoxiangsheng.top/#/library",
+    "notes":     "https://zhaoxiangsheng.top/#/notes",
+    "graph":     "https://zhaoxiangsheng.top/#/graph",
+    "guestbook": "https://zhaoxiangsheng.top/#/guestbook",
+    "chat":      "https://zhaoxiangsheng.top/#/chat"
   },
   "feed": {
-    "manifest": "https://apos-dt.github.io/AposBlog/content/manifest.json"
+    "manifest": "https://zhaoxiangsheng.top/content/manifest.json"
   },
   "license": "MIT",
   "version": 1
