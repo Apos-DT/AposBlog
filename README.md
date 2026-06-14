@@ -12,6 +12,12 @@
 
 一个**完整的 Vue 3 单页应用**,把"个人博客 + Karpathy 风知识库 + 知识图谱"整合为同一个站点 —— 顶部 nav 在博客与应用之间无缝切换。
 
+> **架构升级(v2)**:AI 对话、留言板、文章集已从浏览器 localStorage 迁移到 **Node + Express + SQLite 后端**(见 [`server/`](./server))。
+> - **AI 招聘问答**:DeepSeek key 只存服务器,前端经 `/api/chat` 代理;招聘者可问"赵祥生做过什么",AI 基于真实简历回答(IP 限流防刷)。
+> - **留言板 / 文章集**:后端共享存储,所有访客看到同一份;访客可发留言 / 读文章,**管理员**(口令登录)可增删改文章、删除留言。
+> - 知识库(笔记 / 标签 / 图谱 / 统计)仍是浏览器本地。
+> - ⚠️ 完整功能需自部署**前端 + 后端**;纯静态 GitHub Pages 只能跑不依赖后端的部分(详见「部署」)。
+
 ---
 
 ## 🚀 本地运行(3 步)
@@ -23,7 +29,7 @@ npm install
 npm run dev          # → http://localhost:5173/
 ```
 
-要求:**Node ≥ 18** · npm 8+。**纯前端,无后端依赖,数据全存浏览器 localStorage。**
+要求:**Node ≥ 18** · npm 8+。前端 dev 默认调同源 `/api`,完整体验请同时启动后端(见 [`server/`](./server));仅看前端静态部分可不启动后端。
 
 ### 其他命令
 
@@ -168,6 +174,30 @@ AposBlog/
 
 ---
 
+## 🔌 后端(server/)
+
+**Node + Express + SQLite** —— 藏 AI key、留言与文章的共享存储。
+
+| 端点 | 权限 | 说明 |
+|---|---|---|
+| `POST /api/chat` | 公开(限流) | DeepSeek 流式代理,注入简历 system prompt;每 IP 每天 20 条、单条 ≤2000 字 |
+| `GET /api/posts` · `/:slug` | 公开 | 文章列表 / 详情(含正文) |
+| `POST/PUT/DELETE /api/posts` | 管理员 | 增 / 改 / 删文章 |
+| `GET/POST /api/guestbook` · `POST /:id/like` | 公开 | 留言列表 / 发布 / 点赞 |
+| `DELETE /api/guestbook/:id` | 管理员 | 删除留言 |
+| `POST /api/admin/login` | — | 口令换 token |
+
+```bash
+cd server
+cp .env.example .env     # 填 DEEPSEEK_API_KEY 与 ADMIN_TOKEN
+npm install
+npm start                # 监听 127.0.0.1:3000
+```
+
+> key 只在 `server/.env`(已 gitignore),**绝不进前端构建产物**。管理操作靠请求头 `x-admin-token`;前端在「设置」页输入口令登录(会话级 sessionStorage)。
+
+---
+
 ## 💾 数据持久化
 
 所有数据存储于浏览器 `localStorage`,key 前缀 `apos:`:
@@ -182,24 +212,22 @@ AposBlog/
 
 ---
 
-## 🚢 部署到 GitHub Pages
+## 🚢 部署
 
-仓库 → Settings → Pages 配置:
-- **Source**: Deploy from a branch
-- **Branch**: `main` / `/docs`
-
-构建并提交即自动部署:
+完整版需 **前端(静态) + 后端(Node)** 一起部署,推荐自有服务器 + Nginx 反代:
 
 ```bash
-npm run build           # → docs/ 更新
-git add docs
-git commit -m "build"
-git push origin main
-# 约 1 分钟后访问 https://apos-dt.github.io/AposBlog/
+# 1. 前端:根路径部署需 base=/
+npm run build -- --base=/        # → docs/,作为 Nginx 站点根目录
+
+# 2. 后端:见上方 server/ 说明,用 systemd / pm2 常驻
+
+# 3. Nginx:静态根指向 docs/,并把 /api 反代到后端
+#    location /api/ { proxy_pass http://127.0.0.1:3000; proxy_buffering off; }
 ```
 
-也可以部署到任何静态服务器(Nginx / Netlify / Vercel / Cloudflare Pages):
-**整个 docs/ 目录直接当静态站点服务即可。**
+> **关于 GitHub Pages**:`docs/` 历史上用于 GitHub Pages(`apos-dt.github.io/AposBlog/`)。
+> v2 后端化后,纯静态 Pages **无法运行 AI / 留言 / 文章**(这些请求 `/api`,Pages 上不存在),仅不依赖后端的页面可用。完整体验请按上面自部署前端 + 后端。
 
 ---
 

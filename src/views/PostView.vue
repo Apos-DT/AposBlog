@@ -26,7 +26,8 @@ const settings = useSettingsStore()
 
 const BASE_URL = import.meta.env.BASE_URL
 const slug = computed(() => route.params.slug)
-const post = computed(() => posts.findBySlug(slug.value))
+const post = ref(null)
+const loading = ref(true)
 const record = computed(() => reads.ensure(slug.value))
 
 const mdSource = ref('')
@@ -39,15 +40,17 @@ const articleEl = ref(null)
 
 const copyState = ref('idle')
 
-// ===== 加载 markdown =====
-async function loadMd(s) {
+// ===== 加载文章（经后端 API，含正文）=====
+async function loadPost(s) {
   if (!s) return
   loadErr.value = ''
   mdSource.value = ''
+  post.value = null
+  loading.value = true
   try {
-    const r = await fetch(`${import.meta.env.BASE_URL}content/posts/${encodeURIComponent(s)}.md`, { cache: 'no-cache' })
-    if (!r.ok) throw new Error(`HTTP ${r.status}`)
-    mdSource.value = await r.text()
+    const data = await posts.fetchPost(s)
+    post.value = data
+    mdSource.value = data.content || ''
     // 渲染后从 DOM 提取 TOC
     nextTick(() => {
       extractTOC()
@@ -56,11 +59,13 @@ async function loadMd(s) {
       reads.setStatus(slug.value, record.value.status === 'unread' ? 'reading' : record.value.status)
     })
   } catch (e) {
-    loadErr.value = e.message || '加载失败'
+    loadErr.value = e.status === 404 ? '文章不存在' : (e.message || '加载失败')
+  } finally {
+    loading.value = false
   }
 }
 
-watch(slug, loadMd, { immediate: true })
+watch(slug, loadPost, { immediate: true })
 
 // ===== 渲染 =====
 const rendered = computed(() => {
@@ -201,11 +206,17 @@ function fmtDate(d) {
 
 <template>
   <div class="post-page">
-    <!-- 加载失败 -->
-    <div v-if="loadErr || !post" class="ui-empty" style="padding-top:80px">
+    <!-- 加载中 -->
+    <div v-if="loading" class="ui-empty" style="padding-top:80px">
       <span class="icon"><IconBase name="library" :size="20" /></span>
-      <h3>{{ !post ? '文章不存在' : '加载失败' }}</h3>
-      <p>{{ loadErr || `找不到 slug = ${slug}` }}</p>
+      <h3>加载中…</h3>
+    </div>
+
+    <!-- 加载失败 / 不存在 -->
+    <div v-else-if="loadErr || !post" class="ui-empty" style="padding-top:80px">
+      <span class="icon"><IconBase name="library" :size="20" /></span>
+      <h3>{{ loadErr || '文章不存在' }}</h3>
+      <p>slug = {{ slug }}</p>
       <RouterLink to="/" class="ui-btn ui-btn-primary">返回首页</RouterLink>
     </div>
 

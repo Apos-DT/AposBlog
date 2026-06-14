@@ -9,7 +9,7 @@ import { usePostsStore } from '@/stores/posts'
 import { useReadsStore } from '@/stores/reads'
 import { useNotesStore } from '@/stores/notes'
 import { useTagsStore } from '@/stores/tags'
-import { useChatStore } from '@/stores/chat'
+import { useAdminStore } from '@/stores/admin'
 import { exportAll, importAll, clearAll } from '@/stores/_persist'
 
 import IconBase from '@/components/IconBase.vue'
@@ -19,9 +19,29 @@ const posts = usePostsStore()
 const reads = useReadsStore()
 const notes = useNotesStore()
 const tags = useTagsStore()
-const chat = useChatStore()
+const admin = useAdminStore()
 
 const importFile = ref(null)
+const adminPw = ref('')
+const adminBusy = ref(false)
+
+async function doAdminLogin() {
+  if (!adminPw.value.trim()) return
+  adminBusy.value = true
+  try {
+    await admin.login(adminPw.value.trim())
+    adminPw.value = ''
+    settings.pushToast('success', '管理员已登录，现在可以增删改文章、删除留言')
+  } catch (e) {
+    settings.pushToast('error', e.message || '登录失败')
+  } finally {
+    adminBusy.value = false
+  }
+}
+function doAdminLogout() {
+  admin.logout()
+  settings.pushToast('info', '已退出管理员')
+}
 
 function doExport() {
   const payload = exportAll()
@@ -58,17 +78,11 @@ async function doImport(e) {
 }
 
 function doClear() {
-  if (!confirm('确定清空所有数据?\n这将删除所有笔记、阅读记录、自定义标签和文章。此操作不可撤销。')) return
+  if (!confirm('确定清空本地数据?\n这将删除浏览器本地的笔记、阅读记录、自定义标签。服务器上的文章与留言不受影响,此操作不可撤销。')) return
   if (!confirm('再次确认:真的要清空全部本地数据?')) return
   clearAll()
   settings.pushToast('warning', '已清空,刷新页面')
   setTimeout(() => location.reload(), 800)
-}
-
-function resetPostsToInitial() {
-  if (!confirm('恢复文章列表到初始 4 篇博客文章,你添加的自定义文章会被清除。确定?')) return
-  posts.resetToInitial()
-  settings.pushToast('success', '文章列表已恢复初始')
 }
 
 const storageSize = () => {
@@ -95,63 +109,51 @@ const storageSize = () => {
       </div>
     </header>
 
-    <!-- AI 设置 -->
-    <article class="set-card" id="ai">
-      <header><h3><IconBase name="key" :size="16" /> AI 对话设置</h3></header>
+    <!-- 管理员 -->
+    <article class="set-card" id="admin">
+      <header><h3><IconBase name="key" :size="16" /> 管理员</h3></header>
 
       <div class="ui-alert info" style="margin-bottom:18px">
         <span>
-          API key 仅保存在你的浏览器中。建议从
-          <a href="https://platform.deepseek.com" target="_blank" rel="noopener" style="color:var(--accent)">DeepSeek 控制台</a>
-          生成最小权限的 key 使用。
+          登录后才能在「文章」页增删改文章、在「留言板」删除留言。口令由站长持有，仅本次会话有效（关闭标签页即退出）。
         </span>
       </div>
 
-      <label class="ui-field" style="margin-bottom: 14px">
-        <span class="ui-field-label">DeepSeek API Key <em>*</em></span>
-        <input
-          v-model="chat.apiKey"
-          type="password"
-          class="ui-input"
-          placeholder="sk-..."
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <span class="ui-field-tip">
-          <span v-if="chat.hasKey" style="color: var(--success)">✓ 已配置 ({{ chat.apiKey.length }} 字符)</span>
-          <span v-else>未配置 · AI 对话需要此 key</span>
-        </span>
-      </label>
-
-      <div class="ai-grid">
-        <label class="ui-field">
-          <span class="ui-field-label">API Base URL</span>
-          <input v-model="chat.baseUrl" type="url" class="ui-input" placeholder="https://api.deepseek.com" />
+      <template v-if="!admin.isAdmin">
+        <label class="ui-field" style="margin-bottom: 14px">
+          <span class="ui-field-label">管理口令</span>
+          <input
+            v-model="adminPw"
+            type="password"
+            class="ui-input"
+            placeholder="输入管理口令"
+            autocomplete="off"
+            spellcheck="false"
+            @keydown.enter="doAdminLogin"
+          />
         </label>
-        <label class="ui-field">
-          <span class="ui-field-label">模型</span>
-          <select v-model="chat.model" class="ui-select">
-            <option value="deepseek-chat">deepseek-chat (V3)</option>
-            <option value="deepseek-reasoner">deepseek-reasoner (R1)</option>
-          </select>
-        </label>
-      </div>
-
-      <label class="ui-field">
-        <span class="ui-field-label">System Prompt(系统提示词)</span>
-        <textarea v-model="chat.systemPrompt" class="ui-textarea" rows="3"></textarea>
-      </label>
-
-      <div class="set-actions">
-        <RouterLink to="/chat" class="ui-btn ui-btn-primary">
-          <IconBase name="chat" :size="14" />
-          <span>去对话</span>
-        </RouterLink>
-        <button class="ui-btn ui-btn-ghost" @click="chat.clearAll">
-          <IconBase name="trash" :size="14" />
-          <span>清空全部会话</span>
-        </button>
-      </div>
+        <div class="set-actions">
+          <button class="ui-btn ui-btn-primary" :disabled="adminBusy || !adminPw.trim()" @click="doAdminLogin">
+            <IconBase name="key" :size="14" />
+            <span>{{ adminBusy ? '登录中…' : '登录' }}</span>
+          </button>
+        </div>
+      </template>
+      <template v-else>
+        <div class="ui-field-tip" style="margin-bottom:14px; color: var(--success); font-size: 13px">
+          ✓ 已登录为管理员，可去「文章 / 留言板」管理内容
+        </div>
+        <div class="set-actions">
+          <RouterLink to="/library" class="ui-btn ui-btn-primary">
+            <IconBase name="library" :size="14" />
+            <span>去管理文章</span>
+          </RouterLink>
+          <button class="ui-btn ui-btn-ghost" @click="doAdminLogout">
+            <IconBase name="close" :size="14" />
+            <span>退出管理员</span>
+          </button>
+        </div>
+      </template>
     </article>
 
     <!-- 数据管理 -->
@@ -176,11 +178,6 @@ const storageSize = () => {
           <span>导入备份</span>
           <input type="file" accept="application/json,.json" ref="importFile" hidden @change="doImport" />
         </label>
-
-        <button class="ui-btn ui-btn-ghost" @click="resetPostsToInitial">
-          <IconBase name="library" :size="14" />
-          <span>恢复初始文章</span>
-        </button>
 
         <button class="ui-btn ui-btn-danger" @click="doClear">
           <IconBase name="trash" :size="14" />
@@ -225,7 +222,7 @@ const storageSize = () => {
         <dt>项目名</dt><dd>APOS · 阅读追踪与知识库</dd>
         <dt>作者</dt><dd>赵祥生 (Apos)</dd>
         <dt>技术栈</dt><dd>Vue 3 · Vue Router 4 · Pinia · Vite 6 · ECharts</dd>
-        <dt>数据存储</dt><dd>浏览器本地</dd>
+        <dt>数据存储</dt><dd>文章 / 留言：服务器 · 笔记 / 标签：浏览器本地</dd>
         <dt>源码</dt><dd><a href="https://github.com/Apos-DT/AposBlog" target="_blank" rel="noopener">github.com/Apos-DT/AposBlog</a></dd>
         <dt>博客主站</dt><dd><a href="../../" target="_blank">apos-dt.github.io/AposBlog/</a></dd>
       </dl>

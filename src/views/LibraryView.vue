@@ -1,13 +1,14 @@
 <script setup>
 /**
- * 文章库 — 列表 + 搜索 + 标签筛选 + 排序 + 添加自定义文章
- * 课程要求"列表展示 + 搜索筛选 + 添加/删除"
+ * 文章库 — 列表 + 搜索 + 标签筛选 + 排序
+ * 管理员登录后可写 / 编辑 / 删除站内文章（带 markdown 正文）
  */
 import { ref, computed, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { usePostsStore } from '@/stores/posts'
 import { useReadsStore } from '@/stores/reads'
 import { useSettingsStore } from '@/stores/settings'
+import { useAdminStore } from '@/stores/admin'
 
 import IconBase from '@/components/IconBase.vue'
 
@@ -15,13 +16,13 @@ const route = useRoute()
 const posts = usePostsStore()
 const reads = useReadsStore()
 const settings = useSettingsStore()
+const admin = useAdminStore()
 
 const keyword = ref(route.query.q || '')
 const tagFilter = ref('')
 const statusFilter = ref('all') // all | unread | reading | done | collected
-const sort = ref('date-desc') // date-desc | date-asc | read-time | rating-desc
+const sort = ref('date-desc')
 
-// 初始化时如果 url 带 ?q 同步
 watch(
   () => route.query.q,
   (q) => {
@@ -45,7 +46,7 @@ const filtered = computed(() => {
   }
   switch (sort.value) {
     case 'date-asc':
-      list = [...list].sort((a, b) => a.date.localeCompare(b.date))
+      list = [...list].sort((a, b) => (a.date || '').localeCompare(b.date || ''))
       break
     case 'read-time':
       list = [...list].sort((a, b) => (a.readTime || 0) - (b.readTime || 0))
@@ -55,51 +56,80 @@ const filtered = computed(() => {
       break
     case 'date-desc':
     default:
-      list = [...list].sort((a, b) => b.date.localeCompare(a.date))
+      list = [...list].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
   }
   return list
 })
 
-// ===== 添加文章模态 =====
-const showAdd = ref(false)
-const addForm = ref({ title: '', excerpt: '', tag: '', url: '', readTime: 5 })
-const addErr = ref('')
+// ===== 文章编辑器（新增 / 编辑，仅管理员）=====
+const showEditor = ref(false)
+const editingSlug = ref(null)
+const busy = ref(false)
+const form = ref({ slug: '', title: '', excerpt: '', tag: '', readTime: 5, content: '' })
+const formErr = ref('')
 
 function openAdd() {
-  addForm.value = { title: '', excerpt: '', tag: '', url: '', readTime: 5 }
-  addErr.value = ''
-  showAdd.value = true
+  editingSlug.value = null
+  form.value = { slug: '', title: '', excerpt: '', tag: '', readTime: 5, content: '' }
+  formErr.value = ''
+  showEditor.value = true
 }
 
-function submitAdd() {
-  addErr.value = ''
+async function openEdit(p) {
+  editingSlug.value = p.slug
+  formErr.value = ''
+  busy.value = true
+  showEditor.value = true
+  form.value = { slug: p.slug, title: p.title, excerpt: p.excerpt || '', tag: p.tag || '', readTime: parseInt(p.readTime, 10) || 5, content: '' }
   try {
-    if (!addForm.value.title) throw new Error('请填写标题')
-    if (!addForm.value.url) throw new Error('请填写文章 URL')
-    posts.add({
-      title: addForm.value.title,
-      excerpt: addForm.value.excerpt,
-      tag: addForm.value.tag || 'Custom',
-      url: addForm.value.url,
-      readTime: parseInt(addForm.value.readTime, 10) || 5,
-      date: new Date().toISOString().slice(0, 10),
-    })
-    showAdd.value = false
-    settings.pushToast('success', '已加入文章列表')
+    const full = await posts.fetchPost(p.slug)
+    form.value.content = full.content || ''
   } catch (e) {
-    addErr.value = e.message
+    formErr.value = '加载正文失败：' + (e.message || '')
+  } finally {
+    busy.value = false
   }
 }
 
-function removeCustom(slug, title) {
-  if (!confirm(`确定删除「${title}」?\n(只能删除自定义添加的文章,博客自带文章不会被删除)`)) return
-  const p = posts.findBySlug(slug)
-  if (!p?.external) {
-    settings.pushToast('warning', '博客自带文章不可删除')
+async function submitEditor() {
+  formErr.value = ''
+  if (!form.value.title.trim()) {
+    formErr.value = '请填写标题'
     return
   }
-  posts.remove(slug)
-  settings.pushToast('success', '已从文章列表移除')
+  busy.value = true
+  try {
+    const payload = {
+      title: form.value.title.trim(),
+      excerpt: form.value.excerpt,
+      tag: form.value.tag || 'Note',
+      readTime: parseInt(form.value.readTime, 10) || 5,
+      content: form.value.content,
+    }
+    if (editingSlug.value) {
+      await posts.update(editingSlug.value, payload)
+      settings.pushToast('success', '文章已更新')
+    } else {
+      if (form.value.slug.trim()) payload.slug = form.value.slug.trim()
+      await posts.add(payload)
+      settings.pushToast('success', '文章已发布')
+    }
+    showEditor.value = false
+  } catch (e) {
+    formErr.value = e.status === 401 ? '管理员登录已失效，请到「设置」重新登录' : (e.message || '保存失败')
+  } finally {
+    busy.value = false
+  }
+}
+
+async function removePost(slug, title) {
+  if (!confirm(`确定删除「${title}」？此操作不可撤销。`)) return
+  try {
+    await posts.remove(slug)
+    settings.pushToast('success', '已删除文章')
+  } catch (e) {
+    settings.pushToast('error', e.status === 401 ? '管理员登录已失效' : (e.message || '删除失败'))
+  }
 }
 
 function toggleCollect(slug, e) {
@@ -122,7 +152,7 @@ function getStatusLabel(slug) {
 
 <template>
   <section class="view-library">
-    <!-- 顶部:标题 + 添加按钮 -->
+    <!-- 顶部:标题 + 写文章按钮(管理员) -->
     <header class="ui-section-head">
       <div class="left">
         <span class="no">02 / Library</span>
@@ -130,9 +160,9 @@ function getStatusLabel(slug) {
         <p>共 {{ posts.posts.length }} 篇 · {{ filtered.length }} 篇符合当前筛选 ·
           已读 {{ reads.stats.done }} 收藏 {{ reads.stats.collected }}</p>
       </div>
-      <button class="ui-btn ui-btn-accent" @click="openAdd">
+      <button v-if="admin.isAdmin" class="ui-btn ui-btn-accent" @click="openAdd">
         <IconBase name="plus" :size="14" />
-        <span>加文章</span>
+        <span>写文章</span>
       </button>
     </header>
 
@@ -190,14 +220,14 @@ function getStatusLabel(slug) {
         <header class="lc-meta">
           <span class="lc-tag">{{ p.tag }}</span>
           <span class="lc-date">{{ p.date }}</span>
-          <button
-            v-if="p.external"
-            class="lc-del"
-            :title="'移除「'+p.title+'」'"
-            @click.prevent="removeCustom(p.slug, p.title)"
-          >
-            <IconBase name="trash" :size="13" />
-          </button>
+          <span v-if="admin.isAdmin" class="lc-admin">
+            <button class="lc-act" title="编辑" @click.prevent="openEdit(p)">
+              <IconBase name="edit" :size="13" />
+            </button>
+            <button class="lc-act lc-act-danger" title="删除" @click.prevent="removePost(p.slug, p.title)">
+              <IconBase name="trash" :size="13" />
+            </button>
+          </span>
         </header>
 
         <h3 class="lc-title">{{ p.title }}</h3>
@@ -217,7 +247,7 @@ function getStatusLabel(slug) {
           >
             <IconBase :name="reads.get(p.slug)?.collected ? 'heart-filled' : 'heart'" :size="15" />
           </button>
-          <RouterLink :to="`/library/${p.slug}`" class="lc-open">
+          <RouterLink :to="`/post/${p.slug}`" class="lc-open">
             打开 <IconBase name="arrow-right" :size="13" />
           </RouterLink>
         </footer>
@@ -238,41 +268,50 @@ function getStatusLabel(slug) {
       </button>
     </div>
 
-    <!-- 添加文章 modal -->
+    <!-- 文章编辑器 modal -->
     <Teleport to="body">
-      <div v-if="showAdd" class="ui-modal-mask" @click.self="showAdd = false">
-        <form class="ui-modal" @submit.prevent="submitAdd">
-          <h3 class="ui-modal-title">加入一篇文章</h3>
-          <p class="ui-modal-desc">可以是任何 URL —— 博客内的、外部博客、官方文档等。</p>
+      <div v-if="showEditor" class="ui-modal-mask" @click.self="showEditor = false">
+        <form class="ui-modal ui-modal-wide" @submit.prevent="submitEditor">
+          <h3 class="ui-modal-title">{{ editingSlug ? '编辑文章' : '写一篇文章' }}</h3>
+          <p class="ui-modal-desc">正文支持 Markdown（标题 # / 列表 - / 代码块 ``` / 引用 &gt; 等）。</p>
 
-          <div v-if="addErr" class="ui-alert error" style="margin-bottom:14px"><strong>错误·</strong> {{ addErr }}</div>
+          <div v-if="formErr" class="ui-alert error" style="margin-bottom:14px"><strong>错误·</strong> {{ formErr }}</div>
 
           <div class="ui-field">
             <label class="ui-field-label">标题 <em>*</em></label>
-            <input v-model="addForm.title" class="ui-input" required placeholder="如:Vue 3 组合式 API 深度指南" />
+            <input v-model="form.title" class="ui-input" required placeholder="如:在 Odoo 里做制造业 ERP 二开" />
           </div>
-          <div class="ui-field">
-            <label class="ui-field-label">URL <em>*</em></label>
-            <input v-model="addForm.url" type="url" class="ui-input" required placeholder="https://..." />
-          </div>
-          <div class="ui-field">
-            <label class="ui-field-label">摘要</label>
-            <textarea v-model="addForm.excerpt" class="ui-textarea" rows="3" placeholder="一两句话概括内容" />
-          </div>
-          <div class="ui-field" style="display:grid;grid-template-columns:1fr 120px;gap:16px;">
-            <div>
+
+          <div class="ed-grid">
+            <div class="ui-field">
               <label class="ui-field-label">标签</label>
-              <input v-model="addForm.tag" class="ui-input" placeholder="如:Vue / Java" />
+              <input v-model="form.tag" class="ui-input" placeholder="如:ERP / Vue / Data" />
             </div>
-            <div>
+            <div class="ui-field">
               <label class="ui-field-label">时长 (min)</label>
-              <input v-model.number="addForm.readTime" type="number" class="ui-input" min="1" max="120" />
+              <input v-model.number="form.readTime" type="number" class="ui-input" min="1" max="120" />
+            </div>
+            <div v-if="!editingSlug" class="ui-field">
+              <label class="ui-field-label">Slug (选填)</label>
+              <input v-model="form.slug" class="ui-input" placeholder="留空自动生成" />
             </div>
           </div>
 
+          <div class="ui-field">
+            <label class="ui-field-label">摘要</label>
+            <textarea v-model="form.excerpt" class="ui-textarea" rows="2" placeholder="一两句话概括内容" />
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-field-label">正文 (Markdown)</label>
+            <textarea v-model="form.content" class="ui-textarea ed-content" rows="12" placeholder="# 开始写...\n\n正文支持 Markdown。" />
+          </div>
+
           <div class="ui-modal-actions">
-            <button type="button" class="ui-btn ui-btn-ghost" @click="showAdd = false">取消</button>
-            <button type="submit" class="ui-btn ui-btn-primary">加入</button>
+            <button type="button" class="ui-btn ui-btn-ghost" @click="showEditor = false">取消</button>
+            <button type="submit" class="ui-btn ui-btn-primary" :disabled="busy">
+              {{ busy ? '保存中…' : (editingSlug ? '保存修改' : '发布') }}
+            </button>
           </div>
         </form>
       </div>
@@ -371,14 +410,22 @@ function getStatusLabel(slug) {
   text-transform: uppercase;
 }
 .lc-date { color: var(--ink-3); }
-.lc-del {
+.lc-admin {
   margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+.lc-act {
   padding: 4px;
   border-radius: 6px;
   color: var(--ink-3);
   transition: color 0.3s, background 0.3s;
 }
-.lc-del:hover {
+.lc-act:hover {
+  color: var(--accent);
+  background: oklch(0.92 0.05 295 / 0.3);
+}
+.lc-act-danger:hover {
   color: var(--error);
   background: oklch(0.90 0.06 25 / 0.3);
 }
@@ -458,5 +505,20 @@ function getStatusLabel(slug) {
 }
 .lc-prog .ui-progress {
   height: 4px;
+}
+
+/* 编辑器 */
+.ed-grid {
+  display: grid;
+  grid-template-columns: 1fr 120px 1fr;
+  gap: 14px;
+}
+@media (max-width: 640px) {
+  .ed-grid { grid-template-columns: 1fr; }
+}
+.ed-content {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
 }
 </style>

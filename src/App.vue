@@ -10,11 +10,13 @@ import { useRoute } from 'vue-router'
 import Lenis from 'lenis'
 
 import { useSettingsStore } from '@/stores/settings'
+import { usePostsStore } from '@/stores/posts'
 import AppBackground from '@/components/AppBackground.vue'
 import AppCursor from '@/components/AppCursor.vue'
 import AppLayout from '@/components/AppLayout.vue'
 
 const settings = useSettingsStore()
+const posts = usePostsStore()
 const route = useRoute()
 
 let lenis = null
@@ -22,6 +24,7 @@ let rafId = 0
 
 onMounted(() => {
   settings.applyTheme()
+  posts.load() // 从后端加载文章列表（首页/文章库/图谱共用）
 
   // 启动 Lenis 平滑滚动 (减少动效用户跳过)
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {

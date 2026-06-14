@@ -13,8 +13,12 @@ dist
 # 系统
 .DS_Store
 *.log
+.env
 .env.local
 .env.*.local
+server/data.db
+server/data.db-wal
+server/data.db-shm
 
 # 实验报告 / 私人笔记(本地保留,不进仓库)
 实验报告*.txt
