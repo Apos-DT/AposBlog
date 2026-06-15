@@ -10,7 +10,7 @@ import { fileURLToPath, URL } from 'node:url'
  * - manualChunks: vue/echarts/lenis 分离,首屏更轻
  */
 export default defineConfig(({ command }) => ({
-  base: command === 'build' ? '/AposBlog/' : '/',
+  base: command === 'build' ? './' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
